@@ -1,0 +1,140 @@
+import { Link } from 'react-router-dom';
+
+function Signup() {
+  return (
+    <div className="min-h-screen flex flex-col bg-[#f8f9fa]">
+      {/* Nav */}
+      <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-primary/10 bg-white/50 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-2 text-primary">
+          <span className="material-symbols-outlined text-3xl font-bold">spa</span>
+          <span className="text-2xl font-bold tracking-tight">쉼표</span>
+        </div>
+        <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
+      </nav>
+
+      <main className="flex-1 flex items-center justify-center p-6 sm:p-12">
+        <div className="w-full max-w-[520px] bg-white rounded-xl shadow-xl p-8 md:p-12 border border-primary/5">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">반가워요!</h1>
+            <p className="text-gray-500">쉼표와 함께 따뜻한 휴식을 시작해보세요.</p>
+          </div>
+
+          <form className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">이메일 주소</label>
+              <input
+                className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                placeholder="example@email.com"
+                type="email"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">비밀번호</label>
+              <div className="relative">
+                <input
+                  className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  placeholder="8자 이상 영문, 숫자 조합"
+                  type="password"
+                />
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary" type="button">
+                  <span className="material-symbols-outlined">visibility</span>
+                </button>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="h-full bg-primary w-2/3"></div>
+                </div>
+                <span className="text-xs font-medium text-primary">보통</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">비밀번호 확인</label>
+              <input
+                className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                placeholder="비밀번호를 한번 더 입력해주세요"
+                type="password"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">닉네임</label>
+              <input
+                className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                placeholder="사용하실 닉네임을 입력해주세요"
+                type="text"
+              />
+            </div>
+
+            <div className="pt-4 border-t border-gray-100 space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" type="checkbox" />
+                <span className="text-sm font-bold text-gray-900">전체 동의하기</span>
+              </label>
+              <div className="pl-8 space-y-3">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <input className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" type="checkbox" />
+                    <span className="text-xs text-gray-600">(필수) 만 14세 이상입니다</span>
+                  </div>
+                </label>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <input className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" type="checkbox" />
+                    <span className="text-xs text-gray-600">(필수) 이용약관 동의</span>
+                  </div>
+                  <span className="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+                </label>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <input className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" type="checkbox" />
+                    <span className="text-xs text-gray-600">(필수) 개인정보 수집 및 이용 동의</span>
+                  </div>
+                  <span className="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+                </label>
+              </div>
+            </div>
+
+            <Link to="/signup-complete">
+              <button
+                className="w-full h-14 bg-[#4fd1c5] hover:bg-[#3ebcb0] text-white font-bold text-lg rounded-xl transition-all shadow-lg active:scale-[0.98]"
+                type="submit"
+              >
+                회원가입 완료
+              </button>
+            </Link>
+          </form>
+
+          <div className="mt-10">
+            <div className="relative flex items-center justify-center mb-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <span className="relative px-4 bg-white text-xs text-gray-400 uppercase tracking-widest">간편 회원가입</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <button className="flex items-center justify-center gap-2 h-12 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold text-sm transition-all shadow-sm">
+                구글
+              </button>
+              <button className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#FEE500] hover:bg-[#fada0a] text-[#3c1e1e] font-semibold text-sm transition-all">
+                <span className="material-symbols-outlined text-xl">chat_bubble</span>
+                카카오
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <p className="text-sm text-gray-500">
+              이미 계정이 있으신가요?
+              <Link to="/login" className="text-primary font-bold hover:underline ml-1">로그인하기</Link>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer className="w-full py-8 text-center bg-gray-50 border-t border-gray-100">
+        <p className="text-xs text-gray-400">© 2024 쉼표. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}
+
+export default Signup;

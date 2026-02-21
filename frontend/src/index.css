@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fonts are loaded via index.html <link> tags for better performance */
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Public Sans', 'Inter', 'Noto Sans KR', sans-serif;
+    background-color: #F9F9F7;
+    color: #334155;
+    min-height: 100vh;
+  }
+
+  body.dark {
+    background-color: #221610;
+    color: #f1f5f9;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .glass-white {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+  }
+
+  .glass-dark {
+    background: rgba(34, 22, 16, 0.7);
+    backdrop-filter: blur(10px);
+  }
+
+  .chart-gradient-mint {
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 100%);
+  }
+}
