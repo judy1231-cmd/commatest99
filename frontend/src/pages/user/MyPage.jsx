@@ -120,12 +120,12 @@ function MyPage() {
                 { icon: 'tune', label: '맞춤 추천 설정' },
                 { icon: 'logout', label: '로그아웃', red: true },
               ].map((item, i) => (
-                <a key={i} className={`flex items-center gap-4 p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group ${item.red ? 'hover:border-red-100' : 'hover:border-primary/30'}`} href="#">
+                <button key={i} className={`flex items-center gap-4 p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group w-full text-left ${item.red ? 'hover:border-red-100' : 'hover:border-primary/30'}`}>
                   <div className={`p-2 rounded-lg bg-slate-50 transition-colors ${item.red ? 'group-hover:bg-red-50 group-hover:text-red-400' : 'group-hover:bg-green-50 group-hover:text-primary'} text-slate-400`}>
                     <span className="material-icons">{item.icon}</span>
                   </div>
                   <span className="text-sm font-bold text-slate-700">{item.label}</span>
-                </a>
+                </button>
               ))}
             </div>
           </section>

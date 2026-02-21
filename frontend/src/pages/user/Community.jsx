@@ -43,10 +43,10 @@ function Community() {
               { icon: 'favorite', label: '감정적 휴식' },
               { icon: 'forum', label: '사회적 휴식' },
             ].map((item, i) => (
-              <a key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-colors ${item.active ? 'bg-[#4ADE80]/10 text-[#4ADE80]' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'}`} href="#">
+              <button key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-colors w-full ${item.active ? 'bg-[#4ADE80]/10 text-[#4ADE80]' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
                 <span className="material-symbols-outlined text-xl">{item.icon}</span>
                 <span className="text-sm">{item.label}</span>
-              </a>
+              </button>
             ))}
           </div>
           <button className="w-full bg-slate-900 hover:bg-black text-white font-semibold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
