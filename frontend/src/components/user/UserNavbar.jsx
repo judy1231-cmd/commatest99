@@ -110,8 +110,16 @@ function LoginModal({ onClose }) {
 
 function UserNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path) => location.pathname === path;
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('isLoggedIn'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+    navigate('/');
+  };
 
   return (
     <>
@@ -129,15 +137,21 @@ function UserNavbar() {
             <Link to="/challenge" className={`text-sm font-medium transition-colors ${isActive('/challenge') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>챌린지</Link>
             <Link to="/map" className={`text-sm font-medium transition-colors ${isActive('/map') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 지도</Link>
             <Link to="/my" className={`text-sm font-medium transition-colors ${isActive('/my') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>마이페이지</Link>
-            <Link to="/login" className={`text-sm font-medium transition-colors ${isActive('/login') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>로그인</Link>
-            <Link to="/signup" className="text-sm font-medium px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">회원가입</Link>
+            {isLoggedIn ? (
+              <button onClick={handleLogout} className="text-sm font-medium text-text-muted hover:text-red-500 transition-colors">로그아웃</button>
+            ) : (
+              <>
+                <Link to="/login" className={`text-sm font-medium transition-colors ${isActive('/login') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>로그인</Link>
+                <Link to="/signup" className="text-sm font-medium px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">회원가입</Link>
+              </>
+            )}
           </nav>
           <div className="flex items-center gap-4">
             <button className="p-2.5 rounded-full hover:bg-slate-100 transition-colors text-text-muted">
               <span className="material-icons text-xl">notifications</span>
             </button>
             <button
-              onClick={() => setShowLoginModal(true)}
+              onClick={() => !isLoggedIn && setShowLoginModal(true)}
               className="w-9 h-9 rounded-full bg-pale-blue flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm hover:bg-slate-200 transition-colors"
             >
               <span className="material-icons text-text-muted">person</span>
@@ -147,7 +161,7 @@ function UserNavbar() {
       </nav>
 
       {/* Login Modal */}
-      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
+      {showLoginModal && <LoginModal onClose={() => { setShowLoginModal(false); setIsLoggedIn(!!localStorage.getItem('isLoggedIn')); }} />}
 
       {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-3 flex justify-between items-center z-50">
