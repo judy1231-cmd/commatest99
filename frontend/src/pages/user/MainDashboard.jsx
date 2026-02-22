@@ -266,17 +266,17 @@ function MainDashboard() {
             <p className="text-slate-400 text-xs">© 2024 Comma Inc. All rights reserved. 완벽한 휴식을 선사합니다.</p>
           </div>
           <div className="flex gap-10 text-sm font-semibold text-slate-500">
-            <a className="hover:text-primary transition-colors" href="#">이용약관</a>
-            <a className="hover:text-primary transition-colors" href="#">개인정보처리방침</a>
-            <a className="hover:text-primary transition-colors" href="#">고객센터</a>
+            <button className="hover:text-primary transition-colors">이용약관</button>
+            <button className="hover:text-primary transition-colors">개인정보처리방침</button>
+            <button className="hover:text-primary transition-colors">고객센터</button>
           </div>
           <div className="flex gap-4">
-            <a className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+            <button className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all">
               <span className="material-icons text-xl">share</span>
-            </a>
-            <a className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+            </button>
+            <button className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-all">
               <span className="material-icons text-xl">mail</span>
-            </a>
+            </button>
           </div>
         </div>
       </footer>
