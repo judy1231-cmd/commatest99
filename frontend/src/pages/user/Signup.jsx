@@ -95,7 +95,7 @@ function Signup() {
 
             <Link to="/signup-complete">
               <button
-                className="w-full h-14 bg-[#4fd1c5] hover:bg-[#3ebcb0] text-white font-bold text-lg rounded-xl transition-all shadow-lg active:scale-[0.98]"
+                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold text-lg rounded-xl transition-all shadow-lg active:scale-[0.98]"
                 type="submit"
               >
                 회원가입 완료

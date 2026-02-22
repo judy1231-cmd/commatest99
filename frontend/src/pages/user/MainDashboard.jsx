@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
@@ -49,6 +50,14 @@ const stats = [
 ];
 
 function MainDashboard() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!localStorage.getItem('isLoggedIn')) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <UserNavbar />
@@ -90,7 +99,7 @@ function MainDashboard() {
               <p className="text-slate-500 text-sm leading-relaxed max-w-[240px]">나에게 가장 필요한 휴식 방법은 무엇일까요?</p>
             </div>
             <div className="flex items-end justify-between z-10">
-              <button className="bg-primary text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 hover:bg-blue-600 shadow-lg shadow-blue-100 transition-all active:scale-95">
+              <button className="bg-primary-blue text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 hover:bg-blue-600 shadow-lg shadow-blue-100 transition-all active:scale-95">
                 <span className="material-icons text-lg">psychology</span>
                 테스트하기
               </button>

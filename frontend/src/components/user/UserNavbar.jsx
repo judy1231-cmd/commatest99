@@ -1,7 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 function LoginModal({ onClose }) {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    localStorage.setItem('isLoggedIn', 'true');
+    onClose();
+    navigate('/');
+  };
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -35,7 +43,7 @@ function LoginModal({ onClose }) {
         </div>
 
         {/* Form */}
-        <form className="space-y-3">
+        <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="relative">
             <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">mail</span>
             <input

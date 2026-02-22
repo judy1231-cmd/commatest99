@@ -1,6 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    localStorage.setItem('isLoggedIn', 'true');
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#f8fbfb]">
       {/* Decorative Background */}
@@ -21,7 +29,7 @@ function Login() {
 
         {/* Login Card */}
         <div className="bg-white rounded-xl shadow-xl p-8 border border-gray-100">
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 ml-1">이메일</label>
               <div className="relative">
