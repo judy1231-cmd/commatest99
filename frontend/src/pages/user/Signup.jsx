@@ -121,7 +121,9 @@ function Signup() {
                 구글
               </button>
               <button className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#FEE500] hover:bg-[#fada0a] text-[#3c1e1e] font-semibold text-sm transition-all">
-                <span className="material-symbols-outlined text-xl">chat_bubble</span>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#3c1e1e">
+                  <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.548 1.504 4.788 3.785 6.178l-.964 3.584a.25.25 0 0 0 .373.277L9.77 18.1A11.6 11.6 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+                </svg>
                 카카오
               </button>
             </div>

@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
@@ -50,13 +49,7 @@ const stats = [
 ];
 
 function MainDashboard() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!localStorage.getItem('isLoggedIn')) {
-      navigate('/login');
-    }
-  }, [navigate]);
+  const isLoggedIn = !!localStorage.getItem('isLoggedIn');
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
@@ -183,8 +176,8 @@ function MainDashboard() {
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+        {/* Stats - 로그인 시에만 표시 */}
+        {isLoggedIn && <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
           {/* Monthly Stats Chart */}
           <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl p-8 shadow-soft">
             <div className="flex items-center justify-between mb-8">
@@ -259,7 +252,7 @@ function MainDashboard() {
             </div>
             <div className="absolute -bottom-12 -right-12 text-[180px] font-black text-white/5 select-none pointer-events-none">쉼</div>
           </div>
-        </section>
+        </section>}
       </main>
 
       {/* Footer */}
