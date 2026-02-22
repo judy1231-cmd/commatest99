@@ -90,7 +90,9 @@ function LoginModal({ onClose }) {
             <span className="font-semibold text-slate-700">구글</span>
           </button>
           <button className="flex items-center justify-center gap-1.5 py-2.5 bg-[#FEE500] rounded-xl hover:brightness-95 transition-all text-sm">
-            <span className="material-icons text-base text-[#3c1e1e]">chat_bubble</span>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#3c1e1e">
+              <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.548 1.504 4.788 3.785 6.178l-.964 3.584a.25.25 0 0 0 .373.277L9.77 18.1A11.6 11.6 0 0 0 12 18c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+            </svg>
             <span className="font-semibold text-[#3c1e1e]">카카오</span>
           </button>
         </div>
