@@ -1,3 +1,6 @@
 {
-  "IDX.agenticWorkspace": true
+    "IDX.agenticWorkspace": true,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.gradle.wrapper.enabled": true,
+    "java.import.gradle.enabled": true
 }
