@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -9,11 +10,49 @@ const KakaoLogo = () => (
 
 function Login() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    localStorage.setItem('isLoggedIn', 'true');
-    navigate('/');
+    setError(null);
+
+    if (!email.trim()) {
+      setError('이메일을 입력해주세요.');
+      return;
+    }
+    if (!password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message);
+        return;
+      }
+
+      // JWT 토큰 저장
+      localStorage.setItem('accessToken', data.data.accessToken);
+      localStorage.setItem('refreshToken', data.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+
+      navigate('/');
+    } catch (e) {
+      setError('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,6 +73,12 @@ function Login() {
 
           {/* Card */}
           <div className="bg-white rounded-2xl shadow-soft border border-slate-100 p-8">
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">이메일</label>
@@ -43,6 +88,9 @@ function Login() {
                     className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
                     placeholder="이메일을 입력하세요"
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -55,6 +103,9 @@ function Login() {
                     className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
                     placeholder="비밀번호를 입력하세요"
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -69,9 +120,10 @@ function Login() {
 
               <button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-soft transition-all active:scale-[0.98]"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-soft transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                로그인
+                {loading ? '로그인 중...' : '로그인'}
               </button>
             </form>
 

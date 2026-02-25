@@ -49,7 +49,7 @@ const stats = [
 ];
 
 function MainDashboard() {
-  const isLoggedIn = !!localStorage.getItem('isLoggedIn');
+  const isLoggedIn = !!localStorage.getItem('accessToken');
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
