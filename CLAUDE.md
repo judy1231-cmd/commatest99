@@ -7,8 +7,8 @@
 
 ## 🤖 Claude Code 행동 원칙
 
-### 나의 역할
-- 나는 **10년차 시니어 풀스택 개발자**야
+### 너의 역할
+- 너는 **10년차 시니어 풀스택 개발자**야
 - 항상 **클린 코드** 원칙으로 작업해줘:
   - 함수는 하나의 역할만
   - 변수/함수명은 의미 있게 (축약 금지)
@@ -17,7 +17,7 @@
   - 단일 책임 원칙 준수
 
 ### 작업 전 승인 요청 (필수)
-코드 작성/수정 전에 반드시 아래 형식으로 먼저 물어봐줘:
+코드 생성/수정 전에 반드시 아래 형식으로 먼저 물어봐줘:
 
 ```
 📋 작업 계획
@@ -34,16 +34,40 @@
 
 ## 📌 프로젝트 개요
 
-**쉼표(,)** 는 사용자가 자신에게 맞는 휴식 방법을 찾고, 기록하고, 커뮤니티에서 공유하는 **개인 맞춤형 웰니스 플랫폼**이야.
+**쉼표(,)** 는 사용자의 피로/스트레스 상태와 선호를 기반으로, 지금 가능한 휴식(활동/장소)을 추천하고 기록·개선까지 돕는 플랫폼이야.
 
-### 핵심 사용자 여정
+### 핵심 가치 (멘토링 확정)
+> "사용자 피로/스트레스 상태와 선호를 기반으로, 지금 가능한 휴식(활동/장소)을 추천하고 기록·개선까지 돕는 플랫폼"
+
+### 성공 지표
+- 추천 클릭률 / 저장률
+- 기록 지속률 (7일 / 30일)
+- 재방문율
+- 스트레스 지표 전후 변화 (심박 기반)
+
+### 핵심 사용자 여정 (멘토링 기반)
 ```
-회원가입/로그인 → 심리 진단 → 휴식 유형 확인 → 장소 탐색 → 휴식 기록 → 커뮤니티 공유 → 챌린지 참여 → 배지 획득
+진단(심박+설문) → 추천/탐색 → 휴식 기록 → 통계/개선 → 커뮤니티/챌린지(2차)
 ```
+
+### ⚠️ 멘토링 경고
+> "화면은 많은데, 핵심 흐름(진단→추천→기록→개선)의 데이터가 얕음"
+> **핵심 흐름의 데이터 품질을 먼저 완성시켜야 한다**
+
+### MVP vs 확장 구분
+**MVP (필수)**
+- 인증/계정: 회원가입, 로그인, 비밀번호찾기
+- 진단: 심박 측정 + 설문 테스트 → 휴식 유형 도출
+- 추천/탐색: 메인 추천 카드, 휴식 지도, 유형별 상세
+- 기록/개선: 휴식 기록, 월간 통계, 마이페이지
+- 관리자: 로그인/대시보드, 사용자/콘텐츠 관리
+
+**2차 MVP (선택)**
+- 커뮤니티/댓글/신고
+- 챌린지 참여/달성률
 
 ### 회원 식별자
-- 일반 PK(bigint)가 아닌 **쉼표번호** 사용
-- 형식: `쉼표` + 4자리 숫자 (예: `쉼표1234`)
+- **쉼표번호**: `쉼표` + 4자리 숫자 (예: `쉼표1234`)
 - varchar(12), 가입 시 자동 생성, 중복 불가
 
 ---
@@ -54,15 +78,11 @@
 comma-main/
 ├── frontend/          # React (포트 3000)
 │   └── src/
-│       ├── api/
-│       │   └── api.js          # fetch 기반 API 유틸
+│       ├── api/       # fetch 기반 API 유틸
 │       ├── components/
-│       │   ├── common/         # Button, Card, Input, Toast
+│       │   ├── common/   # Button, Card, Input, Toast
 │       │   ├── user/
-│       │   │   └── UserNavbar.jsx
 │       │   └── admin/
-│       │       ├── AdminHeader.jsx
-│       │       └── AdminSidebar.jsx
 │       └── pages/
 │           ├── user/
 │           └── admin/
@@ -70,9 +90,8 @@ comma-main/
     └── src/main/java/com/comma/
         ├── controller/
         ├── service/
-        ├── repository/     # JPA Repository
-        ├── entity/         # JPA Entity
-        ├── dto/            # Request/Response DTO
+        ├── mapper/       # MyBatis
+        ├── model/
         └── config/
 ```
 
@@ -80,44 +99,27 @@ comma-main/
 
 ## 🛠 기술 스택
 
-### 프론트엔드
-| 항목 | 내용 |
+| 영역 | 기술 |
 |------|------|
-| 프레임워크 | React |
-| 언어 | JavaScript |
-| 라우팅 | react-router-dom v6 |
-| HTTP | fetch API (axios 사용 안함) |
-| 스타일 | Tailwind CSS |
-
-### 백엔드
-| 항목 | 내용 |
-|------|------|
-| 프레임워크 | Spring Boot 3.2.3 |
-| ORM | JPA / Hibernate |
+| FE | React, Tailwind CSS, JavaScript |
+| BE | Java 17, Spring Boot 3, Spring Security, MyBatis |
 | DB | MySQL |
-| Java | 17 |
-| 빌드 | Gradle |
-
-### build.gradle 의존성
-```gradle
-// JPA
-implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
-// JWT
-implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-
-// 이메일
-implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-// Redis
-implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-```
+| 캐시 | Redis (리프레시토큰) |
+| 배포 | AWS (EC2 + RDS + S3) |
+| 웹서버 | Nginx |
+| 컨테이너 | Docker |
+| AI | Claude API |
+| 데이터수집 | Python, BeautifulSoup, 공공데이터포털 API |
+| 외부 API | 카카오맵, 카카오 OAuth2, 구글 OAuth2, 기상청 API |
+| 형상관리 | Git, GitHub |
+| API 테스트 | Postman |
+| IDE | VS Code |
+| 접속 툴 | MobaXterm (윈도우), 기본 터미널 (맥북) |
+| AI 도구 | Claude Code |
 
 ---
 
-## 🎨 디자인 시스템 (Tailwind)
+## 🎨 디자인 시스템
 
 ```js
 colors: {
@@ -129,11 +131,79 @@ colors: {
 }
 ```
 
-### 공통 컴포넌트 규칙
 - **버튼**: `bg-primary text-white rounded-xl px-4 py-2.5 font-bold hover:bg-primary/90`
 - **카드**: `bg-white rounded-2xl shadow-sm border border-gray-100 p-6`
 - **인풋**: `w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none`
 - **페이지 배경**: `min-h-screen bg-[#F9F7F2]`
+
+---
+
+## 🗄 DB 설계 (멘토링 기반 재설계)
+
+### [A] 사용자/인증
+```
+users               - 쉼표번호(PK), 이메일(UNIQUE), 비밀번호, 닉네임, 상태(active/dormant/banned), 이메일인증여부
+auth_provider       - 아이디(PK), 쉼표번호(FK), 제공자(kakao/google), 제공자ID
+password_reset_token - 아이디(PK), 쉼표번호(FK), 토큰, 만료일시
+email_verification  - 아이디(PK), 쉼표번호(FK), 토큰, 인증여부, 만료일시
+user_settings       - 아이디(PK), 쉼표번호(FK), 알림설정, 테마
+```
+> ⚠️ 개인정보(이름/이메일)와 인증정보는 분리 저장
+
+### [B] 진단 (심박 + 설문)
+```
+heart_rate_measurements - 아이디(PK), 쉼표번호(FK), 세션ID(FK), bpm, hrv, 측정일시, 디바이스, 신뢰도
+measurement_sessions    - 아이디(PK), 쉼표번호(FK), 시작일시, 종료일시, 디바이스종류
+survey_questions        - 아이디(PK), 질문내용, 카테고리, 순서, 활성여부
+survey_choices          - 아이디(PK), 질문(FK), 선택지내용, 점수, 순서
+survey_responses        - 아이디(PK), 쉼표번호(FK), 질문(FK), 선택지(FK), 응답일시
+diagnosis_results       - 아이디(PK), 쉼표번호(FK), 세션ID(FK), 스트레스지수, 휴식유형, 점수JSON, 근거
+rest_type_scores        - 아이디(PK), 진단결과(FK), 휴식유형(7가지), 점수(0~100), 순위
+```
+> ⚠️ "원천 데이터(측정값)" vs "산출물(진단결과)" 분리 — 재계산 가능하도록
+
+### [C] 장소/추천/지도
+```
+places              - 아이디(PK), 장소명, 주소, 위도, 경도, 운영시간, AI점수, 상태(pending/approved/rejected)
+place_tags          - 아이디(PK), 장소(FK), 태그명  [다대다 확장 가능]
+place_photos        - 아이디(PK), 장소(FK), 사진URL, 출처
+place_reviews       - 아이디(PK), 쉼표번호(FK), 장소(FK), 별점, 내용, 인증여부
+place_bookmarks     - 아이디(PK), 쉼표번호(FK), 장소(FK) [UNIQUE]
+recommendations     - 아이디(PK), 쉼표번호(FK), 진단결과(FK), 추천장소(FK), 추천기준, 클릭여부, 저장여부, 추천일시
+```
+> ⚠️ 추천 결과를 로그로 남겨야 통계/분석 화면이 진짜가 됨
+
+### [D] 휴식 기록 (핵심 도메인)
+```
+rest_types          - 아이디(PK), 유형명(신체/정신/감각 등), 설명, 아이콘
+rest_activities     - 아이디(PK), 휴식유형(FK), 활동명, 가이드내용
+rest_logs           - 아이디(PK), 쉼표번호(FK), 휴식유형(FK), 장소(FK선택), 시작시간, 종료시간, 메모, 감정점수, 기분태그, 삭제여부(soft delete)
+monthly_stats       - 아이디(PK), 쉼표번호(FK), 년월, 총휴식시간, 유형별비율JSON, 평균감정점수  [집계 테이블]
+```
+> ⚠️ 날짜/시간대 인덱스 필수. 월간 통계 도넛 차트를 위한 집계 테이블 또는 배치 설계 결정 필요
+
+### [E] 커뮤니티/챌린지 (2차 MVP)
+```
+posts               - 아이디(PK), 쉼표번호(FK), 카테고리, 제목, 내용, 익명여부, status(visible/hidden/deleted)
+comments            - 아이디(PK), 게시글(FK), 쉼표번호(FK), 부모댓글(FK선택), 내용, status
+post_likes          - 게시글(FK), 쉼표번호(FK) [UNIQUE]
+reports             - 아이디(PK), 신고자(FK), 대상유형, 대상아이디, 신고사유, 처리상태
+challenges          - 아이디(PK), 제목, 설명, 기간일수, 인증방식, 달성배지명
+challenge_participants - 아이디(PK), 챌린지(FK), 쉼표번호(FK), 달성일수, 상태
+challenge_progress  - 아이디(PK), 참여자(FK), 인증사진URL, 메모, 인증날짜 [하루1회]
+```
+> ⚠️ 신고/숨김(관리자 관리)까지 고려해 status 필드 필수
+
+### [F] 관리자/운영/통계
+```
+admin_users         - 아이디(PK), 쉼표번호(FK), 권한레벨
+audit_logs          - 아이디(PK), 관리자(FK), 수행액션, 대상유형, 대상아이디, 수행일시
+analytics_events    - 아이디(PK), 쉼표번호(FK), 이벤트유형, 이벤트데이터JSON, 발생일시
+blocked_keywords    - 아이디(PK), 키워드, 활성여부 [UNIQUE]
+badges              - 아이디(PK), 배지명, 설명, 아이콘URL, 달성조건유형
+user_badges         - 쉼표번호(FK), 배지(FK), 획득일시 [UNIQUE]
+notifications       - 아이디(PK), 쉼표번호(FK), 유형, 제목, 내용, 읽음여부
+```
 
 ---
 
@@ -157,12 +227,12 @@ colors: {
 | `/rest/physical~creative` | Rest*.jsx (7개) | 디자인통일필요 |
 
 ### 새로 만들어야 할 페이지
-| 경로 | 설명 |
-|------|------|
-| `/community/:id` | 게시글 상세 + 댓글 |
-| `/settings` | 알림/테마 설정 |
-| `/notifications` | 알림 목록 |
-| `/admin/login` | 관리자 로그인 |
+| 경로 | 설명 | 우선순위 |
+|------|------|----------|
+| `/community/:id` | 게시글 상세 + 댓글 | 2차 MVP |
+| `/settings` | 알림/테마 설정 | MVP |
+| `/notifications` | 알림 목록 | MVP |
+| `/admin/login` | 관리자 로그인 | MVP (보안) |
 
 ### 관리자 페이지
 | 경로 | 파일 | 상태 |
@@ -177,128 +247,68 @@ colors: {
 
 ---
 
-## 🗄 DB 테이블 목록 (25개)
+## 🔧 백엔드 작업 규칙 (MyBatis)
 
-```
-[사용자]
-회원           - 쉼표번호(PK), 이메일, 비밀번호, 닉네임, 가입방식, 권한, 상태, 이메일인증여부
-리프레시토큰   - Redis 저장 (쉼표번호 → 토큰)
-회원설정       - 아이디(PK), 쉼표번호(FK), 알림설정, 테마, 스마트워치종류
-알림           - 아이디(PK), 쉼표번호(FK), 유형, 제목, 내용, 읽음여부
-
-[진단]
-진단질문       - 아이디(PK), 질문내용, 카테고리, 순서, 활성여부
-질문선택지     - 아이디(PK), 진단질문(FK), 선택지내용, 점수, 순서
-진단결과       - 아이디(PK), 쉼표번호(FK), 검사유형, 심박수, 심박변이도, 결과JSON
-휴식유형점수   - 아이디(PK), 진단결과(FK), 휴식유형(7가지), 점수(0~100), 순위
-
-[장소]
-장소           - 아이디(PK), 장소명, 주소, 위도, 경도, 휴식유형목록, 소음도, AI점수, 상태
-장소사진       - 아이디(PK), 장소(FK), 사진URL, 출처
-장소즐겨찾기   - 아이디(PK), 쉼표번호(FK), 장소(FK) [UNIQUE]
-장소리뷰       - 아이디(PK), 쉼표번호(FK), 장소(FK), 평점, 내용, 인증여부
-
-[휴식기록]
-휴식일기       - 아이디(PK), 쉼표번호(FK), 장소(FK선택), 휴식유형, 내용, 감정점수, 기분태그
-
-[챌린지]
-챌린지         - 아이디(PK), 제목, 설명, 기간일수, 인증방식, 달성배지명
-챌린지참여자   - 아이디(PK), 챌린지(FK), 쉼표번호(FK), 달성일수, 상태
-챌린지인증     - 아이디(PK), 참여자(FK), 인증사진URL, 메모, 인증날짜 [하루1회]
-
-[커뮤니티]
-게시글         - 아이디(PK), 쉼표번호(FK), 장소(FK선택), 카테고리, 제목, 내용, 익명여부
-댓글           - 아이디(PK), 게시글(FK), 쉼표번호(FK), 부모댓글(FK선택), 내용
-게시글공감     - 게시글(FK), 쉼표번호(FK) [UNIQUE]
-댓글공감       - 댓글(FK), 쉼표번호(FK) [UNIQUE]
-신고           - 아이디(PK), 신고자쉼표번호(FK), 대상유형, 대상아이디, 신고사유, 처리상태
-
-[배지]
-배지정의       - 아이디(PK), 배지명, 설명, 아이콘URL, 달성조건유형
-회원배지       - 쉼표번호(FK), 배지정의(FK), 획득일시 [UNIQUE]
-
-[관리자]
-관리자로그     - 아이디(PK), 관리자쉼표번호(FK), 수행액션, 대상유형, 대상아이디
-차단키워드     - 아이디(PK), 키워드, 활성여부 [UNIQUE]
-```
-
----
-
-## 🔧 백엔드 작업 규칙 (JPA)
-
-### API 응답 형식 (통일)
+### API 응답 형식
 ```java
 // 성공
 { "success": true, "data": {...}, "message": "처리완료" }
-
 // 실패
 { "success": false, "data": null, "message": "에러 메시지" }
 ```
 
-### 파일 생성 패턴 (JPA 기준 5세트)
+### 파일 생성 패턴 (4세트 항상 같이)
 ```
-1. entity/      → Xxx.java          (@Entity, @Id, 연관관계)
-2. dto/         → XxxRequestDto.java, XxxResponseDto.java
-3. repository/  → XxxRepository.java (@Repository extends JpaRepository)
-4. service/     → XxxService.java   (비즈니스 로직)
-5. controller/  → XxxController.java (@RestController)
+1. controller/       → XxxController.java   (@RestController)
+2. service/          → XxxService.java      (비즈니스 로직)
+3. mapper/           → XxxMapper.java       (@Mapper 인터페이스)
+4. resources/mapper/ → XxxMapper.xml        (SQL 쿼리)
 ```
 
-### Entity 규칙
+### model 규칙
 ```java
-@Entity
-@Table(name = "회원")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class 회원 {
-
-    @Id
-    @Column(name = "쉼표번호", length = 12)
-    private String 쉼표번호;   // PK → String 타입, bigint 아님
-
-    @Column(nullable = false, unique = true)
-    private String 이메일;
-
-    // 생성자는 정적 팩토리 메서드 사용
-    public static 회원 create(String 쉼표번호, String 이메일, ...) {
-        회원 member = new 회원();
-        member.쉼표번호 = 쉼표번호;
-        member.이메일 = 이메일;
-        return member;
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    private String 쉼표번호;  // PK — String 타입, bigint 아님
+    private String email;
 }
 ```
+- **쉼표번호는 String** — bigint 변환 금지
+- `map-underscore-to-camel-case: true` 설정 사용 중
 
-### JWT 관련
+### JWT 의존성
 ```gradle
 implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+implementation 'org.springframework.boot:spring-boot-starter-mail'
+implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 ```
 
 ---
 
 ## ⚛️ 프론트엔드 작업 규칙
 
-### API 호출 (fetch 사용, axios 사용 안함)
+### API 호출 (fetch 사용, axios 사용 안 함)
 ```js
-// ✅ 이렇게 해줘
+// ✅ 이렇게
 const res = await fetch('/api/auth/login', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json',
+             'Authorization': `Bearer ${localStorage.getItem('token')}` },
   body: JSON.stringify({ email, password })
 });
 const data = await res.json();
 
-// ❌ axios 쓰지 말
-import axios from 'axios';
+// ❌ axios 쓰지 마
 ```
 
 ### 로딩 & 에러 처리 (항상 포함)
 ```jsx
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState(null);
-
 try {
   setLoading(true);
   const res = await fetch('/api/posts');
@@ -311,28 +321,12 @@ try {
 }
 ```
 
-### 인증 토큰 처리
-```js
-// 요청 시 토큰 첨부
-const res = await fetch('/api/...', {
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    'Content-Type': 'application/json'
-  }
-});
-```
-
 ---
 
 ## 🔄 환경 동기화 — 집(맥북) ↔ 학원(윈도우)
 
-민정씨는 두 곳에서 작업해:
-- **학원**: 윈도우 PC + MobaXterm (AWS EC2 접속)
-- **집**: 맥북 + 기본 터미널 (AWS EC2 접속)
-
 ### "나 학원이야" 또는 "나 집이야" 라고 하면
 ```bash
-# 반드시 먼저 실행
 git pull origin develop
 # pull 후 변경된 파일 목록 알려줘
 ```
@@ -344,107 +338,60 @@ git commit -m "feat: 작업내용"
 git push origin develop
 ```
 
-### ⚠️ 충돌났을 때
-```bash
-git status
-# 해결 후
-git add .
-git commit -m "fix: 충돌 해결"
-git push origin develop
-```
-
----
-
-## 💻 개발 환경
-
-### 맥북 (집)
-```bash
-cd frontend && npm start       # http://localhost:3000
-cd backend && ./gradlew bootRun # http://localhost:8080
-```
-
-### 윈도우 (학원)
-```bash
-cd frontend && npm start
-cd backend && gradlew.bat bootRun
-```
-
 ### AWS EC2 접속
 ```bash
-# 맥북 (터미널)
+# 맥북
 ssh -i ~/.ssh/comma-key.pem ec2-user@[EC2 IP]
-
-# 윈도우 (MobaXterm)
-# Session → SSH → EC2 IP 입력, .pem 키 등록
+# 윈도우: MobaXterm → Session → SSH → EC2 IP + .pem 키 등록
 ```
 
 ### 환경변수 (.env) — git에 올리지 말 것
-```
-REACT_APP_KAKAO_MAP_KEY=카카오맵API키
-REACT_APP_API_URL=http://localhost:8080
-```
-
 ```yaml
-# application-local.yml (gitignore)
+# application-local.yml
 spring.datasource.password=실제비밀번호
 jwt.secret=시크릿키
 claude.api.key=클로드API키
 kakao.client-secret=카카오시크릿
+spring.mail.password=지메일앱비밀번호
 ```
-
----
-
-## 📋 작업 우선순위 (Phase별)
-
-### Phase 0 — 프론트 정리 (지금 당장)
-1. 배경색 `bg-[#F9F7F2]` 전체 통일
-2. `components/common/` → Button, Card, Input, Toast 생성
-3. 비로그인 라우트 가드, 404 페이지, 빈화면 처리
-
-### Phase 1 — 백엔드 기반 (JPA)
-1. build.gradle JPA 의존성 추가
-2. Entity 25개 클래스 생성 + 연관관계 매핑
-3. application.yml JPA 설정 (ddl-auto: validate)
-
-### Phase 2~6 — BE 먼저 → FE 연결 순서
 
 ---
 
 ## ⚠️ 주의사항
 
-1. **쉼표번호는 String** → @Id 타입 String, bigint 변환 금지
-2. **관리자 페이지 role guard 필수** → 현재 인증 없이 접근 가능 (보안 위험)
-3. **Seed 데이터 먼저** → 진단질문 없으면 화면 텅 빔
-4. **공통 컴포넌트 먼저** → 새 UI 전에 `components/common/` 확인
-5. **fetch 사용** → axios 쓰지 말 것
+1. **핵심 흐름 먼저** — 진단→추천→기록→개선 데이터 품질 우선
+2. **쉼표번호는 String** — bigint 변환 금지
+3. **관리자 role guard 필수** — 현재 인증 없이 접근 가능 (보안 위험)
+4. **Seed 데이터 먼저** — 진단질문 없으면 화면 텅 빔
+5. **추천 로그 반드시 저장** — recommendations 테이블에 기록해야 통계가 살아남
+6. **원천데이터 vs 산출물 분리** — 심박 원천값과 진단결과 분리 저장
+7. **fetch 사용** — axios 쓰지 말 것
 
 ---
 
-## 🚀 Git 규칙 (필수관리)
+## 🚀 Git 규칙 (형상관리)
 
 ```bash
 feat: 회원가입 API 연결
-fix: 로그인 토큰 저장 버그 수정
+fix: 로그인 토큰 버그 수정
 style: 메인 대시보드 디자인 통일
 refactor: 하드코딩 데이터 API로 교체
-chore: JPA 의존성 추가
+chore: MyBatis 의존성 추가
 ```
 
 - 브랜치: `main` (배포) / `develop` (개발) / `feature/기능명`
-- **develop에서 작업** → main은 배포 시만 merge
-- 작업 완료 후 항상 `git add → commit → push` 자동 실행
+- **develop에서 작업** — main은 배포 시만 merge
 
 ---
 
 ## 💬 자주 쓰는 작업 요청 예시
 
 ```
-"나 학원이야" → git pull 먼저 실행
-"나 집이야"   → git pull 먼저 실행
+"나 학원이야" / "나 집이야" → git pull 먼저 실행
 
-"회원가입 API JPA 5세트 만들어줘 (Entity, DTO, Repository, Service, Controller)"
+"회원가입 API 4세트 만들어줘 (Controller, Service, Mapper, XML)"
 "Signup.jsx 하드코딩 제거하고 fetch로 실제 API 연결해줘"
 "공통 Button.jsx 컴포넌트 만들어줘 — primary/outline/ghost 3종류"
-"RestRecord.jsx 완성해줘 — 일기 작성 폼, 감정 슬라이더, 기분 태그 포함"
-"community/:id 게시글 상세 페이지 새로 만들어줘"
+"rest_logs 테이블 기반으로 월간 통계 API 만들어줘"
+"recommendations 테이블에 추천 로그 저장하는 API 만들어줘"
 ```
