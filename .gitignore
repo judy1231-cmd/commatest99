@@ -8,6 +8,10 @@ node_modules/
 /backend/build/
 dist/
 
+# Gradle
+.gradle/
+**/bin/
+
 # macOS
 .DS_Store
 .AppleDouble
