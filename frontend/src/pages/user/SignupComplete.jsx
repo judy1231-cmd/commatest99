@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 function SignupComplete() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F9F7F2] p-4">
       <div className="max-w-md w-full text-center">
         {/* Animation Circle */}
         <div className="relative w-32 h-32 mx-auto mb-8">

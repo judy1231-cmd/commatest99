@@ -33,7 +33,7 @@ const checklist = [
 
 function RestCreative() {
   return (
-    <div className="min-h-screen bg-[#FDFBF7]">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <main className="max-w-[1200px] mx-auto px-6 py-12 md:px-10 pb-24 md:pb-10">
 

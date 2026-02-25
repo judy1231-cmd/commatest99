@@ -28,7 +28,7 @@ function Community() {
   const [sort, setSort] = useState('latest');
 
   return (
-    <div className="min-h-screen bg-[#F9FBFA]">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <main className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-12 gap-10 pb-24 md:pb-10">
         {/* Sidebar */}

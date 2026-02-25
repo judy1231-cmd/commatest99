@@ -2,7 +2,7 @@ import UserNavbar from '../../components/user/UserNavbar';
 
 function MyPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <main className="max-w-7xl mx-auto px-6 py-10 pb-24 md:pb-10">
         <div className="grid grid-cols-12 gap-6">
@@ -13,7 +13,7 @@ function MyPage() {
               <div className="w-32 h-32 rounded-full bg-slate-200 border-4 border-white ring-1 ring-slate-100 shadow-md overflow-hidden flex items-center justify-center">
                 <span className="material-icons text-slate-400 text-5xl">person</span>
               </div>
-              <button className="absolute bottom-1 right-1 bg-white text-slate-600 p-1.5 rounded-full flex items-center justify-center border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
+              <button className="absolute bottom-1 right-1 bg-white text-slate-600 p-1.5 rounded-full flex items-center justify-center border border-slate-200 shadow-sm hover:bg-[#F9F7F2] transition-colors">
                 <span className="material-icons text-sm">edit</span>
               </button>
             </div>
@@ -26,7 +26,7 @@ function MyPage() {
               </div>
               <p className="text-slate-500 mb-6 font-medium">"오늘 하루도 충분히 고생하셨어요. 잠시 멈춰서 숨을 골라보세요."</p>
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                <div className="bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
+                <div className="bg-[#F9F7F2] px-5 py-3 rounded-xl border border-slate-100">
                   <span className="text-xs text-slate-400 block font-semibold mb-1">총 휴식 시간</span>
                   <span className="text-xl font-bold text-slate-800">128시간</span>
                 </div>
@@ -94,7 +94,7 @@ function MyPage() {
                 { icon: 'park', color: 'bg-green-50 text-primary', title: '한강 뚝섬 유원지', time: '어제', desc: '방문 인증 완료 +100P' },
                 { icon: 'psychology', color: 'bg-orange-50 text-orange-500', title: '휴식 성향 테스트', time: '3일 전', desc: '결과: 조용한 산책자' },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors">
+                <div key={i} className="flex items-center gap-4 p-4 rounded-xl hover:bg-[#F9F7F2] transition-colors">
                   <div className={`w-12 h-12 rounded-full ${item.color} flex items-center justify-center shadow-sm`}>
                     <span className="material-icons">{item.icon}</span>
                   </div>
@@ -121,7 +121,7 @@ function MyPage() {
                 { icon: 'logout', label: '로그아웃', red: true },
               ].map((item, i) => (
                 <button key={i} className={`flex items-center gap-4 p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group w-full text-left ${item.red ? 'hover:border-red-100' : 'hover:border-primary/30'}`}>
-                  <div className={`p-2 rounded-lg bg-slate-50 transition-colors ${item.red ? 'group-hover:bg-red-50 group-hover:text-red-400' : 'group-hover:bg-green-50 group-hover:text-primary'} text-slate-400`}>
+                  <div className={`p-2 rounded-lg bg-[#F9F7F2] transition-colors ${item.red ? 'group-hover:bg-red-50 group-hover:text-red-400' : 'group-hover:bg-green-50 group-hover:text-primary'} text-slate-400`}>
                     <span className="material-icons">{item.icon}</span>
                   </div>
                   <span className="text-sm font-bold text-slate-700">{item.label}</span>

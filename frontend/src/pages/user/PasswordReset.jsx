@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 function PasswordReset() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f8fbfb]">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#F9F7F2]">
       <div className="fixed top-0 left-0 -z-10 w-full h-full overflow-hidden pointer-events-none opacity-20">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[120px] bg-[#4fd1c5]/40"></div>
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-[120px] bg-[#4fd1c5]/40"></div>

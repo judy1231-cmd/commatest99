@@ -24,7 +24,7 @@ function RestEmotional() {
   const [selectedMood, setSelectedMood] = useState(0);
 
   return (
-    <div className="min-h-screen bg-[#fdfcf0]">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <main className="max-w-4xl mx-auto px-4 md:px-10 py-8 space-y-10 pb-24 md:pb-10">
 

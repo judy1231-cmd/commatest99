@@ -11,7 +11,7 @@ const categories = ['전체', '숲/공원', '카페/서점', '워터사이드', 
 
 function MapPage() {
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)]">
         {/* Sidebar */}

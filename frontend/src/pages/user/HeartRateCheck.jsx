@@ -2,7 +2,7 @@ import UserNavbar from '../../components/user/UserNavbar';
 
 function HeartRateCheck() {
   return (
-    <div className="min-h-screen bg-[#fcfdfd] font-display">
+    <div className="min-h-screen bg-[#F9F7F2] font-display">
       <UserNavbar />
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-12 flex flex-col items-center justify-center space-y-16">
         {/* Status */}

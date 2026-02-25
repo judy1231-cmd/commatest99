@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import PrivateRoute, { AdminRoute } from './components/common/PrivateRoute';
 
 // User Pages
 import MainDashboard from './pages/user/MainDashboard';
@@ -32,24 +33,21 @@ import CommunityManagement from './pages/admin/CommunityManagement';
 import Analytics from './pages/admin/Analytics';
 import SystemSettings from './pages/admin/SystemSettings';
 
+// 404
+import NotFound from './pages/NotFound';
+
 function App() {
   return (
     <Routes>
-      {/* User Routes */}
+      {/* 공개 라우트 */}
       <Route path="/" element={<MainDashboard />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/signup-complete" element={<SignupComplete />} />
       <Route path="/password-reset" element={<PasswordReset />} />
-      <Route path="/my" element={<MyPage />} />
       <Route path="/community" element={<Community />} />
-      <Route path="/challenge" element={<Challenge />} />
-      <Route path="/heartrate" element={<HeartRateCheck />} />
-      <Route path="/rest-test" element={<RestTypeTest />} />
-      <Route path="/rest-record" element={<RestRecord />} />
       <Route path="/map" element={<MapPage />} />
-
-      {/* Rest Category Routes */}
+      <Route path="/rest-test" element={<RestTypeTest />} />
       <Route path="/rest/physical" element={<RestPhysical />} />
       <Route path="/rest/mental" element={<RestMental />} />
       <Route path="/rest/sensory" element={<RestSensory />} />
@@ -58,14 +56,23 @@ function App() {
       <Route path="/rest/nature" element={<RestNature />} />
       <Route path="/rest/creative" element={<RestCreative />} />
 
-      {/* Admin Routes */}
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/admin/users" element={<UserManagement />} />
-      <Route path="/admin/places" element={<PlaceApproval />} />
-      <Route path="/admin/challenges" element={<ChallengeManagement />} />
-      <Route path="/admin/community" element={<CommunityManagement />} />
-      <Route path="/admin/analytics" element={<Analytics />} />
-      <Route path="/admin/settings" element={<SystemSettings />} />
+      {/* 로그인 필요 라우트 */}
+      <Route path="/my" element={<PrivateRoute><MyPage /></PrivateRoute>} />
+      <Route path="/heartrate" element={<PrivateRoute><HeartRateCheck /></PrivateRoute>} />
+      <Route path="/rest-record" element={<PrivateRoute><RestRecord /></PrivateRoute>} />
+      <Route path="/challenge" element={<PrivateRoute><Challenge /></PrivateRoute>} />
+
+      {/* 관리자 전용 라우트 */}
+      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+      <Route path="/admin/places" element={<AdminRoute><PlaceApproval /></AdminRoute>} />
+      <Route path="/admin/challenges" element={<AdminRoute><ChallengeManagement /></AdminRoute>} />
+      <Route path="/admin/community" element={<AdminRoute><CommunityManagement /></AdminRoute>} />
+      <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
+      <Route path="/admin/settings" element={<AdminRoute><SystemSettings /></AdminRoute>} />
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

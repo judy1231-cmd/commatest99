@@ -34,7 +34,7 @@ function RestTypeTest() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
       <main className="max-w-2xl mx-auto px-6 py-16 pb-24 md:pb-16">
         {current < questions.length ? (

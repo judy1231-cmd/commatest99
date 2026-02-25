@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 function Signup() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa]">
+    <div className="min-h-screen flex flex-col bg-[#F9F7F2]">
       {/* Nav */}
       <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-primary/10 bg-white/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2 text-primary">
