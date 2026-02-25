@@ -52,7 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String 쉼표번호 = jwtUtil.extract쉼표번호(token);
             String role = jwtUtil.extractRole(token);
 
-            UsernamePassw22ordAuthenticationToken authentication =
+            UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             쉼표번호,
                             null,
