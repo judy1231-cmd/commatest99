@@ -414,21 +414,26 @@ return (
 ```
 backend/src/main/java/com/comma/
 ├── CommaApplication.java       ← Spring Boot 시작점 (@SpringBootApplication)
-├── config/
-│   ├── SecurityConfig.java     ← Spring Security 설정
-│   ├── JwtUtil.java            ← JWT 토큰 생성/검증 유틸
-│   ├── JwtAuthFilter.java      ← 모든 요청에서 JWT 검사하는 필터
-│   └── CorsConfig.java         ← 프론트(3000포트) 허용 CORS 설정
-├── controller/                 ← API 엔드포인트 (@RestController)
-├── service/                    ← 비즈니스 로직
-├── mapper/                     ← MyBatis 인터페이스 (@Mapper)
-└── model/                      ← DB 테이블 매핑 Java 클래스
+├── domain/
+│   ├── auth/
+│   │   ├── controller/         ← AuthController.java
+│   │   ├── service/            ← AuthService.java
+│   │   └── mapper/             ← AuthMapper.java
+│   └── user/
+│       └── model/              ← User.java
+└── global/
+    └── config/
+        ├── JwtUtil.java        ← JWT 토큰 생성/검증 유틸
+        ├── JwtInterceptor.java ← 모든 요청에서 JWT 검사하는 인터셉터
+        ├── CorsConfig.java     ← 프론트(3000포트) 허용 CORS 설정
+        └── WebConfig.java      ← JwtInterceptor 등록
 
 backend/src/main/resources/
 ├── application.yml             ← 공통 설정
 ├── application-local.yml       ← 로컬 개발 설정 (git 제외)
 └── mapper/
-    └── *.xml                   ← MyBatis SQL 쿼리 파일
+    └── auth/
+        └── AuthMapper.xml      ← MyBatis SQL 쿼리 파일
 ```
 
 ---
@@ -494,7 +499,7 @@ spring:
 
   # ─── MyBatis 설정 ─────────────────────────────────────────────
   mybatis:
-    mapper-locations: classpath:mapper/*.xml          # XML 파일 위치
+    mapper-locations: classpath:mapper/**/*.xml       # XML 파일 위치 (서브폴더 포함)
     configuration:
       map-underscore-to-camel-case: true              # email_verified → emailVerified 자동 변환
 
@@ -511,8 +516,8 @@ server:
 # ─── JWT 설정 ─────────────────────────────────────────────────────
 jwt:
   secret: ${JWT_SECRET}         # 환경변수에서 읽기 (또는 application-local.yml에서)
-  expiration: 3600000           # 액세스 토큰 만료: 1시간 (밀리초)
-  refresh-expiration: 604800000 # 리프레시 토큰 만료: 7일 (밀리초)
+  access-expiration: 1800000        # 액세스 토큰 만료: 30분 (밀리초)
+  refresh-expiration: 1209600000   # 리프레시 토큰 만료: 14일 (밀리초)
 ```
 
 ```yaml
@@ -597,7 +602,7 @@ CREATE TABLE auth_provider (
 ### 1-5. CorsConfig.java (CORS 설정)
 
 ```java
-// backend/src/main/java/com/comma/config/CorsConfig.java
+// backend/src/main/java/com/comma/global/config/CorsConfig.java
 // 프론트(3000포트) → 백엔드(8080포트) API 호출 허용
 
 @Configuration
@@ -627,7 +632,7 @@ public class CorsConfig implements WebMvcConfigurer {
 ### 1-6. JwtUtil.java
 
 ```java
-// backend/src/main/java/com/comma/config/JwtUtil.java
+// backend/src/main/java/com/comma/global/config/JwtUtil.java
 
 @Component  // Spring Bean으로 등록 → 다른 클래스에서 @Autowired로 주입 가능
 public class JwtUtil {
@@ -697,7 +702,7 @@ public class JwtUtil {
 ### 1-7. JwtInterceptor.java (Spring Security 대신 사용)
 
 ```java
-// backend/src/main/java/com/comma/config/JwtInterceptor.java
+// backend/src/main/java/com/comma/global/config/JwtInterceptor.java
 // Spring Security 없이 순수 Spring MVC HandlerInterceptor로 JWT 인증 구현
 
 @Component
@@ -782,7 +787,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 ### 1-8. WebConfig.java (인터셉터 등록)
 
 ```java
-// backend/src/main/java/com/comma/config/WebConfig.java
+// backend/src/main/java/com/comma/global/config/WebConfig.java
 // JwtInterceptor를 Spring MVC에 등록
 
 @Configuration
@@ -822,7 +827,7 @@ public class WebConfig implements WebMvcConfigurer {
 - [ ] `build.gradle` — JWT, jbcrypt, Redis, Mail 의존성 추가 후 빌드 성공 (Security 없음)
 - [ ] `application.yml` — MyBatis, 서버 포트 설정
 - [ ] `application-local.yml` — DB, Redis, Mail 로컬 설정 (.gitignore 등록 확인)
-- [ ] MySQL `comma_db` 데이터베이스 생성 + `schema.sql` 실행
+- [ ] MySQL `comma` 데이터베이스 생성 + `schema.sql` 실행
 - [ ] `CorsConfig.java` — 프론트(3000포트) 허용 CORS 설정
 - [ ] `JwtUtil.java` — 토큰 생성, 검증, Claims 파싱
 - [ ] `JwtInterceptor.java` — 요청마다 JWT 검사 (HandlerInterceptor 기반)
@@ -848,7 +853,7 @@ public class WebConfig implements WebMvcConfigurer {
 | `Could not resolve io.jsonwebtoken` | Gradle 캐시 문제 | Gradle Reload 또는 `./gradlew clean build` |
 | `Could not resolve org.mindrot:jbcrypt` | Gradle 캐시 문제 | Gradle Reload 후 재시도 |
 | `Failed to configure DataSource` | application-local.yml에 DB 정보 없음 | DB URL, username, password 확인 |
-| `Unknown database 'comma_db'` | MySQL에 DB가 없음 | MySQL에서 `CREATE DATABASE comma_db` 실행 |
+| `Unknown database 'comma'` | MySQL에 DB가 없음 | MySQL에서 `CREATE DATABASE comma` 실행 |
 | `Access denied for user 'root'` | DB 비밀번호 틀림 | application-local.yml의 password 확인 |
 | 401 응답 (모든 API) | JwtInterceptor가 토큰 차단 | 공개 경로 `PUBLIC_PATHS` 배열에 해당 경로 추가 |
 | `Unable to start RedisConnectionFactory` | Redis 서버 안 켜짐 | 윈도우: 서비스에서 Redis 시작 또는 `redis-server.exe` 실행 |

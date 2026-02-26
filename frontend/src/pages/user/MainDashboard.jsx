@@ -260,8 +260,8 @@ function MainDashboard() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-sm">,</span>
+              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
+                <img src="/logo_comma.png" alt="쉼표" className="w-full h-full object-contain p-0.5" />
               </div>
               <h1 className="text-xl font-bold tracking-tight text-slate-800">쉼표</h1>
             </div>

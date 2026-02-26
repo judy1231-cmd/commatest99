@@ -17,8 +17,8 @@ function AdminSidebar() {
   return (
     <aside className="w-64 bg-white dark:bg-[#1a110c] border-r border-slate-200 dark:border-white/10 flex flex-col shrink-0">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-          <span className="material-icons-round text-xl">spa</span>
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center overflow-hidden">
+          <img src="/logo_comma.png" alt="쉼표" className="w-full h-full object-contain p-0.5" />
         </div>
         <h1 className="text-xl font-bold tracking-tight text-primary">쉼표 어드민</h1>
       </div>

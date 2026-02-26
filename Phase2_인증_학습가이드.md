@@ -24,10 +24,10 @@ git push origin main
 
 ## 2. 백엔드 — User 모델 생성
 
-**파일:** `backend/src/main/java/com/comma/model/User.java`
+**파일:** `backend/src/main/java/com/comma/domain/user/model/User.java`
 
 ```java
-package com.comma.model;
+package com.comma.domain.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,12 +60,12 @@ public class User {
 
 ## 3. 백엔드 — AuthMapper (DB 쿼리)
 
-### 파일 1: `backend/src/main/java/com/comma/mapper/AuthMapper.java`
+### 파일 1: `backend/src/main/java/com/comma/domain/auth/mapper/AuthMapper.java`
 
 ```java
-package com.comma.mapper;
+package com.comma.domain.auth.mapper;
 
-import com.comma.model.User;
+import com.comma.domain.user.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -85,7 +85,7 @@ public interface AuthMapper {
 > - `@Param("email")` → XML에서 `#{email}`로 값을 받을 수 있게 해줌
 > - 인터페이스만 만들면 됨 — 구현체는 MyBatis가 자동 생성
 
-### 파일 2: `backend/src/main/resources/mapper/AuthMapper.xml`
+### 파일 2: `backend/src/main/resources/mapper/auth/AuthMapper.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -93,7 +93,7 @@ public interface AuthMapper {
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!-- namespace = Java Mapper 인터페이스의 전체 경로 (정확히 일치해야 함!) -->
-<mapper namespace="com.comma.mapper.AuthMapper">
+<mapper namespace="com.comma.domain.auth.mapper.AuthMapper">
 
     <!-- 회원가입: User 객체를 받아서 INSERT -->
     <insert id="insertUser" parameterType="User">
@@ -146,14 +146,14 @@ public interface AuthMapper {
 
 ## 4. 백엔드 — AuthService (비즈니스 로직)
 
-**파일:** `backend/src/main/java/com/comma/service/AuthService.java`
+**파일:** `backend/src/main/java/com/comma/domain/auth/service/AuthService.java`
 
 ```java
-package com.comma.service;
+package com.comma.domain.auth.service;
 
-import com.comma.config.JwtUtil;
-import com.comma.mapper.AuthMapper;
-import com.comma.model.User;
+import com.comma.global.config.JwtUtil;
+import com.comma.domain.auth.mapper.AuthMapper;
+import com.comma.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;              // jbcrypt 라이브러리 (Spring Security 없이 BCrypt)
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -303,13 +303,13 @@ public class AuthService {
 
 ## 5. 백엔드 — AuthController (API 엔드포인트)
 
-**파일:** `backend/src/main/java/com/comma/controller/AuthController.java`
+**파일:** `backend/src/main/java/com/comma/domain/auth/controller/AuthController.java`
 
 ```java
-package com.comma.controller;
+package com.comma.domain.auth.controller;
 
-import com.comma.service.AuthService;
-import com.comma.model.User;
+import com.comma.domain.auth.service.AuthService;
+import com.comma.domain.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -478,10 +478,10 @@ public class AuthController {
 
 ### JwtInterceptor.java
 
-**파일:** `backend/src/main/java/com/comma/config/JwtInterceptor.java`
+**파일:** `backend/src/main/java/com/comma/global/config/JwtInterceptor.java`
 
 ```java
-package com.comma.config;
+package com.comma.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -565,7 +565,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
 ### WebConfig.java (인터셉터 등록)
 
-**파일:** `backend/src/main/java/com/comma/config/WebConfig.java`
+**파일:** `backend/src/main/java/com/comma/global/config/WebConfig.java`
 
 ```java
 @Configuration
@@ -853,18 +853,23 @@ WebConfig.java       →  JwtInterceptor를 /api/** 에 등록
 [생성/수정된 파일 목록]
 backend/
 ├── src/main/java/com/comma/
-│   ├── model/User.java              ← 새로 생성
-│   ├── mapper/AuthMapper.java       ← 새로 생성
-│   ├── service/AuthService.java     ← 새로 생성 (BCrypt.hashpw/checkpw 사용)
-│   ├── controller/AuthController.java ← 새로 생성 (request.getAttribute로 사용자 꺼냄)
-│   └── config/
-│       ├── JwtInterceptor.java      ← 새로 생성 (Spring Security 대신)
-│       ├── WebConfig.java           ← 새로 생성 (인터셉터 등록)
-│       ├── CorsConfig.java          ← 기존 유지
-│       └── JwtUtil.java             ← 기존 유지
+│   ├── domain/
+│   │   ├── auth/
+│   │   │   ├── controller/AuthController.java  ← 새로 생성 (request.getAttribute로 사용자 꺼냄)
+│   │   │   ├── service/AuthService.java        ← 새로 생성 (BCrypt.hashpw/checkpw 사용)
+│   │   │   └── mapper/AuthMapper.java          ← 새로 생성
+│   │   └── user/
+│   │       └── model/User.java                 ← 새로 생성
+│   └── global/
+│       └── config/
+│           ├── JwtInterceptor.java             ← 새로 생성 (Spring Security 대신)
+│           ├── WebConfig.java                  ← 새로 생성 (인터셉터 등록)
+│           ├── CorsConfig.java                 ← 기존 유지
+│           └── JwtUtil.java                    ← 기존 유지
 │   ※ SecurityConfig.java, JwtAuthFilter.java 없음 (Spring Security 미사용)
 ├── src/main/resources/mapper/
-│   └── AuthMapper.xml               ← 새로 생성
+│   └── auth/
+│       └── AuthMapper.xml                      ← 새로 생성
 frontend/
 ├── src/pages/user/
 │   ├── Login.jsx                    ← 수정 (fetch API 연결)

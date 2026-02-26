@@ -176,7 +176,7 @@ dependencies {
 #### 3. CorsConfig.java 생성 (CORS 설정)
 
 ```java
-// backend/src/main/java/com/comma/config/CorsConfig.java
+// backend/src/main/java/com/comma/global/config/CorsConfig.java
 // 프론트엔드(3000포트)에서 백엔드(8080포트)로 API 호출을 허용하는 설정
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
@@ -199,7 +199,7 @@ public class CorsConfig implements WebMvcConfigurer {
 #### 4. JwtUtil.java 생성
 
 ```java
-// backend/src/main/java/com/comma/config/JwtUtil.java
+// backend/src/main/java/com/comma/global/config/JwtUtil.java
 // JWT 토큰 관련 유틸리티
 // - generateAccessToken(쉼표번호, role): 액세스 토큰 생성 (만료: 30분)
 // - generateRefreshToken(쉼표번호): 리프레시 토큰 생성 (만료: 14일)
@@ -217,7 +217,7 @@ public class CorsConfig implements WebMvcConfigurer {
 #### 5. JwtInterceptor.java 생성 (Spring Security 대신 사용)
 
 ```java
-// backend/src/main/java/com/comma/config/JwtInterceptor.java
+// backend/src/main/java/com/comma/global/config/JwtInterceptor.java
 // HandlerInterceptor 기반 JWT 인증 처리
 // Spring Security 없이 순수 Spring MVC로 인증 구현
 //
@@ -240,7 +240,7 @@ public class CorsConfig implements WebMvcConfigurer {
 #### 6. WebConfig.java 생성 (인터셉터 등록)
 
 ```java
-// backend/src/main/java/com/comma/config/WebConfig.java
+// backend/src/main/java/com/comma/global/config/WebConfig.java
 // JwtInterceptor를 Spring MVC에 등록하는 설정
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
