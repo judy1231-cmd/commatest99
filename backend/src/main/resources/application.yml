@@ -40,6 +40,10 @@ jwt:
   access-expiration: 1800000     # 30분 (ms)
   refresh-expiration: 1209600000 # 14일 (ms)
 
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  front-url: ${APP_FRONT_URL:http://localhost:3000}
+
 logging:
   level:
     com.comma: DEBUG

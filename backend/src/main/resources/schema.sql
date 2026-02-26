@@ -253,12 +253,12 @@ CREATE TABLE IF NOT EXISTS rest_logs (
 CREATE TABLE IF NOT EXISTS monthly_stats (
     id              BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     쉼표번호        VARCHAR(12)  NOT NULL,
-    year_month      CHAR(7)      NOT NULL COMMENT 'YYYY-MM',
+    `year_month`    CHAR(7)      NOT NULL COMMENT 'YYYY-MM',
     total_minutes   INT          NOT NULL DEFAULT 0 COMMENT '총 휴식 시간(분)',
     type_ratio_json JSON         COMMENT '유형별 비율',
     avg_emotion     DECIMAL(4,2) COMMENT '평균 감정 점수',
     updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_stats (쉼표번호, year_month),
+    UNIQUE KEY uq_stats (쉼표번호, `year_month`),
     FOREIGN KEY (쉼표번호) REFERENCES users(쉼표번호) ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT='월간 통계 집계 (배치 갱신)';
 

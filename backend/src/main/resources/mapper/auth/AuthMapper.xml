@@ -4,34 +4,78 @@
 
 <mapper namespace="com.comma.domain.auth.mapper.AuthMapper">
 
-    <!-- 회원가입 -->
+    <!-- ==================== 회원 ==================== -->
+
     <insert id="insertUser" parameterType="User">
-        INSERT INTO users (쉼표번호, email, password, nickname, status, email_verified, role)
+        INSERT INTO users (`쉼표번호`, email, password, nickname, status, email_verified, role)
         VALUES (#{쉼표번호}, #{email}, #{password}, #{nickname}, 'active', 0, 'USER')
     </insert>
 
-    <!-- 이메일로 사용자 조회 -->
     <select id="findByEmail" resultType="User">
-        SELECT 쉼표번호, email, password, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE email = #{email}
     </select>
 
-    <!-- 쉼표번호로 사용자 조회 -->
     <select id="findBy쉼표번호" resultType="User">
-        SELECT 쉼표번호, email, password, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
         FROM users
-        WHERE 쉼표번호 = #{쉼표번호}
+        WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
-    <!-- 이메일 중복 체크 -->
     <select id="countByEmail" resultType="int">
         SELECT COUNT(*) FROM users WHERE email = #{email}
     </select>
 
-    <!-- 쉼표번호 최대값 조회 -->
-    <select id="findMax쉼표번호" resultType="String">
-        SELECT 쉼표번호 FROM users ORDER BY 쉼표번호 DESC LIMIT 1
+    <!-- USER role만 조회 — 관리자 번호(쉼표9xxx) 제외 -->
+    <select id="findMax쉼표번호ForUser" resultType="String">
+        SELECT `쉼표번호` FROM users WHERE role = 'USER' ORDER BY `쉼표번호` DESC LIMIT 1
     </select>
+
+    <!-- ==================== 이메일 인증 ==================== -->
+
+    <insert id="insertEmailVerification">
+        INSERT INTO email_verification (`쉼표번호`, token, verified, expires_at)
+        VALUES (#{쉼표번호}, #{token}, 0, #{expiresAt})
+    </insert>
+
+    <select id="findEmailVerification" resultType="map">
+        SELECT `쉼표번호`, token, verified, expires_at AS expiresAt
+        FROM email_verification
+        WHERE token = #{token}
+    </select>
+
+    <update id="markEmailVerificationComplete">
+        UPDATE email_verification SET verified = 1 WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <update id="updateUserEmailVerified">
+        UPDATE users SET email_verified = 1 WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <delete id="deleteEmailVerificationBy쉼표번호">
+        DELETE FROM email_verification WHERE `쉼표번호` = #{쉼표번호}
+    </delete>
+
+    <!-- ==================== 비밀번호 재설정 ==================== -->
+
+    <insert id="insertPasswordResetToken">
+        INSERT INTO password_reset_token (`쉼표번호`, token, expires_at, used)
+        VALUES (#{쉼표번호}, #{token}, #{expiresAt}, 0)
+    </insert>
+
+    <select id="findPasswordResetToken" resultType="map">
+        SELECT `쉼표번호`, token, expires_at AS expiresAt, used
+        FROM password_reset_token
+        WHERE token = #{token}
+    </select>
+
+    <update id="markPasswordResetTokenUsed">
+        UPDATE password_reset_token SET used = 1 WHERE token = #{token}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users SET password = #{password} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
 
 </mapper>

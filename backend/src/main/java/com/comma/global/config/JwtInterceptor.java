@@ -18,7 +18,12 @@ public class JwtInterceptor implements HandlerInterceptor {
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final String[] PUBLIC_PATHS = {
-            "/api/auth/**",
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/api/auth/email/verify",
+            "/api/auth/password/reset-request",
+            "/api/auth/password/reset",
             "/api/places/**",
             "/api/rest-types/**",
             "/api/survey/**"

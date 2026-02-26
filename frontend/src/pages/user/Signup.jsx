@@ -95,14 +95,16 @@ function Signup() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F7F2]">
       {/* Nav */}
-      <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-primary/10 bg-white/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden shadow-sm">
-            <img src="/logo_comma.png" alt="쉼표" className="w-5 h-5 object-contain" />
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+              <img src="/logo_comma.png" alt="쉼표" className="w-4 h-4 object-contain" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-slate-900">쉼표</span>
           </div>
-          <span className="text-2xl font-bold tracking-tight text-primary">쉼표</span>
+          <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
         </div>
-        <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
       </nav>
 
       <main className="flex-1 flex items-center justify-center p-6 sm:p-12">
