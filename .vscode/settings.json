@@ -1,6 +1,32 @@
 {
     "IDX.agenticWorkspace": true,
+
+    // ── Java / Gradle ──────────────────────────────────────
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.import.gradle.wrapper.enabled": true,
-    "java.import.gradle.enabled": true
+    "java.import.gradle.enabled": true,
+    "java.import.gradle.projectNames": ["backend"],
+
+    // backend 폴더를 Java 프로젝트 루트로 명시
+    "java.project.referencedLibraries": [
+        "backend/build/libs/**/*.jar"
+    ],
+
+    // Gradle 빌드 파일 위치 지정
+    "java.import.gradle.projectPath": "${workspaceFolder}/backend",
+
+    // 소스 경로 명시
+    "java.project.sourcePaths": [
+        "backend/src/main/java",
+        "backend/src/test/java"
+    ],
+
+    // ── Frontend ───────────────────────────────────────────
+    "emmet.includeLanguages": {
+        "javascript": "javascriptreact"
+    },
+    "tailwindCSS.includeLanguages": {
+        "javascript": "javascript",
+        "html": "html"
+    }
 }
