@@ -1,0 +1,21 @@
+{
+    "folders": [
+        {
+            "name": "backend",
+            "path": "backend"
+        },
+        {
+            "name": "frontend",
+            "path": "frontend"
+        }
+    ],
+    "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.import.gradle.wrapper.enabled": true,
+        "java.import.gradle.enabled": true,
+        "java.compile.nullAnalysis.mode": "automatic",
+        "emmet.includeLanguages": {
+            "javascript": "javascriptreact"
+        }
+    }
+}
