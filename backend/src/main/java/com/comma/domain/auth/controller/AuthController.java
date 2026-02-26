@@ -44,8 +44,15 @@ public class AuthController {
     // POST /api/auth/login
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody Map<String, String> body) {
+        String email    = body.get("email");
+        String password = body.get("password");
+        if (email == null || email.isBlank())
+            return ResponseEntity.badRequest().body(ApiResponse.fail("이메일을 입력해주세요."));
+        if (password == null || password.isBlank())
+            return ResponseEntity.badRequest().body(ApiResponse.fail("비밀번호를 입력해주세요."));
+
         try {
-            Map<String, Object> result = authService.login(body.get("email"), body.get("password"));
+            Map<String, Object> result = authService.login(email.trim(), password);
             return ResponseEntity.ok(ApiResponse.ok(result, "로그인 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(ApiResponse.fail(e.getMessage()));
@@ -56,8 +63,12 @@ public class AuthController {
     // POST /api/auth/refresh
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<Map<String, String>>> refresh(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken == null || refreshToken.isBlank())
+            return ResponseEntity.status(401).body(ApiResponse.fail("리프레시 토큰이 없습니다."));
+
         try {
-            Map<String, String> result = authService.refresh(body.get("refreshToken"));
+            Map<String, String> result = authService.refresh(refreshToken);
             return ResponseEntity.ok(ApiResponse.ok(result, "토큰 갱신 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(ApiResponse.fail(e.getMessage()));

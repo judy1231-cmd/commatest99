@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -29,8 +30,9 @@ public class AuthService {
 
     // ==================== 회원가입 ====================
 
+    @Transactional
     public User signup(String email, String password, String nickname) {
-        if (authMapper.countByEmail(email) > 0) {
+        if (authMapper.countByEmail(email.trim()) > 0) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
@@ -38,9 +40,13 @@ public class AuthService {
 
         User user = new User();
         user.set쉼표번호(쉼표번호);
-        user.setEmail(email);
+        user.setEmail(email.trim());
         user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-        user.setNickname(nickname);
+        user.setNickname(nickname.trim());
+        // DB DEFAULT 값을 Java 객체에도 반영 — 응답에서 null 방지
+        user.setStatus("active");
+        user.setEmailVerified(false);
+        user.setRole("USER");
 
         authMapper.insertUser(user);
 
@@ -148,15 +154,20 @@ public class AuthService {
         mailService.sendVerificationEmail(user.getEmail(), token);
     }
 
+    @Transactional
     public void verifyEmail(String token) {
         Map<String, Object> record = authMapper.findEmailVerification(token);
         if (record == null) throw new IllegalArgumentException("유효하지 않은 인증 링크입니다.");
 
-        if (((Number) record.get("verified")).intValue() == 1) {
+        Object verifiedVal = record.get("verified");
+        if (verifiedVal != null && ((Number) verifiedVal).intValue() == 1) {
             throw new IllegalArgumentException("이미 인증된 이메일입니다.");
         }
 
-        LocalDateTime expiresAt = toLocalDateTime(record.get("expiresAt"));
+        Object expiresVal = record.get("expiresAt");
+        if (expiresVal == null) throw new IllegalArgumentException("유효하지 않은 인증 링크입니다.");
+
+        LocalDateTime expiresAt = toLocalDateTime(expiresVal);
         if (expiresAt.isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("인증 링크가 만료되었습니다. 다시 요청해주세요.");
         }
@@ -178,7 +189,11 @@ public class AuthService {
         mailService.sendPasswordResetEmail(email, token);
     }
 
+    @Transactional
     public void resetPassword(String token, String newPassword) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("유효하지 않은 재설정 링크입니다.");
+        }
         if (newPassword == null || newPassword.length() < 8) {
             throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
         }
@@ -186,11 +201,15 @@ public class AuthService {
         Map<String, Object> record = authMapper.findPasswordResetToken(token);
         if (record == null) throw new IllegalArgumentException("유효하지 않은 재설정 링크입니다.");
 
-        if (((Number) record.get("used")).intValue() == 1) {
+        Object usedVal = record.get("used");
+        if (usedVal != null && ((Number) usedVal).intValue() == 1) {
             throw new IllegalArgumentException("이미 사용된 링크입니다.");
         }
 
-        LocalDateTime expiresAt = toLocalDateTime(record.get("expiresAt"));
+        Object expiresVal = record.get("expiresAt");
+        if (expiresVal == null) throw new IllegalArgumentException("유효하지 않은 재설정 링크입니다.");
+
+        LocalDateTime expiresAt = toLocalDateTime(expiresVal);
         if (expiresAt.isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("재설정 링크가 만료되었습니다. 다시 요청해주세요.");
         }
@@ -199,8 +218,11 @@ public class AuthService {
         authMapper.updatePassword(쉼표번호, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
         authMapper.markPasswordResetTokenUsed(token);
 
-        // 비밀번호 재설정 후 모든 기기 로그아웃
-        redisTemplate.delete(REFRESH_TOKEN_PREFIX + 쉼표번호);
+        // 비밀번호 재설정 후 모든 기기 로그아웃 (Redis 미가동 시 무시)
+        try {
+            redisTemplate.delete(REFRESH_TOKEN_PREFIX + 쉼표번호);
+        } catch (Exception ignored) {
+        }
     }
 
     // ==================== 내부 유틸 ====================
