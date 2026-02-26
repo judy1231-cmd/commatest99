@@ -1,7 +1,8 @@
-package com.comma.controller;
+package com.comma.domain.auth.controller;
 
-import com.comma.model.User;
-import com.comma.service.AuthService;
+import com.comma.domain.auth.service.AuthService;
+import com.comma.domain.user.model.User;
+import com.comma.global.config.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 회원가입
@@ -30,7 +32,6 @@ public class AuthController {
             String password = request.get("password");
             String nickname = request.get("nickname");
 
-            // 유효성 검사
             if (email == null || email.isBlank()) {
                 response.put("success", false);
                 response.put("data", null);
@@ -134,9 +135,7 @@ public class AuthController {
         }
 
         try {
-            String 쉼표번호 = org.springframework.security.core.context.SecurityContextHolder
-                    .getContext().getAuthentication().getName();
-
+            String 쉼표번호 = (String) httpRequest.getAttribute("쉼표번호");
             authService.logout(쉼표번호);
 
             response.put("success", true);

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.comma.mapper.AuthMapper">
+<mapper namespace="com.comma.domain.auth.mapper.AuthMapper">
 
     <!-- 회원가입 -->
     <insert id="insertUser" parameterType="User">

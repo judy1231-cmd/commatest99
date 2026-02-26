@@ -1,4 +1,4 @@
-package com.comma.config;
+package com.comma.global.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -44,14 +44,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
     public String extract쉼표번호(String token) {
         return parseClaims(token).getSubject();
     }
@@ -67,5 +59,13 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

@@ -155,8 +155,8 @@ import com.comma.config.JwtUtil;
 import com.comma.mapper.AuthMapper;
 import com.comma.model.User;
 import lombok.RequiredArgsConstructor;
+import org.mindrot.jbcrypt.BCrypt;              // jbcrypt 라이브러리 (Spring Security 없이 BCrypt)
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
@@ -167,9 +167,9 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
 
     private final AuthMapper authMapper;              // DB 쿼리
-    private final PasswordEncoder passwordEncoder;    // BCrypt 암호화
     private final JwtUtil jwtUtil;                    // JWT 토큰 생성/검증
     private final StringRedisTemplate redisTemplate;  // Redis (리프레시 토큰 저장)
+    // PasswordEncoder 없음 — jbcrypt 라이브러리로 직접 처리
 
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
     // Redis 키: "RT:쉼표0001" → 해당 유저의 리프레시 토큰 저장
@@ -191,8 +191,9 @@ public class AuthService {
         User user = new User();
         user.set쉼표번호(쉼표번호);
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        // passwordEncoder.encode() = "1234" → "$2a$10$xK9..." (BCrypt 해시)
+        user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+        // BCrypt.hashpw() = "1234" → "$2a$10$xK9..." (BCrypt 해시)
+        // BCrypt.gensalt() = 랜덤 소금값 생성 → 같은 비밀번호도 매번 다른 해시값
         user.setNickname(nickname);
 
         authMapper.insertUser(user);  // INSERT 실행
@@ -212,9 +213,9 @@ public class AuthService {
         }
 
         // 2. 비밀번호 비교
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!BCrypt.checkpw(password, user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-            // matches(입력값, 해시값) = 입력값을 해시해서 DB값과 비교
+            // BCrypt.checkpw(입력값, DB해시값) = 입력값을 해시해서 DB값과 비교 → true/false
         }
 
         // 3. 정지된 계정 체크
@@ -439,10 +440,9 @@ public class AuthController {
         }
 
         try {
-            // SecurityContext에서 현재 로그인한 유저의 쉼표번호 가져오기
-            // (JwtAuthFilter가 토큰 파싱 후 SecurityContext에 저장해둔 것)
-            String 쉼표번호 = org.springframework.security.core.context.SecurityContextHolder
-                    .getContext().getAuthentication().getName();
+            // JwtInterceptor가 request.setAttribute("쉼표번호", ...) 로 저장해둔 값 꺼내기
+            // (Spring Security 없이 순수 request attribute 사용)
+            String 쉼표번호 = (String) httpRequest.getAttribute("쉼표번호");
 
             authService.logout(쉼표번호);
 
@@ -471,161 +471,123 @@ public class AuthController {
 
 ---
 
-## 6. 백엔드 — JwtAuthFilter 수정
+## 6. 백엔드 — JwtInterceptor (Spring Security 없이 JWT 인증)
 
-### 원래 문제 3가지
+> ⚠️ **Spring Security를 사용하지 않으므로** JwtAuthFilter, SecurityConfig 파일은 없다.
+> 대신 순수 Spring MVC의 `HandlerInterceptor`로 JWT 인증을 직접 구현한다.
 
-| # | 문제 | 영향 |
-|---|------|------|
-| 1 | `@Component` + `SecurityConfig.addFilterBefore` | 필터가 2번 실행됨 |
-| 2 | SecurityConfig에 `.cors()` 없음 | 프론트에서 API 호출 시 CORS 에러 |
-| 3 | `/api/auth/**` 공개 경로에서도 토큰 파싱 | 불필요한 연산 |
+### JwtInterceptor.java
 
-### 수정된 JwtAuthFilter.java
-
-**파일:** `backend/src/main/java/com/comma/config/JwtAuthFilter.java`
+**파일:** `backend/src/main/java/com/comma/config/JwtInterceptor.java`
 
 ```java
 package com.comma.config;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerInterceptor;
 import java.io.IOException;
-import java.util.List;
 
-// ★ @Component 삭제! → SecurityConfig에서 @Bean으로 직접 등록하니까 여기선 빼야 함
-// @Component가 있으면 스프링이 자동 등록 + SecurityConfig에서 수동 등록 = 2번 실행
+@Component
 @RequiredArgsConstructor
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class JwtInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
-
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    // 토큰 검사 안 할 경로 목록
-    private static final String[] SKIP_URLS = {
-            "/api/auth/**",        // 로그인/회원가입은 토큰 없어도 됨
+    // 토큰 없이도 접근 가능한 공개 경로
+    private static final String[] PUBLIC_PATHS = {
+            "/api/auth/**",
             "/api/places/**",
             "/api/rest-types/**",
             "/api/survey/**"
     };
 
-    // ★ 이 경로들은 필터를 건너뜀 (성능 향상)
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+
+        // CORS preflight 요청은 무조건 통과
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         String path = request.getServletPath();
-        for (String pattern : SKIP_URLS) {
+
+        // 공개 경로는 토큰 없이 통과
+        for (String pattern : PUBLIC_PATHS) {
             if (pathMatcher.match(pattern, path)) {
-                return true;  // true = 이 요청은 필터 안 탐
+                return true;
             }
         }
-        return false;
-    }
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        String token = extractToken(request);
-
-        if (StringUtils.hasText(token) && jwtUtil.isTokenValid(token)) {
-            String 쉼표번호 = jwtUtil.extract쉼표번호(token);
-            String role = jwtUtil.extractRole(token);
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            쉼표번호,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Authorization 헤더에서 토큰 꺼내기
+        String header = request.getHeader("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            sendError(response, 401, "로그인이 필요합니다.");
+            return false;  // false = 컨트롤러 실행 중단
         }
 
-        filterChain.doFilter(request, response);
+        String token = header.substring(7);  // "Bearer " 7글자 제거
+
+        if (!jwtUtil.isTokenValid(token)) {
+            sendError(response, 401, "유효하지 않은 토큰입니다.");
+            return false;
+        }
+
+        String 쉼표번호 = jwtUtil.extract쉼표번호(token);
+        String role = jwtUtil.extractRole(token);
+
+        // 관리자 경로는 ADMIN role 추가 확인
+        if (pathMatcher.match("/api/admin/**", path) && !"ADMIN".equals(role)) {
+            sendError(response, 403, "관리자 권한이 필요합니다.");
+            return false;
+        }
+
+        // 컨트롤러에서 꺼내 쓸 수 있도록 request에 저장
+        request.setAttribute("쉼표번호", 쉼표번호);
+        request.setAttribute("role", role);
+
+        return true;  // true = 컨트롤러 실행 진행
     }
 
-    private String extractToken(HttpServletRequest request) {
-        String bearer = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
-        }
-        return null;
+    private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+                String.format("{\"success\":false,\"data\":null,\"message\":\"%s\"}", message)
+        );
     }
 }
 ```
 
-### 수정된 SecurityConfig.java
+### WebConfig.java (인터셉터 등록)
 
-**파일:** `backend/src/main/java/com/comma/config/SecurityConfig.java`
+**파일:** `backend/src/main/java/com/comma/config/WebConfig.java`
 
 ```java
-package com.comma.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 @Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-    // ★ @RequiredArgsConstructor 대신 @Bean으로 직접 생성
+@RequiredArgsConstructor
+public class WebConfig implements WebMvcConfigurer {
 
-    private static final String[] PUBLIC_URLS = {
-            "/api/auth/**",
-            "/api/places/**",
-            "/api/rest-types/**",
-            "/api/survey/**",
-    };
+    private final JwtInterceptor jwtInterceptor;
 
-    // ★ JwtAuthFilter를 @Bean으로 딱 1번만 등록
-    @Bean
-    public JwtAuthFilter jwtAuthFilter(JwtUtil jwtUtil) {
-        return new JwtAuthFilter(jwtUtil);
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-        http
-            .cors(Customizer.withDefaults())  // ★ 이거 추가! CORS 허용
-            // 이게 없으면 프론트(3000)에서 백엔드(8080) 호출 시 브라우저가 차단
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // STATELESS = 세션 안 씀 (JWT 방식이니까)
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(PUBLIC_URLS).permitAll()           // 공개 경로
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")  // 관리자만
-                .anyRequest().authenticated()                       // 나머지는 로그인 필요
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-            // 모든 요청이 UsernamePasswordAuthenticationFilter 전에 JwtAuthFilter를 거침
-
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(jwtInterceptor)
+                .addPathPatterns("/api/**");  // /api/** 경로에만 적용
     }
 }
 ```
+
+> **컨트롤러에서 사용자 꺼내는 방법:**
+> ```java
+> // JwtInterceptor가 저장해둔 쉼표번호 꺼내기
+> String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+> String role = (String) request.getAttribute("role");
+> ```
 
 ---
 
@@ -882,21 +844,25 @@ include 'backend'
                    →  User.java             (데이터 담는 그릇)
                    ←  JSON 응답             (프론트에 결과 전달)
 
-[보안 흐름]
-JwtAuthFilter.java   →  모든 API 요청에서 토큰 검사
-SecurityConfig.java  →  어떤 URL이 공개/보호인지 설정
+[보안 흐름] — Spring Security 없음!
+JwtInterceptor.java  →  모든 API 요청에서 JWT 토큰 검사 (HandlerInterceptor)
+CorsConfig.java      →  CORS 설정 (프론트 3000포트 허용)
 JwtUtil.java         →  토큰 생성/검증 유틸리티
+WebConfig.java       →  JwtInterceptor를 /api/** 에 등록
 
 [생성/수정된 파일 목록]
 backend/
 ├── src/main/java/com/comma/
 │   ├── model/User.java              ← 새로 생성
 │   ├── mapper/AuthMapper.java       ← 새로 생성
-│   ├── service/AuthService.java     ← 새로 생성
-│   ├── controller/AuthController.java ← 새로 생성
+│   ├── service/AuthService.java     ← 새로 생성 (BCrypt.hashpw/checkpw 사용)
+│   ├── controller/AuthController.java ← 새로 생성 (request.getAttribute로 사용자 꺼냄)
 │   └── config/
-│       ├── JwtAuthFilter.java       ← 수정 (@Component 제거, shouldNotFilter 추가)
-│       └── SecurityConfig.java      ← 수정 (CORS 추가, @Bean 등록 방식 변경)
+│       ├── JwtInterceptor.java      ← 새로 생성 (Spring Security 대신)
+│       ├── WebConfig.java           ← 새로 생성 (인터셉터 등록)
+│       ├── CorsConfig.java          ← 기존 유지
+│       └── JwtUtil.java             ← 기존 유지
+│   ※ SecurityConfig.java, JwtAuthFilter.java 없음 (Spring Security 미사용)
 ├── src/main/resources/mapper/
 │   └── AuthMapper.xml               ← 새로 생성
 frontend/
