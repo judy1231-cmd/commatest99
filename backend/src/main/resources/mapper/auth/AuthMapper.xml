@@ -46,7 +46,7 @@
     </select>
 
     <update id="markEmailVerificationComplete">
-        UPDATE email_verification SET verified = 1 WHERE `쉼표번호` = #{쉼표번호}
+        UPDATE email_verification SET verified = 1 WHERE token = #{token}
     </update>
 
     <update id="updateUserEmailVerified">

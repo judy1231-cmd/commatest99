@@ -36,6 +36,7 @@ public class AuthService {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
+        // 동시 가입 시 race condition 방지 — MAX 조회 후 즉시 INSERT (같은 트랜잭션)
         String 쉼표번호 = generate쉼표번호();
 
         User user = new User();
@@ -62,12 +63,13 @@ public class AuthService {
             throw new IllegalArgumentException("존재하지 않는 계정입니다.");
         }
 
-        if (!BCrypt.checkpw(password, user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
+        // banned 체크를 BCrypt 연산 전에 — BCrypt는 비용이 큰 연산
         if ("banned".equals(user.getStatus())) {
             throw new IllegalArgumentException("정지된 계정입니다. 관리자에게 문의하세요.");
+        }
+
+        if (!BCrypt.checkpw(password, user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
         String accessToken = jwtUtil.generateAccessToken(user.get쉼표번호(), user.getRole());
@@ -113,6 +115,12 @@ public class AuthService {
         }
 
         User user = authMapper.findBy쉼표번호(쉼표번호);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 계정입니다. 다시 로그인해주세요.");
+        }
+        if ("banned".equals(user.getStatus())) {
+            throw new IllegalArgumentException("정지된 계정입니다. 관리자에게 문의하세요.");
+        }
         String newAccessToken = jwtUtil.generateAccessToken(쉼표번호, user.getRole());
 
         Map<String, String> result = new HashMap<>();
@@ -141,12 +149,13 @@ public class AuthService {
 
     // ==================== 이메일 인증 ====================
 
+    @Transactional
     public void sendVerificationEmail(String 쉼표번호) {
         User user = authMapper.findBy쉼표번호(쉼표번호);
         if (user == null) throw new IllegalArgumentException("존재하지 않는 계정입니다.");
         if (Boolean.TRUE.equals(user.getEmailVerified())) throw new IllegalArgumentException("이미 인증된 이메일입니다.");
 
-        // 기존 토큰 삭제 후 새 토큰 발급
+        // 기존 토큰 삭제 후 새 토큰 발급 (트랜잭션으로 원자성 보장)
         authMapper.deleteEmailVerificationBy쉼표번호(쉼표번호);
         String token = UUID.randomUUID().toString();
         authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
@@ -173,7 +182,7 @@ public class AuthService {
         }
 
         String 쉼표번호 = (String) record.get("쉼표번호");
-        authMapper.markEmailVerificationComplete(쉼표번호);
+        authMapper.markEmailVerificationComplete(token);   // 특정 token만 verified 처리
         authMapper.updateUserEmailVerified(쉼표번호);
     }
 

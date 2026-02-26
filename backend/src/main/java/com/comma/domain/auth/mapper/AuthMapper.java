@@ -33,7 +33,7 @@ public interface AuthMapper {
 
     Map<String, Object> findEmailVerification(@Param("token") String token);
 
-    void markEmailVerificationComplete(@Param("쉼표번호") String 쉼표번호);
+    void markEmailVerificationComplete(@Param("token") String token);
 
     void updateUserEmailVerified(@Param("쉼표번호") String 쉼표번호);
 
