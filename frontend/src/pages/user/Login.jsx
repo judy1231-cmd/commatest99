@@ -64,7 +64,7 @@ function Login() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft overflow-hidden">
+            <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft overflow-hidden">
               <img src="/logo_comma.png" alt="쉼표" className="w-9 h-9 object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-slate-800">다시 만나서 반가워요</h1>
