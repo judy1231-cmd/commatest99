@@ -64,8 +64,8 @@ function Login() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
-              <span className="text-white font-black text-2xl">,</span>
+            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft overflow-hidden">
+              <img src="/logo_comma.png" alt="쉼표" className="w-9 h-9 object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-slate-800">다시 만나서 반가워요</h1>
             <p className="text-slate-500 text-sm mt-2">쉼표와 함께 오늘의 휴식을 시작해보세요</p>

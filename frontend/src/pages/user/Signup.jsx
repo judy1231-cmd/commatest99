@@ -96,9 +96,11 @@ function Signup() {
     <div className="min-h-screen flex flex-col bg-[#F9F7F2]">
       {/* Nav */}
       <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-primary/10 bg-white/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-2 text-primary">
-          <span className="material-symbols-outlined text-3xl font-bold">spa</span>
-          <span className="text-2xl font-bold tracking-tight">쉼표</span>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
+            <img src="/logo_comma.png" alt="쉼표" className="w-5 h-5 object-contain" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-primary">쉼표</span>
         </div>
         <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
       </nav>
