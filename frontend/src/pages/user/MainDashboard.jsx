@@ -261,7 +261,7 @@ function MainDashboard() {
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
-                <img src="/logo_comma.png" alt="쉼표" className="w-5 h-5 object-contain" />
+                <img src="/logo_comma.png" alt="쉼표" className="w-3.5 h-3.5 object-contain" />
               </div>
               <h1 className="text-xl font-bold tracking-tight text-slate-800">쉼표</h1>
             </div>

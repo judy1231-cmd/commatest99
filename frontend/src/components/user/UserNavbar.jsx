@@ -55,7 +55,7 @@ function LoginModal({ onClose, onLoginSuccess }) {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center overflow-hidden">
-              <img src="/logo_comma.png" alt="쉼표" className="w-5 h-5 object-contain" />
+              <img src="/logo_comma.png" alt="쉼표" className="w-3.5 h-3.5 object-contain" />
             </div>
             <span className="font-bold text-slate-800">쉼표 로그인</span>
           </div>
@@ -172,7 +172,7 @@ function UserNavbar() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
-              <img src="/logo_comma.png" alt="쉼표" className="w-6 h-6 object-contain" />
+              <img src="/logo_comma.png" alt="쉼표" className="w-4 h-4 object-contain" />
             </div>
             <Link to="/" className="text-2xl font-bold tracking-tight text-slate-900">쉼표</Link>
           </div>
