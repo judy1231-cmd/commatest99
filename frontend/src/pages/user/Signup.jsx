@@ -108,6 +108,9 @@ function Signup() {
       <main className="flex-1 flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-[520px] bg-white rounded-xl shadow-xl p-8 md:p-12 border border-primary/5">
           <div className="text-center mb-10">
+            <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft overflow-hidden">
+              <img src="/logo_comma.png" alt="쉼표" className="w-6 h-6 object-contain" />
+            </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-3">반가워요!</h1>
             <p className="text-gray-500">쉼표와 함께 따뜻한 휴식을 시작해보세요.</p>
           </div>
