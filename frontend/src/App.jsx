@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import PrivateRoute, { AdminRoute } from './components/common/PrivateRoute';
+import { fetchWithAuth } from './api/fetchWithAuth';
 
 // User Pages
 import MainDashboard from './pages/user/MainDashboard';
@@ -25,6 +27,7 @@ import RestNature from './pages/user/RestNature';
 import RestCreative from './pages/user/RestCreative';
 
 // Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import PlaceApproval from './pages/admin/PlaceApproval';
@@ -37,6 +40,24 @@ import SystemSettings from './pages/admin/SystemSettings';
 import NotFound from './pages/NotFound';
 
 function App() {
+  // 앱 초기화 시 토큰 유효성 검증
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    fetchWithAuth('/api/auth/me').then((data) => {
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.data));
+      } else {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+      }
+    }).catch(() => {
+      // fetchWithAuth 내부에서 refresh 실패 시 자동 로그아웃 처리됨
+    });
+  }, []);
+
   return (
     <Routes>
       {/* 공개 라우트 */}
@@ -61,6 +82,9 @@ function App() {
       <Route path="/heartrate" element={<PrivateRoute><HeartRateCheck /></PrivateRoute>} />
       <Route path="/rest-record" element={<PrivateRoute><RestRecord /></PrivateRoute>} />
       <Route path="/challenge" element={<PrivateRoute><Challenge /></PrivateRoute>} />
+
+      {/* 관리자 로그인 (공개) */}
+      <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* 관리자 전용 라우트 */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

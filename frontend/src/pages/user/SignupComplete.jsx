@@ -14,7 +14,18 @@ function SignupComplete() {
 
         <h1 className="text-3xl font-black text-slate-800 mb-3">회원가입 완료!</h1>
         <p className="text-slate-500 mb-2">쉼표 가족이 되신 것을 환영해요.</p>
-        <p className="text-slate-400 text-sm mb-10">이제 당신만의 휴식 여정을 시작해보세요.</p>
+        <p className="text-slate-400 text-sm mb-6">이제 당신만의 휴식 여정을 시작해보세요.</p>
+
+        {/* 이메일 인증 안내 */}
+        <div className="bg-soft-mint rounded-2xl p-5 border border-primary/10 mb-6 text-left">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-primary text-xl mt-0.5">mark_email_read</span>
+            <div>
+              <p className="text-sm font-semibold text-slate-700 mb-1">이메일 인증을 완료해주세요</p>
+              <p className="text-xs text-slate-500">가입하신 이메일로 인증 링크를 보냈어요. 24시간 내에 인증해주세요.</p>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm mb-6 text-left">
           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">

@@ -51,6 +51,15 @@ public class AuthService {
 
         authMapper.insertUser(user);
 
+        // 회원가입 직후 이메일 인증 메일 자동 발송
+        try {
+            String token = UUID.randomUUID().toString();
+            authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
+            mailService.sendVerificationEmail(email.trim(), token);
+        } catch (Exception e) {
+            // 메일 발송 실패해도 회원가입은 성공 처리
+        }
+
         user.setPassword(null);
         return user;
     }

@@ -15,7 +15,7 @@ export function AdminRoute({ children }) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   if (!token || user.role !== 'ADMIN') {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
   return children;
 }
