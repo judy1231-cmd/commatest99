@@ -1,0 +1,70 @@
+package com.comma.domain.admin.mapper;
+
+import com.comma.domain.admin.model.AuditLog;
+import com.comma.domain.admin.model.BlockedKeyword;
+import com.comma.domain.place.model.Place;
+import com.comma.domain.user.model.User;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
+
+@Mapper
+public interface AdminMapper {
+
+    // ==================== 대시보드 ====================
+
+    int countTotalUsers();
+
+    int countTodaySignups();
+
+    int countTotalRestLogs();
+
+    int countActiveUsers();
+
+    // ==================== 사용자 관리 ====================
+
+    List<User> findUsers(@Param("keyword") String keyword,
+                         @Param("status") String status,
+                         @Param("offset") int offset,
+                         @Param("size") int size);
+
+    int countUsers(@Param("keyword") String keyword, @Param("status") String status);
+
+    void updateUserStatus(@Param("쉼표번호") String 쉼표번호, @Param("status") String status);
+
+    // ==================== 장소 관리 ====================
+
+    List<Place> findPlacesByStatus(@Param("status") String status,
+                                   @Param("offset") int offset,
+                                   @Param("size") int size);
+
+    int countPlacesByStatus(@Param("status") String status);
+
+    void updatePlaceStatus(@Param("id") Long id, @Param("status") String status);
+
+    // ==================== 분석 ====================
+
+    List<Map<String, Object>> getDailySignups();
+
+    List<Map<String, Object>> getDailyRestLogs();
+
+    List<Map<String, Object>> getRestTypePopularity();
+
+    // ==================== 감사 로그 ====================
+
+    void insertAuditLog(AuditLog auditLog);
+
+    List<AuditLog> findAuditLogs(@Param("offset") int offset, @Param("size") int size);
+
+    int countAuditLogs();
+
+    // ==================== 차단 키워드 ====================
+
+    List<BlockedKeyword> findAllKeywords();
+
+    void insertKeyword(BlockedKeyword keyword);
+
+    void deleteKeyword(@Param("id") Long id);
+}

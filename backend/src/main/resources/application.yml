@@ -30,7 +30,17 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: com.comma.domain.user.model
+  type-aliases-package: >
+    com.comma.domain.user.model,
+    com.comma.domain.survey.model,
+    com.comma.domain.diagnosis.model,
+    com.comma.domain.place.model,
+    com.comma.domain.rest.model,
+    com.comma.domain.recommendation.model,
+    com.comma.domain.stats.model,
+    com.comma.domain.notification.model,
+    com.comma.domain.badge.model,
+    com.comma.domain.admin.model
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

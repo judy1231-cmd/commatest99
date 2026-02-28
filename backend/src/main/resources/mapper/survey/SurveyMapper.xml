@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.survey.mapper.SurveyMapper">
+
+    <select id="findActiveQuestions" resultType="com.comma.domain.survey.model.SurveyQuestion">
+        SELECT id, question_content, category, display_order, active
+        FROM survey_questions
+        WHERE active = 1
+        ORDER BY display_order
+    </select>
+
+    <select id="findChoicesByQuestionId" resultType="com.comma.domain.survey.model.SurveyChoice">
+        SELECT id, question_id, choice_content, score, display_order
+        FROM survey_choices
+        WHERE question_id = #{questionId}
+        ORDER BY display_order
+    </select>
+
+    <insert id="insertResponse" parameterType="com.comma.domain.survey.model.SurveyResponse"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO survey_responses (`쉼표번호`, question_id, choice_id, responded_at)
+        VALUES (#{쉼표번호}, #{questionId}, #{choiceId}, #{respondedAt})
+    </insert>
+
+    <delete id="deleteResponsesBy쉼표번호">
+        DELETE FROM survey_responses WHERE `쉼표번호` = #{쉼표번호}
+    </delete>
+
+    <select id="findResponsesBy쉼표번호" resultType="com.comma.domain.survey.model.SurveyResponse">
+        SELECT id, `쉼표번호`, question_id, choice_id, responded_at
+        FROM survey_responses
+        WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
+</mapper>

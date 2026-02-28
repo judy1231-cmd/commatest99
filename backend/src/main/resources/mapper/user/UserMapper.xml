@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.user.mapper.UserMapper">
+
+    <select id="findBy쉼표번호" resultType="com.comma.domain.user.model.User">
+        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        FROM users
+        WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
+    <update id="updateNickname">
+        UPDATE users SET nickname = #{nickname} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <select id="findSettingsBy쉼표번호" resultType="com.comma.domain.user.model.UserSettings">
+        SELECT id, `쉼표번호`, notification_settings_json, theme, smartwatch_type
+        FROM user_settings
+        WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
+    <insert id="insertSettings" parameterType="com.comma.domain.user.model.UserSettings"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_settings (`쉼표번호`, notification_settings_json, theme, smartwatch_type)
+        VALUES (#{쉼표번호}, #{notificationSettingsJson}, #{theme}, #{smartwatchType})
+    </insert>
+
+    <update id="updateSettings" parameterType="com.comma.domain.user.model.UserSettings">
+        UPDATE user_settings
+        SET notification_settings_json = #{notificationSettingsJson},
+            theme = #{theme}, smartwatch_type = #{smartwatchType}
+        WHERE id = #{id}
+    </update>
+
+    <select id="countBadges" resultType="int">
+        SELECT COUNT(*) FROM user_badges WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
+    <!-- 프로필 통계: 총 기록수, 총 휴식시간 -->
+    <select id="getProfileStats" resultType="map">
+        SELECT COUNT(*) AS totalLogs,
+               COALESCE(SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time)), 0) AS totalMinutes
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+    </select>
+
+</mapper>

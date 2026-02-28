@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.diagnosis.mapper.DiagnosisMapper">
+
+    <!-- ==================== 심박 측정 세션 ==================== -->
+
+    <insert id="insertSession" parameterType="com.comma.domain.diagnosis.model.MeasurementSession"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO measurement_sessions (`쉼표번호`, started_at, device_type)
+        VALUES (#{쉼표번호}, #{startedAt}, #{deviceType})
+    </insert>
+
+    <update id="updateSessionEnd">
+        UPDATE measurement_sessions
+        SET ended_at = #{endedAt}, reliability = #{reliability}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findSessionById" resultType="com.comma.domain.diagnosis.model.MeasurementSession">
+        SELECT id, `쉼표번호`, started_at, ended_at, device_type, reliability
+        FROM measurement_sessions
+        WHERE id = #{id}
+    </select>
+
+    <!-- ==================== 심박 데이터 ==================== -->
+
+    <insert id="insertMeasurement" parameterType="com.comma.domain.diagnosis.model.HeartRateMeasurement"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO heart_rate_measurements (session_id, `쉼표번호`, bpm, hrv, measured_at)
+        VALUES (#{sessionId}, #{쉼표번호}, #{bpm}, #{hrv}, #{measuredAt})
+    </insert>
+
+    <select id="findMeasurementsBySessionId" resultType="com.comma.domain.diagnosis.model.HeartRateMeasurement">
+        SELECT id, session_id, `쉼표번호`, bpm, hrv, measured_at
+        FROM heart_rate_measurements
+        WHERE session_id = #{sessionId}
+        ORDER BY measured_at
+    </select>
+
+    <!-- ==================== 진단 결과 ==================== -->
+
+    <insert id="insertDiagnosisResult" parameterType="com.comma.domain.diagnosis.model.DiagnosisResult"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO diagnosis_results (`쉼표번호`, session_id, stress_index, primary_rest_type, scores_json, diagnosed_at)
+        VALUES (#{쉼표번호}, #{sessionId}, #{stressIndex}, #{primaryRestType}, #{scoresJson}, #{diagnosedAt})
+    </insert>
+
+    <insert id="insertRestTypeScore" parameterType="com.comma.domain.diagnosis.model.RestTypeScore"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rest_type_scores (diagnosis_result_id, rest_type, score, ranking)
+        VALUES (#{diagnosisResultId}, #{restType}, #{score}, #{ranking})
+    </insert>
+
+    <select id="findLatestBy쉼표번호" resultType="com.comma.domain.diagnosis.model.DiagnosisResult">
+        SELECT id, `쉼표번호`, session_id, stress_index, primary_rest_type, scores_json, diagnosed_at
+        FROM diagnosis_results
+        WHERE `쉼표번호` = #{쉼표번호}
+        ORDER BY diagnosed_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findAllBy쉼표번호" resultType="com.comma.domain.diagnosis.model.DiagnosisResult">
+        SELECT id, `쉼표번호`, session_id, stress_index, primary_rest_type, scores_json, diagnosed_at
+        FROM diagnosis_results
+        WHERE `쉼표번호` = #{쉼표번호}
+        ORDER BY diagnosed_at DESC
+    </select>
+
+    <select id="findScoresByDiagnosisId" resultType="com.comma.domain.diagnosis.model.RestTypeScore">
+        SELECT id, diagnosis_result_id, rest_type, score, ranking
+        FROM rest_type_scores
+        WHERE diagnosis_result_id = #{diagnosisResultId}
+        ORDER BY ranking
+    </select>
+
+</mapper>

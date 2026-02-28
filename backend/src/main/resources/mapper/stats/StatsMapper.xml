@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.stats.mapper.StatsMapper">
+
+    <select id="findByCommaNoAndMonth" resultType="com.comma.domain.stats.model.MonthlyStats">
+        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+               avg_emotion_score, record_count
+        FROM monthly_stats
+        WHERE `쉼표번호` = #{쉼표번호} AND year_month = #{yearMonth}
+    </select>
+
+    <select id="findByCommaNoAndRange" resultType="com.comma.domain.stats.model.MonthlyStats">
+        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+               avg_emotion_score, record_count
+        FROM monthly_stats
+        WHERE `쉼표번호` = #{쉼표번호} AND year_month BETWEEN #{startMonth} AND #{endMonth}
+        ORDER BY year_month
+    </select>
+
+    <!-- rest_logs에서 해당 월의 총 휴식 시간(분) 합산 -->
+    <select id="sumRestMinutes" resultType="Integer">
+        SELECT COALESCE(SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time)), 0)
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+          AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
+    </select>
+
+    <!-- 감정점수 평균 (휴식 후 기준) -->
+    <select id="avgEmotionScore" resultType="Double">
+        SELECT AVG(emotion_after)
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+          AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
+          AND emotion_after IS NOT NULL
+    </select>
+
+    <select id="countRestLogs" resultType="Integer">
+        SELECT COUNT(*)
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+          AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
+    </select>
+
+    <!-- 유형별 기록 비율 (백분율) -->
+    <select id="getTypeRatio" resultType="map">
+        SELECT rest_type_id AS restTypeId,
+               ROUND(COUNT(*) * 100.0 / (
+                   SELECT COUNT(*) FROM rest_logs
+                   WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+                     AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
+               ), 1) AS ratio
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+          AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
+        GROUP BY rest_type_id
+    </select>
+
+    <select id="findExisting" resultType="com.comma.domain.stats.model.MonthlyStats">
+        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+               avg_emotion_score, record_count
+        FROM monthly_stats
+        WHERE `쉼표번호` = #{쉼표번호} AND year_month = #{yearMonth}
+    </select>
+
+    <insert id="insertMonthlyStats" parameterType="com.comma.domain.stats.model.MonthlyStats"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO monthly_stats (`쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+                                   avg_emotion_score, record_count)
+        VALUES (#{쉼표번호}, #{yearMonth}, #{totalRestMinutes}, #{typeRatioJson},
+                #{avgEmotionScore}, #{recordCount})
+    </insert>
+
+    <update id="updateMonthlyStats" parameterType="com.comma.domain.stats.model.MonthlyStats">
+        UPDATE monthly_stats
+        SET total_rest_minutes = #{totalRestMinutes}, type_ratio_json = #{typeRatioJson},
+            avg_emotion_score = #{avgEmotionScore}, record_count = #{recordCount}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.badge.mapper.BadgeMapper">
+
+    <select id="findAllBadges" resultType="com.comma.domain.badge.model.Badge">
+        SELECT id, badge_name, description, icon_url, achievement_type
+        FROM badges
+        ORDER BY id
+    </select>
+
+    <select id="findUserBadges" resultType="com.comma.domain.badge.model.UserBadge">
+        SELECT `쉼표번호`, badge_id, earned_at
+        FROM user_badges
+        WHERE `쉼표번호` = #{쉼표번호}
+        ORDER BY earned_at DESC
+    </select>
+
+    <select id="findUserBadge" resultType="com.comma.domain.badge.model.UserBadge">
+        SELECT `쉼표번호`, badge_id, earned_at
+        FROM user_badges
+        WHERE `쉼표번호` = #{쉼표번호} AND badge_id = #{badgeId}
+    </select>
+
+    <insert id="insertUserBadge">
+        INSERT INTO user_badges (`쉼표번호`, badge_id, earned_at)
+        VALUES (#{쉼표번호}, #{badgeId}, NOW())
+    </insert>
+
+    <select id="countRestLogs" resultType="int">
+        SELECT COUNT(*) FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+    </select>
+
+</mapper>

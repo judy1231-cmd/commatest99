@@ -16,6 +16,8 @@ import HeartRateCheck from './pages/user/HeartRateCheck';
 import RestTypeTest from './pages/user/RestTypeTest';
 import RestRecord from './pages/user/RestRecord';
 import MapPage from './pages/user/MapPage';
+import Settings from './pages/user/Settings';
+import Notifications from './pages/user/Notifications';
 
 // Rest Category Pages
 import RestPhysical from './pages/user/RestPhysical';
@@ -82,6 +84,8 @@ function App() {
       <Route path="/heartrate" element={<PrivateRoute><HeartRateCheck /></PrivateRoute>} />
       <Route path="/rest-record" element={<PrivateRoute><RestRecord /></PrivateRoute>} />
       <Route path="/challenge" element={<PrivateRoute><Challenge /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
 
       {/* 관리자 로그인 (공개) */}
       <Route path="/admin/login" element={<AdminLogin />} />

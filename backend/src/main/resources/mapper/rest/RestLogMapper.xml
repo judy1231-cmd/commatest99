@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.rest.mapper.RestLogMapper">
+
+    <!-- ==================== 휴식 기록 ==================== -->
+
+    <insert id="insertRestLog" parameterType="com.comma.domain.rest.model.RestLog"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rest_logs (`쉼표번호`, rest_type_id, place_id, start_time, end_time,
+                               memo, emotion_before, emotion_after, mood_tags_json, deleted)
+        VALUES (#{쉼표번호}, #{restTypeId}, #{placeId}, #{startTime}, #{endTime},
+                #{memo}, #{emotionBefore}, #{emotionAfter}, #{moodTagsJson}, 0)
+    </insert>
+
+    <!-- deleted=0 인 기록만 조회 — soft delete된 기록은 보이지 않음 -->
+    <select id="findByCommaNo" resultType="com.comma.domain.rest.model.RestLog">
+        SELECT id, `쉼표번호`, rest_type_id, place_id, start_time, end_time,
+               memo, emotion_before, emotion_after, mood_tags_json, deleted, created_at
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+        ORDER BY start_time DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByCommaNo" resultType="int">
+        SELECT COUNT(*) FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
+    </select>
+
+    <select id="findById" resultType="com.comma.domain.rest.model.RestLog">
+        SELECT id, `쉼표번호`, rest_type_id, place_id, start_time, end_time,
+               memo, emotion_before, emotion_after, mood_tags_json, deleted, created_at
+        FROM rest_logs
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <update id="updateRestLog" parameterType="com.comma.domain.rest.model.RestLog">
+        UPDATE rest_logs
+        SET rest_type_id = #{restTypeId}, place_id = #{placeId},
+            start_time = #{startTime}, end_time = #{endTime},
+            memo = #{memo}, emotion_before = #{emotionBefore},
+            emotion_after = #{emotionAfter}, mood_tags_json = #{moodTagsJson}
+        WHERE id = #{id}
+    </update>
+
+    <!-- soft delete — 실제 행을 삭제하지 않고 플래그만 변경 -->
+    <update id="softDeleteRestLog">
+        UPDATE rest_logs SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <!-- ==================== 휴식 유형 / 활동 ==================== -->
+
+    <select id="findAllRestTypes" resultType="com.comma.domain.rest.model.RestType">
+        SELECT id, type_name, description, icon, color_code
+        FROM rest_types
+        ORDER BY id
+    </select>
+
+    <select id="findActivitiesByRestTypeId" resultType="com.comma.domain.rest.model.RestActivity">
+        SELECT id, rest_type_id, activity_name, guide_content, duration_minutes
+        FROM rest_activities
+        WHERE rest_type_id = #{restTypeId}
+        ORDER BY id
+    </select>
+
+</mapper>

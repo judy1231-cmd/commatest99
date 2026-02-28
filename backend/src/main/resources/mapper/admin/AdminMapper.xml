@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.admin.mapper.AdminMapper">
+
+    <!-- ==================== 대시보드 ==================== -->
+
+    <select id="countTotalUsers" resultType="int">
+        SELECT COUNT(*) FROM users WHERE role = 'USER'
+    </select>
+
+    <select id="countTodaySignups" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role = 'USER' AND DATE(created_at) = CURDATE()
+    </select>
+
+    <select id="countTotalRestLogs" resultType="int">
+        SELECT COUNT(*) FROM rest_logs WHERE deleted = 0
+    </select>
+
+    <select id="countActiveUsers" resultType="int">
+        SELECT COUNT(*) FROM users WHERE role = 'USER' AND status = 'active'
+    </select>
+
+    <!-- ==================== 사용자 관리 ==================== -->
+
+    <select id="findUsers" resultType="com.comma.domain.user.model.User">
+        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        FROM users
+        WHERE role = 'USER'
+        <if test="keyword != null and keyword != ''">
+            AND (email LIKE CONCAT('%', #{keyword}, '%')
+                 OR nickname LIKE CONCAT('%', #{keyword}, '%')
+                 OR `쉼표번호` LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countUsers" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role = 'USER'
+        <if test="keyword != null and keyword != ''">
+            AND (email LIKE CONCAT('%', #{keyword}, '%')
+                 OR nickname LIKE CONCAT('%', #{keyword}, '%')
+                 OR `쉼표번호` LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <update id="updateUserStatus">
+        UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <!-- ==================== 장소 관리 ==================== -->
+
+    <select id="findPlacesByStatus" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        FROM places
+        <where>
+            <if test="status != null and status != ''">
+                status = #{status}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countPlacesByStatus" resultType="int">
+        SELECT COUNT(*) FROM places
+        <where>
+            <if test="status != null and status != ''">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <update id="updatePlaceStatus">
+        UPDATE places SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- ==================== 분석 — 최근 30일 ==================== -->
+
+    <select id="getDailySignups" resultType="map">
+        SELECT DATE(created_at) AS date, COUNT(*) AS count
+        FROM users
+        WHERE role = 'USER' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date
+    </select>
+
+    <select id="getDailyRestLogs" resultType="map">
+        SELECT DATE(created_at) AS date, COUNT(*) AS count
+        FROM rest_logs
+        WHERE deleted = 0 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date
+    </select>
+
+    <select id="getRestTypePopularity" resultType="map">
+        SELECT rt.type_name AS typeName, COUNT(rl.id) AS count
+        FROM rest_logs rl
+        INNER JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.deleted = 0
+        GROUP BY rl.rest_type_id, rt.type_name
+        ORDER BY count DESC
+    </select>
+
+    <!-- ==================== 감사 로그 ==================== -->
+
+    <insert id="insertAuditLog" parameterType="com.comma.domain.admin.model.AuditLog"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit_logs (admin_쉼표번호, action, target_type, target_id, performed_at)
+        VALUES (#{admin쉼표번호}, #{action}, #{targetType}, #{targetId}, #{performedAt})
+    </insert>
+
+    <select id="findAuditLogs" resultType="com.comma.domain.admin.model.AuditLog">
+        SELECT id, admin_쉼표번호 AS admin쉼표번호, action, target_type, target_id, performed_at
+        FROM audit_logs
+        ORDER BY performed_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAuditLogs" resultType="int">
+        SELECT COUNT(*) FROM audit_logs
+    </select>
+
+    <!-- ==================== 차단 키워드 ==================== -->
+
+    <select id="findAllKeywords" resultType="com.comma.domain.admin.model.BlockedKeyword">
+        SELECT id, keyword, active
+        FROM blocked_keywords
+        ORDER BY id
+    </select>
+
+    <insert id="insertKeyword" parameterType="com.comma.domain.admin.model.BlockedKeyword"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO blocked_keywords (keyword, active)
+        VALUES (#{keyword}, #{active})
+    </insert>
+
+    <delete id="deleteKeyword">
+        DELETE FROM blocked_keywords WHERE id = #{id}
+    </delete>
+
+</mapper>

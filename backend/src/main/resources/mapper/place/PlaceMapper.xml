@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.place.mapper.PlaceMapper">
+
+    <!-- ==================== 장소 조회 ==================== -->
+
+    <select id="findPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude,
+               p.operating_hours, p.ai_score, p.status, p.created_at
+        FROM places p
+        <if test="restType != null and restType != ''">
+            INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}
+        </if>
+        WHERE p.status = 'approved'
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.address LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY p.ai_score DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countPlaces" resultType="int">
+        SELECT COUNT(DISTINCT p.id)
+        FROM places p
+        <if test="restType != null and restType != ''">
+            INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}
+        </if>
+        WHERE p.status = 'approved'
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.address LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <select id="findById" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        FROM places
+        WHERE id = #{id}
+    </select>
+
+    <select id="findTagsByPlaceId" resultType="com.comma.domain.place.model.PlaceTag">
+        SELECT id, place_id, tag_name, rest_type
+        FROM place_tags
+        WHERE place_id = #{placeId}
+    </select>
+
+    <select id="findPhotosByPlaceId" resultType="com.comma.domain.place.model.PlacePhoto">
+        SELECT id, place_id, photo_url, source
+        FROM place_photos
+        WHERE place_id = #{placeId}
+    </select>
+
+    <!-- ==================== 리뷰 ==================== -->
+
+    <insert id="insertReview" parameterType="com.comma.domain.place.model.PlaceReview"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_reviews (`쉼표번호`, place_id, rating, content, verified, created_at)
+        VALUES (#{쉼표번호}, #{placeId}, #{rating}, #{content}, #{verified}, #{createdAt})
+    </insert>
+
+    <select id="findReviewsByPlaceId" resultType="com.comma.domain.place.model.PlaceReview">
+        SELECT id, `쉼표번호`, place_id, rating, content, verified, created_at
+        FROM place_reviews
+        WHERE place_id = #{placeId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- ==================== 북마크 ==================== -->
+
+    <select id="findBookmark" resultType="com.comma.domain.place.model.PlaceBookmark">
+        SELECT id, `쉼표번호`, place_id, created_at
+        FROM place_bookmarks
+        WHERE `쉼표번호` = #{쉼표번호} AND place_id = #{placeId}
+    </select>
+
+    <insert id="insertBookmark" parameterType="com.comma.domain.place.model.PlaceBookmark"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_bookmarks (`쉼표번호`, place_id, created_at)
+        VALUES (#{쉼표번호}, #{placeId}, #{createdAt})
+    </insert>
+
+    <delete id="deleteBookmark">
+        DELETE FROM place_bookmarks WHERE `쉼표번호` = #{쉼표번호} AND place_id = #{placeId}
+    </delete>
+
+    <select id="findBookmarkedPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude,
+               p.operating_hours, p.ai_score, p.status, p.created_at
+        FROM places p
+        INNER JOIN place_bookmarks pb ON p.id = pb.place_id
+        WHERE pb.`쉼표번호` = #{쉼표번호}
+        ORDER BY pb.created_at DESC
+    </select>
+
+    <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
+    <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,
+               (6371 * ACOS(
+                   COS(RADIANS(#{lat})) * COS(RADIANS(latitude))
+                   * COS(RADIANS(longitude) - RADIANS(#{lng}))
+                   + SIN(RADIANS(#{lat})) * SIN(RADIANS(latitude))
+               )) AS distance
+        FROM places
+        WHERE status = 'approved'
+        HAVING distance &lt;= #{radius}
+        ORDER BY distance
+        LIMIT 20
+    </select>
+
+</mapper>

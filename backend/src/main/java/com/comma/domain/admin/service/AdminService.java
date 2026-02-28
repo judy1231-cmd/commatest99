@@ -1,0 +1,123 @@
+package com.comma.domain.admin.service;
+
+import com.comma.domain.admin.mapper.AdminMapper;
+import com.comma.domain.admin.model.AuditLog;
+import com.comma.domain.admin.model.BlockedKeyword;
+import com.comma.domain.place.model.Place;
+import com.comma.domain.user.model.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class AdminService {
+
+    private final AdminMapper adminMapper;
+
+    public Map<String, Object> getDashboardStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalUsers", adminMapper.countTotalUsers());
+        stats.put("todaySignups", adminMapper.countTodaySignups());
+        stats.put("totalRestLogs", adminMapper.countTotalRestLogs());
+        stats.put("activeUsers", adminMapper.countActiveUsers());
+        return stats;
+    }
+
+    public Map<String, Object> getUsers(String keyword, String status, int page, int size) {
+        int offset = (page - 1) * size;
+        List<User> users = adminMapper.findUsers(keyword, status, offset, size);
+        // 비밀번호 노출 방지
+        users.forEach(u -> u.setPassword(null));
+        int total = adminMapper.countUsers(keyword, status);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", users);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("totalPages", (int) Math.ceil((double) total / size));
+        return result;
+    }
+
+    /**
+     * 사용자 상태 변경 + 감사 로그 기록
+     * — 관리자가 누구를, 언제, 무엇을 했는지 반드시 추적
+     */
+    @Transactional
+    public void updateUserStatus(String admin쉼표번호, String target쉼표번호, String status) {
+        adminMapper.updateUserStatus(target쉼표번호, status);
+        logAudit(admin쉼표번호, "change_user_status_to_" + status, "user", target쉼표번호);
+    }
+
+    public Map<String, Object> getPlaces(String status, int page, int size) {
+        int offset = (page - 1) * size;
+        List<Place> places = adminMapper.findPlacesByStatus(status, offset, size);
+        int total = adminMapper.countPlacesByStatus(status);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("places", places);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("totalPages", (int) Math.ceil((double) total / size));
+        return result;
+    }
+
+    @Transactional
+    public void updatePlaceStatus(String admin쉼표번호, Long placeId, String status) {
+        adminMapper.updatePlaceStatus(placeId, status);
+        logAudit(admin쉼표번호, "change_place_status_to_" + status, "place", String.valueOf(placeId));
+    }
+
+    public Map<String, Object> getAnalytics() {
+        Map<String, Object> analytics = new HashMap<>();
+        analytics.put("dailySignups", adminMapper.getDailySignups());
+        analytics.put("dailyRestLogs", adminMapper.getDailyRestLogs());
+        analytics.put("restTypePopularity", adminMapper.getRestTypePopularity());
+        return analytics;
+    }
+
+    public Map<String, Object> getAuditLogs(int page, int size) {
+        int offset = (page - 1) * size;
+        List<AuditLog> logs = adminMapper.findAuditLogs(offset, size);
+        int total = adminMapper.countAuditLogs();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("logs", logs);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("totalPages", (int) Math.ceil((double) total / size));
+        return result;
+    }
+
+    public List<BlockedKeyword> getBlockedKeywords() {
+        return adminMapper.findAllKeywords();
+    }
+
+    @Transactional
+    public void addBlockedKeyword(String keyword) {
+        BlockedKeyword bk = new BlockedKeyword();
+        bk.setKeyword(keyword);
+        bk.setActive(true);
+        adminMapper.insertKeyword(bk);
+    }
+
+    @Transactional
+    public void deleteBlockedKeyword(Long id) {
+        adminMapper.deleteKeyword(id);
+    }
+
+    private void logAudit(String admin쉼표번호, String action, String targetType, String targetId) {
+        AuditLog log = new AuditLog();
+        log.setAdmin쉼표번호(admin쉼표번호);
+        log.setAction(action);
+        log.setTargetType(targetType);
+        log.setTargetId(targetId);
+        log.setPerformedAt(LocalDateTime.now());
+        adminMapper.insertAuditLog(log);
+    }
+}
