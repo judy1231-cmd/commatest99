@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -42,26 +42,63 @@ function createColorMarker(color) {
 function FlyToPlace({ center }) {
   const map = useMap();
   useEffect(() => {
-    if (center) map.flyTo(center, 15, { duration: 0.8 });
+    if (center) map.flyTo(center, 14, { duration: 1.2 });
   }, [center, map]);
   return null;
 }
 
+// 강조 마커 (자연 연결 페이지에서 넘어온 장소)
+function createHighlightMarker(color = '#10B981') {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width: 22px; height: 22px; border-radius: 50%;
+      background: ${color}; border: 3px solid white;
+      box-shadow: 0 0 0 4px ${color}55, 0 3px 10px rgba(0,0,0,0.4);
+    "></div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+}
+
 function MapPage() {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState('');
+  const location = useLocation();
+  // 자연 연결 등 다른 페이지에서 클릭해 넘어온 장소
+  const highlightPlace = location.state?.highlightPlace || null;
+  const flyToMyLocation = location.state?.flyToMyLocation || false;
+
+  const [selectedType, setSelectedType] = useState('nature');
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const [flyTarget, setFlyTarget] = useState(null);
+  const [myLocation, setMyLocation] = useState(null);
+  const [flyTarget, setFlyTarget] = useState(
+    highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
+  );
 
   useEffect(() => {
     loadPlaces();
   }, [selectedType]);
 
+  // 내 주변 명소 찾기: 현재 위치로 flyTo
+  useEffect(() => {
+    if (!flyToMyLocation) return;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = [pos.coords.latitude, pos.coords.longitude];
+        setMyLocation(coords);
+        setFlyTarget(coords);
+      },
+      () => {
+        // 위치 권한 거부 시 무시
+      }
+    );
+  }, [flyToMyLocation]);
+
   const loadPlaces = async () => {
     setLoading(true);
-    setSelectedPlace(null);
     try {
       const params = new URLSearchParams({ page: 1, size: 50 });
       if (selectedType) params.append('restType', selectedType);
@@ -156,6 +193,36 @@ function MapPage() {
             </div>
           )}
 
+          {/* 내 주변 명소 찾기 */}
+          {flyToMyLocation && (
+            <div className="mx-3 my-2 p-3 rounded-xl border-2 border-blue-400 bg-blue-50">
+              <div className="flex items-center gap-2">
+                <span className="material-icons text-blue-500 text-base">my_location</span>
+                <p className="text-sm font-bold text-blue-700">
+                  {myLocation ? '내 위치를 찾았어요!' : '내 위치를 찾는 중...'}
+                </p>
+              </div>
+              {myLocation && (
+                <p className="text-xs text-blue-500 mt-1">지도가 현재 위치로 이동했어요</p>
+              )}
+            </div>
+          )}
+
+          {/* 외부 페이지에서 넘어온 선택 장소 */}
+          {highlightPlace && (
+            <div className="mx-3 my-2 p-3 rounded-xl border-2 border-green-400 bg-green-50">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">선택한 장소</span>
+              </div>
+              <p className="font-bold text-slate-800 text-sm">{highlightPlace.name}</p>
+              <p className="text-xs text-slate-500">{highlightPlace.location}</p>
+              {!highlightPlace.lat && (
+                <p className="text-[10px] text-slate-400 mt-1">* 좌표 정보 없음 — 지도에 표시 불가</p>
+              )}
+            </div>
+          )}
+
           {/* 결과 수 */}
           <div className="px-4 py-2 border-b border-slate-50">
             <p className="text-xs text-slate-400">
@@ -229,6 +296,45 @@ function MapPage() {
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}
+
+            {/* 내 위치 마커 */}
+            {myLocation && (
+              <Marker
+                position={myLocation}
+                icon={L.divIcon({
+                  className: '',
+                  html: `<div style="
+                    width: 16px; height: 16px; border-radius: 50%;
+                    background: #3B82F6; border: 3px solid white;
+                    box-shadow: 0 0 0 5px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.4);
+                  "></div>`,
+                  iconSize: [16, 16],
+                  iconAnchor: [8, 8],
+                })}
+              >
+                <Popup>
+                  <p style={{ fontWeight: 'bold', fontSize: '13px' }}>📍 내 현재 위치</p>
+                </Popup>
+              </Marker>
+            )}
+
+            {/* 외부에서 선택된 장소 강조 마커 */}
+            {highlightPlace?.lat && (
+              <Marker
+                position={[highlightPlace.lat, highlightPlace.lng]}
+                icon={createHighlightMarker(highlightPlace.color || '#10B981')}
+              >
+                <Popup>
+                  <div style={{ minWidth: '160px' }}>
+                    <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{highlightPlace.name}</p>
+                    <p style={{ fontSize: '12px', color: '#64748B' }}>{highlightPlace.location}</p>
+                    {highlightPlace.desc && (
+                      <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>{highlightPlace.desc}</p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            )}
 
             {places.map(place =>
               place.latitude && place.longitude ? (

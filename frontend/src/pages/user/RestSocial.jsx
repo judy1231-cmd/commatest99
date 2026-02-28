@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const SCALE_OPTIONS = [
@@ -59,8 +59,10 @@ const checklist = [
 ];
 
 function RestSocial() {
+  const navigate = useNavigate();
   const [scale, setScale] = useState('solo');
   const [vibe, setVibe] = useState('quiet');
+  const [liked, setLiked] = useState({});
   const filteredPlaces = SOCIAL_PLACES.filter(
     p => p.scale.includes(scale) && p.vibe.includes(vibe)
   );
@@ -151,15 +153,22 @@ function RestSocial() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {activities.map((act, i) => (
-              <div key={i} className="group cursor-pointer">
+              <div key={i} className="group cursor-pointer" onClick={() => navigate('/rest-record')}>
                 <div className="relative aspect-video rounded-2xl overflow-hidden mb-4">
                   <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={act.img} alt={act.title} />
                   <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow">
                     <span className="material-symbols-outlined text-green-600">{act.icon}</span>
                   </div>
                 </div>
-                <h4 className="text-lg font-bold text-slate-900 group-hover:text-green-600 transition-colors">{act.title}</h4>
-                <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-green-600 transition-colors">{act.title}</h4>
+                    <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-1 p-1 shrink-0">
+                    <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -173,8 +182,16 @@ function RestSocial() {
           </div>
           <div className="flex gap-6 overflow-x-auto pb-4 snap-x">
             {places.map((place, i) => (
-              <div key={i} className="min-w-[320px] snap-start bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                <img className="h-48 w-full object-cover" src={place.img} alt={place.name} />
+              <div key={i} onClick={() => navigate('/map')} className="min-w-[320px] snap-start bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                <div className="relative">
+                  <img className="h-48 w-full object-cover" src={place.img} alt={place.name} />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
+                    className="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow"
+                  >
+                    <span className={`material-icons text-lg transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                  </button>
+                </div>
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-2">
                     <h5 className="font-bold text-lg">{place.name}</h5>

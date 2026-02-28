@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 function LoginModal({ onClose, onLoginSuccess }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,7 +16,7 @@ function LoginModal({ onClose, onLoginSuccess }) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ identifier, password })
       });
       const data = await res.json();
       if (!data.success) { setError(data.message); return; }
@@ -70,13 +70,13 @@ function LoginModal({ onClose, onLoginSuccess }) {
         )}
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div className="relative">
-            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">mail</span>
+            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
             <input
               className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
-              placeholder="이메일"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="아이디 또는 이메일"
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               disabled={loading}
             />
           </div>
@@ -170,12 +170,12 @@ function UserNavbar() {
     <>
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm overflow-hidden">
               <img src="/logo_comma.png" alt="쉼표" className="w-4 h-4 object-contain" />
             </div>
-            <Link to="/" className="text-2xl font-bold tracking-tight text-slate-900">쉼표</Link>
-          </div>
+            <span className="text-2xl font-bold tracking-tight text-slate-900">쉼표</span>
+          </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className={`text-sm font-semibold transition-colors ${isActive('/') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>홈</Link>
             <Link to="/community" className={`text-sm font-medium transition-colors ${isActive('/community') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>커뮤니티</Link>

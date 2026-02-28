@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const FIELD_OPTIONS = [
@@ -60,8 +60,10 @@ const checklist = [
 ];
 
 function RestCreative() {
+  const navigate = useNavigate();
   const [field, setField] = useState('art');
   const [timeOpt, setTimeOpt] = useState('short');
+  const [liked, setLiked] = useState({});
   const filteredPlaces = CREATIVE_PLACES.filter(
     p => p.field.includes(field) && p.time.includes(timeOpt)
   );
@@ -136,12 +138,19 @@ function RestCreative() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {activities.map((act, i) => (
-                  <div key={i} className="flex flex-col gap-3">
+                  <div key={i} className="flex flex-col gap-3 cursor-pointer" onClick={() => navigate('/rest-record')}>
                     <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-100">
                       <img alt={act.title} className="h-full w-full object-cover hover:scale-110 transition-transform" src={act.img} />
                     </div>
-                    <p className="font-bold">{act.title}</p>
-                    <p className="text-sm text-gray-500 leading-snug">{act.desc}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-bold">{act.title}</p>
+                        <p className="text-sm text-gray-500 leading-snug">{act.desc}</p>
+                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-0.5 p-1 shrink-0">
+                        <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -154,7 +163,7 @@ function RestCreative() {
               </div>
               <div className="space-y-4">
                 {places.map((place, i) => (
-                  <div key={i} className="flex items-center gap-6 rounded-2xl bg-white p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div key={i} onClick={() => navigate('/map')} className="flex items-center gap-6 rounded-2xl bg-white p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
                     <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl">
                       <img alt={place.name} className="h-full w-full object-cover" src={place.img} />
                     </div>
@@ -167,7 +176,12 @@ function RestCreative() {
                         ))}
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-green-400 p-2">map</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
+                      className="p-2"
+                    >
+                      <span className={`material-icons text-xl transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-200 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
                 ))}
               </div>

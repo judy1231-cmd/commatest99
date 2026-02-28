@@ -17,6 +17,12 @@
         WHERE email = #{email}
     </select>
 
+    <select id="findByNickname" resultType="User">
+        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        FROM users
+        WHERE nickname = #{nickname}
+    </select>
+
     <select id="findBy쉼표번호" resultType="User">
         SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
         FROM users

@@ -44,15 +44,15 @@ public class AuthController {
     // POST /api/auth/login
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody Map<String, String> body) {
-        String email    = body.get("email");
-        String password = body.get("password");
-        if (email == null || email.isBlank())
-            return ResponseEntity.badRequest().body(ApiResponse.fail("이메일을 입력해주세요."));
+        String identifier = body.get("identifier");
+        String password   = body.get("password");
+        if (identifier == null || identifier.isBlank())
+            return ResponseEntity.badRequest().body(ApiResponse.fail("아이디 또는 이메일을 입력해주세요."));
         if (password == null || password.isBlank())
             return ResponseEntity.badRequest().body(ApiResponse.fail("비밀번호를 입력해주세요."));
 
         try {
-            Map<String, Object> result = authService.login(email.trim(), password);
+            Map<String, Object> result = authService.login(identifier.trim(), password);
             return ResponseEntity.ok(ApiResponse.ok(result, "로그인 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(ApiResponse.fail(e.getMessage()));

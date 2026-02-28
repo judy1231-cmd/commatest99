@@ -36,12 +36,14 @@ function Community() {
           <div className="flex flex-col gap-1.5">
             <p className="px-3 mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">카테고리</p>
             {[
-              { icon: 'grid_view', label: '전체보기', active: true },
-              { icon: 'wb_sunny', label: '신체적 휴식' },
-              { icon: 'self_improvement', label: '정신적 휴식' },
-              { icon: 'visibility_off', label: '감각적 휴식' },
-              { icon: 'favorite', label: '감정적 휴식' },
-              { icon: 'forum', label: '사회적 휴식' },
+              { icon: 'grid_view',      label: '전체보기',    active: true },
+              { icon: 'fitness_center', label: '신체적 이완' },
+              { icon: 'spa',            label: '정신적 고요' },
+              { icon: 'visibility_off', label: '감각의 정화' },
+              { icon: 'favorite',       label: '정서적 지지' },
+              { icon: 'groups',         label: '사회적 휴식' },
+              { icon: 'brush',          label: '창조적 몰입' },
+              { icon: 'forest',         label: '자연의 연결' },
             ].map((item, i) => (
               <button key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-colors w-full ${item.active ? 'bg-[#4ADE80]/10 text-[#4ADE80]' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
                 <span className="material-symbols-outlined text-xl">{item.icon}</span>

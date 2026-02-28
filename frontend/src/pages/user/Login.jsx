@@ -10,7 +10,7 @@ const KakaoLogo = () => (
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,8 +19,8 @@ function Login() {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim()) {
-      setError('이메일을 입력해주세요.');
+    if (!identifier.trim()) {
+      setError('아이디 또는 이메일을 입력해주세요.');
       return;
     }
     if (!password) {
@@ -33,7 +33,7 @@ function Login() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ identifier, password })
       });
       const data = await res.json();
 
@@ -81,15 +81,15 @@ function Login() {
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">이메일</label>
+                <label className="text-sm font-semibold text-slate-700">아이디 또는 이메일</label>
                 <div className="relative">
-                  <span className="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl">mail</span>
+                  <span className="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
                   <input
                     className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
-                    placeholder="이메일을 입력하세요"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="닉네임 또는 이메일을 입력하세요"
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     disabled={loading}
                   />
                 </div>

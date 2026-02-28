@@ -66,8 +66,11 @@ public class AuthService {
 
     // ==================== 로그인 ====================
 
-    public Map<String, Object> login(String email, String password) {
-        User user = authMapper.findByEmail(email);
+    public Map<String, Object> login(String identifier, String password) {
+        // @ 포함이면 이메일, 아니면 닉네임으로 조회
+        User user = identifier.contains("@")
+                ? authMapper.findByEmail(identifier)
+                : authMapper.findByNickname(identifier);
         if (user == null) {
             throw new IllegalArgumentException("존재하지 않는 계정입니다.");
         }

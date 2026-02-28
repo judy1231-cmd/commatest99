@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const activities = [
@@ -63,8 +63,10 @@ const checklist = [
 ];
 
 function RestPhysical() {
+  const navigate = useNavigate();
   const [intensity, setIntensity] = useState('light');
   const [placeType, setPlaceType] = useState('indoor');
+  const [liked, setLiked] = useState({});
   const filteredPlaces = EXERCISE_PLACES.filter(
     p => p.intensity.includes(intensity) && p.type.includes(placeType)
   );
@@ -129,15 +131,22 @@ function RestPhysical() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {activities.map((act, i) => (
-              <div key={i} className="group cursor-pointer">
+              <div key={i} className="group cursor-pointer" onClick={() => navigate('/rest-record')}>
                 <div className="relative aspect-video rounded-2xl overflow-hidden mb-4">
                   <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={act.img} alt={act.title} />
                   <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow">
                     <span className="material-symbols-outlined text-emerald-600">{act.icon}</span>
                   </div>
                 </div>
-                <h4 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{act.title}</h4>
-                <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{act.title}</h4>
+                    <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-1 p-1 shrink-0">
+                    <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -239,7 +248,7 @@ function RestPhysical() {
             <h3 className="text-xl font-bold text-slate-900 mb-6">추천 장소</h3>
             <div className="space-y-4">
               {places.map((place, i) => (
-                <div key={i} className="flex gap-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div key={i} onClick={() => navigate('/map')} className="flex gap-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                   <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
                     <img src={place.img} alt={place.name} className="w-full h-full object-cover" />
                   </div>
@@ -257,6 +266,12 @@ function RestPhysical() {
                       <span className="font-bold">{place.rating}</span>
                     </div>
                   </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
+                    className="self-start mt-1 p-1"
+                  >
+                    <span className={`material-icons text-xl transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-200 hover:text-red-300'}`}>favorite</span>
+                  </button>
                 </div>
               ))}
             </div>

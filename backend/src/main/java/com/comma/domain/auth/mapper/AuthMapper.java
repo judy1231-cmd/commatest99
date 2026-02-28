@@ -16,6 +16,8 @@ public interface AuthMapper {
 
     User findByEmail(@Param("email") String email);
 
+    User findByNickname(@Param("nickname") String nickname);
+
     User findBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
 
     int countByEmail(@Param("email") String email);

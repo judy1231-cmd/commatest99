@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const SENSE_OPTIONS = [
@@ -42,8 +42,10 @@ const checklist = [
 ];
 
 function RestSensory() {
+  const navigate = useNavigate();
   const [sense, setSense] = useState('sound');
   const [timeOfDay, setTimeOfDay] = useState('day');
+  const [liked, setLiked] = useState({});
   const filteredPlaces = SENSORY_PLACES.filter(
     p => p.sense.includes(sense) && p.time.includes(timeOfDay)
   );
@@ -117,15 +119,21 @@ function RestSensory() {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPlaces.map((place, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div key={i} onClick={() => navigate('/map')} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
                       <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
                       <p className="text-xs text-slate-400">{place.location}</p>
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
+                      className="p-1"
+                    >
+                      <span className={`material-icons text-lg transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-200 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
                   <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -168,9 +176,14 @@ function RestSensory() {
               <h3 className="text-2xl font-bold mb-6">추천 휴식 활동</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {activities.map((act, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-6 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined">{act.icon}</span>
+                  <div key={i} className="bg-white rounded-2xl p-6 border border-amber-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/rest-record')}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <span className="material-symbols-outlined">{act.icon}</span>
+                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="p-1">
+                        <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                      </button>
                     </div>
                     <h4 className="font-bold text-slate-900 mb-2">{act.title}</h4>
                     <p className="text-slate-500 text-sm leading-relaxed">{act.desc}</p>

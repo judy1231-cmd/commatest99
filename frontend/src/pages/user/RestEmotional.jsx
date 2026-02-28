@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const COMPANION_OPTIONS = [
@@ -44,9 +44,11 @@ const weekData = [
 ];
 
 function RestEmotional() {
+  const navigate = useNavigate();
   const [selectedMood, setSelectedMood] = useState(0);
   const [companion, setCompanion] = useState('alone');
   const [method, setMethod] = useState('activity');
+  const [liked, setLiked] = useState({});
   const filteredEmotional = EMOTIONAL_PLACES.filter(
     p => p.companion.includes(companion) && p.method.includes(method)
   );
@@ -238,15 +240,21 @@ function RestEmotional() {
           ) : (
             <div className="grid sm:grid-cols-2 gap-4">
               {filteredEmotional.map((place, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div key={i} onClick={() => navigate('/map')} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
                       <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
                       <p className="text-xs text-slate-400">{place.location}</p>
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
+                      className="p-1"
+                    >
+                      <span className={`material-icons text-lg transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-200 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
                   <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
                   <div className="flex flex-wrap gap-1.5">
