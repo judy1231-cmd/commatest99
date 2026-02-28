@@ -75,9 +75,23 @@ public class DiagnosisService {
 
     // ==================== 진단 계산 ====================
 
+    // 선택지의 score 값 → 휴식유형 매핑 (시나리오형 설문 기준)
+    private static final Map<Integer, String> SCORE_TO_TYPE = Map.of(
+            1, "physical", 2, "mental", 3, "sensory",
+            4, "emotional", 5, "social", 6, "nature", 7, "creative"
+    );
+
+    private static final String[] REST_TYPES = {
+            "physical", "mental", "sensory", "emotional", "social", "nature", "creative"
+    };
+
     /**
-     * 설문 응답 + 심박 데이터를 종합하여 진단 결과를 생성
-     * 7가지 휴식유형 점수를 계산하고 가장 높은 유형을 주요 휴식유형으로 설정
+     * 시나리오 기반 설문 + 심박 데이터를 종합하여 진단 결과 생성
+     *
+     * 점수 계산 방식:
+     * 1) 선택지의 score 값(1~7)이 휴식유형 ID를 의미
+     * 2) 각 유형이 선택된 횟수를 세고, 전체 응답 수 대비 비율로 환산 (0~100)
+     * 3) 심박 데이터가 있으면 스트레스 보정 (높은 심박 = 높은 스트레스)
      */
     @Transactional
     public DiagnosisResult calculateDiagnosis(String 쉼표번호, Long sessionId) {
@@ -86,8 +100,13 @@ public class DiagnosisService {
             throw new IllegalArgumentException("설문 응답 데이터가 없습니다. 설문을 먼저 완료해주세요.");
         }
 
-        // 카테고리별 점수 집계 — 각 응답의 선택지 점수를 합산
-        Map<String, Integer> categoryScores = new HashMap<>();
+        // Step 1: 각 응답에서 선택지의 score(유형ID)를 읽어서 빈도 집계
+        Map<String, Integer> typeFrequency = new HashMap<>();
+        for (String type : REST_TYPES) {
+            typeFrequency.put(type, 0);
+        }
+
+        int validResponses = 0;
         for (SurveyResponse response : responses) {
             List<SurveyChoice> choices = surveyMapper.findChoicesByQuestionId(response.getQuestionId());
             SurveyChoice selected = choices.stream()
@@ -96,38 +115,39 @@ public class DiagnosisService {
                     .orElse(null);
 
             if (selected != null) {
-                SurveyQuestion question = surveyMapper.findActiveQuestions().stream()
-                        .filter(q -> q.getId().equals(response.getQuestionId()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (question != null) {
-                    categoryScores.merge(question.getCategory(), selected.getScore(), Integer::sum);
+                String mappedType = SCORE_TO_TYPE.get(selected.getScore());
+                if (mappedType != null) {
+                    typeFrequency.merge(mappedType, 1, Integer::sum);
+                    validResponses++;
                 }
             }
         }
 
-        // 7가지 휴식유형 점수 산출 — 카테고리 점수를 유형에 매핑
-        String[] restTypes = {"physical", "mental", "sensory", "emotional", "social", "nature", "creative"};
-        Map<String, Integer> typeScores = new HashMap<>();
-        int totalScore = 0;
-
-        for (String type : restTypes) {
-            int score = categoryScores.getOrDefault(type, 50); // 데이터 없으면 기본 50점
-            typeScores.put(type, Math.min(100, Math.max(0, score)));
-            totalScore += typeScores.get(type);
+        if (validResponses == 0) {
+            throw new IllegalArgumentException("유효한 설문 응답이 없습니다.");
         }
 
-        // 스트레스 지수 — 전체 점수 평균의 역수 개념 (점수가 높을수록 그 휴식이 필요)
-        int stressIndex = Math.min(100, totalScore / restTypes.length);
+        // Step 2: 빈도 → 0~100 점수 환산 (가장 많이 선택된 유형 = 100점 기준)
+        int maxFrequency = typeFrequency.values().stream().max(Integer::compareTo).orElse(1);
+        Map<String, Integer> typeScores = new HashMap<>();
 
-        // 가장 높은 점수의 휴식유형을 주요 유형으로 결정
+        for (String type : REST_TYPES) {
+            int frequency = typeFrequency.get(type);
+            // 최다 선택 유형이 100점, 나머지는 비례 환산
+            int score = maxFrequency > 0 ? Math.round((float) frequency / maxFrequency * 100) : 0;
+            typeScores.put(type, score);
+        }
+
+        // Step 3: 심박 데이터로 스트레스 지수 보정
+        int stressIndex = calculateStressIndex(sessionId, typeScores);
+
+        // Step 4: 가장 높은 점수의 휴식유형 = 주요 유형
         String primaryType = typeScores.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("mental");
 
-        // 진단 결과 저장
+        // Step 5: 진단 결과 저장
         DiagnosisResult result = new DiagnosisResult();
         result.set쉼표번호(쉼표번호);
         result.setSessionId(sessionId);
@@ -137,7 +157,7 @@ public class DiagnosisService {
         result.setDiagnosedAt(LocalDateTime.now());
         diagnosisMapper.insertDiagnosisResult(result);
 
-        // 유형별 점수를 순위와 함께 저장
+        // Step 6: 유형별 점수를 순위와 함께 저장
         List<Map.Entry<String, Integer>> sorted = typeScores.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .toList();
@@ -152,6 +172,32 @@ public class DiagnosisService {
         }
 
         return result;
+    }
+
+    /**
+     * 스트레스 지수 산출:
+     * - 심박 세션이 있으면 → 평균 BPM 기반 (60~100 → 0~100)
+     * - 없으면 → 설문 점수 분산도 기반 (유형 편중 = 높은 스트레스)
+     */
+    private int calculateStressIndex(Long sessionId, Map<String, Integer> typeScores) {
+        // 심박 데이터가 있으면 BPM 기반 스트레스
+        if (sessionId != null) {
+            List<HeartRateMeasurement> measurements = diagnosisMapper.findMeasurementsBySessionId(sessionId);
+            if (!measurements.isEmpty()) {
+                double avgBpm = measurements.stream()
+                        .mapToInt(HeartRateMeasurement::getBpm)
+                        .average()
+                        .orElse(70);
+                // BPM 60~100 → 스트레스 0~100 으로 매핑
+                return (int) Math.min(100, Math.max(0, (avgBpm - 60) * 2.5));
+            }
+        }
+
+        // 심박 없으면 설문 점수의 최댓값 기반 (편중도가 높을수록 높은 스트레스)
+        int maxScore = typeScores.values().stream().max(Integer::compareTo).orElse(50);
+        int avgScore = (int) typeScores.values().stream().mapToInt(Integer::intValue).average().orElse(50);
+        // 편차가 클수록 (특정 유형에 쏠릴수록) 스트레스가 높다고 판단
+        return Math.min(100, maxScore - avgScore + 40);
     }
 
     public DiagnosisResult getLatestDiagnosis(String 쉼표번호) {

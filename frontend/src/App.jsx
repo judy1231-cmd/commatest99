@@ -14,6 +14,7 @@ import Community from './pages/user/Community';
 import Challenge from './pages/user/Challenge';
 import HeartRateCheck from './pages/user/HeartRateCheck';
 import RestTypeTest from './pages/user/RestTypeTest';
+import StressTest from './pages/user/StressTest';
 import RestRecord from './pages/user/RestRecord';
 import MapPage from './pages/user/MapPage';
 import Settings from './pages/user/Settings';
@@ -71,6 +72,7 @@ function App() {
       <Route path="/community" element={<Community />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/rest-test" element={<RestTypeTest />} />
+      <Route path="/stress-test" element={<StressTest />} />
       <Route path="/rest/physical" element={<RestPhysical />} />
       <Route path="/rest/mental" element={<RestMental />} />
       <Route path="/rest/sensory" element={<RestSensory />} />
