@@ -1,89 +1,266 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import UserNavbar from '../../components/user/UserNavbar';
 
-const places = [
-  { name: '서울 숲 거울연못', category: '숲/공원', rating: 4.8, distance: '1.2km', desc: '도심 속 힐링 산책로', icon: 'park', color: 'bg-soft-mint text-emerald-600' },
-  { name: '다도 공간 \'휴\'', category: '카페/서점', rating: 4.9, distance: '0.8km', desc: '고요한 전통 다도 체험', icon: 'local_cafe', color: 'bg-warm-beige text-amber-600' },
-  { name: '난지 한강공원', category: '워터사이드', rating: 4.7, distance: '3.5km', desc: '넓은 잔디밭과 한강 뷰', icon: 'water', color: 'bg-pale-blue text-blue-600' },
-  { name: '북촌 한옥마을', category: '문화/역사', rating: 4.6, distance: '2.1km', desc: '조선 시대 고즈넉한 골목길', icon: 'museum', color: 'bg-accent-pink text-rose-600' },
+// Leaflet 기본 마커 아이콘 경로 수정 (React 빌드 환경 이슈)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+const REST_TYPES = [
+  { key: '',         label: '전체',        icon: 'apps',           color: '#10B981', path: null              },
+  { key: 'physical', label: '신체적 이완', icon: 'fitness_center', color: '#EF4444', path: '/rest/physical'  },
+  { key: 'mental',   label: '정신적 고요', icon: 'spa',            color: '#10B981', path: '/rest/mental'    },
+  { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', path: '/rest/sensory'   },
+  { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899', path: '/rest/emotional' },
+  { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', path: '/rest/social'    },
+  { key: 'nature',   label: '자연과의 연결',icon: 'forest',        color: '#059669', path: '/rest/nature'    },
+  { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316', path: '/rest/creative'  },
 ];
 
-const categories = ['전체', '숲/공원', '카페/서점', '워터사이드', '문화/역사', '스파/힐링'];
+// 유형별 색상 마커 생성
+function createColorMarker(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width: 14px; height: 14px; border-radius: 50%;
+      background: ${color}; border: 2.5px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    "></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+// 선택된 장소로 지도 이동
+function FlyToPlace({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.flyTo(center, 15, { duration: 0.8 });
+  }, [center, map]);
+  return null;
+}
 
 function MapPage() {
+  const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useState('');
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [flyTarget, setFlyTarget] = useState(null);
+
+  useEffect(() => {
+    loadPlaces();
+  }, [selectedType]);
+
+  const loadPlaces = async () => {
+    setLoading(true);
+    setSelectedPlace(null);
+    try {
+      const params = new URLSearchParams({ page: 1, size: 50 });
+      if (selectedType) params.append('restType', selectedType);
+      if (keyword.trim()) params.append('keyword', keyword.trim());
+
+      const res = await fetch(`/api/places?${params}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setPlaces(data.data.places || []);
+      }
+    } catch {
+      // 서버 미연결 시 조용히 빈 목록
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    loadPlaces();
+  };
+
+  const handleMarkerClick = (place) => {
+    if (place.latitude && place.longitude) {
+      setFlyTarget([place.latitude, place.longitude]);
+    }
+  };
+
+  const currentType = REST_TYPES.find(t => t.key === selectedType) || REST_TYPES[0];
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
-      <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)]">
-        {/* Sidebar */}
+      <div className="flex flex-col md:flex-row" style={{ height: 'calc(100vh - 4rem)' }}>
+
+        {/* ===== 사이드바 ===== */}
         <aside className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
-          {/* Search */}
-          <div className="p-4 border-b border-slate-100">
+
+          {/* 검색창 */}
+          <form onSubmit={handleSearch} className="p-4 border-b border-slate-100">
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+              <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
               <input
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                placeholder="장소 또는 카테고리 검색"
-                type="text"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                placeholder="장소 또는 주소 검색"
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
               />
+              {keyword && (
+                <button
+                  type="button"
+                  onClick={() => { setKeyword(''); loadPlaces(); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <span className="material-icons text-slate-400 text-base">close</span>
+                </button>
+              )}
             </div>
-          </div>
-          {/* Categories */}
-          <div className="p-4 border-b border-slate-100">
-            <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-              {categories.map((cat, i) => (
-                <button key={i} className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${i === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary'}`}>
-                  {cat}
+          </form>
+
+          {/* 휴식유형 필터 */}
+          <div className="p-3 border-b border-slate-100">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {REST_TYPES.map(type => (
+                <button
+                  key={type.key}
+                  onClick={() => setSelectedType(type.key)}
+                  className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    selectedType === type.key ? 'text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                  style={selectedType === type.key ? { backgroundColor: type.color } : {}}
+                >
+                  <span className="material-icons" style={{ fontSize: '13px' }}>{type.icon}</span>
+                  {type.label}
                 </button>
               ))}
             </div>
           </div>
-          {/* Place List */}
+
+          {/* 선택된 유형 설명 보기 링크 */}
+          {currentType.path && (
+            <div className="px-4 py-2 border-b border-slate-100">
+              <Link
+                to={currentType.path}
+                className="flex items-center gap-1.5 text-xs font-bold transition-colors hover:opacity-80"
+                style={{ color: currentType.color }}
+              >
+                <span className="material-icons" style={{ fontSize: '13px' }}>{currentType.icon}</span>
+                {currentType.label} 유형 자세히 알아보기
+                <span className="material-icons" style={{ fontSize: '13px' }}>arrow_forward</span>
+              </Link>
+            </div>
+          )}
+
+          {/* 결과 수 */}
+          <div className="px-4 py-2 border-b border-slate-50">
+            <p className="text-xs text-slate-400">
+              {loading ? '검색 중...' : `${places.length}개 장소`}
+            </p>
+          </div>
+
+          {/* 장소 목록 */}
           <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
-            {places.map((place, i) => (
-              <div key={i} className="p-4 hover:bg-slate-50 cursor-pointer transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className={`w-12 h-12 rounded-xl ${place.color} flex items-center justify-center shrink-0`}>
-                    <span className="material-icons">{place.icon}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-slate-800 truncate">{place.name}</h3>
-                      <div className="flex items-center gap-1 shrink-0 ml-2">
-                        <span className="material-icons text-amber-400 text-sm">star</span>
-                        <span className="text-xs font-bold text-slate-600">{place.rating}</span>
-                      </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+              </div>
+            ) : places.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 text-slate-400 px-4 text-center">
+                <span className="material-icons text-4xl mb-2">location_off</span>
+                <p className="text-sm font-medium">등록된 장소가 없어요</p>
+                <p className="text-xs mt-1 leading-relaxed">
+                  학원에서 공공데이터 크롤링 스크립트를<br />실행하면 장소가 표시돼요
+                </p>
+              </div>
+            ) : (
+              places.map(place => (
+                <div
+                  key={place.id}
+                  onClick={() => navigate(`/places/${place.id}`)}
+                  className="p-4 cursor-pointer transition-colors hover:bg-slate-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${currentType.color}20` }}
+                    >
+                      <span className="material-icons text-base" style={{ color: currentType.color }}>
+                        {currentType.icon}
+                      </span>
                     </div>
-                    <p className="text-xs text-primary font-medium">{place.category}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{place.desc}</p>
-                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                      <span className="material-icons text-[12px]">near_me</span>
-                      {place.distance}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-800 text-sm truncate">{place.name}</h3>
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">{place.address}</p>
+                      {place.operatingHours && (
+                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                          <span className="material-icons" style={{ fontSize: '11px' }}>schedule</span>
+                          {place.operatingHours}
+                        </p>
+                      )}
+                      {place.aiScore && (
+                        <div className="flex items-center gap-0.5 mt-1">
+                          <span className="material-icons text-amber-400 text-xs">star</span>
+                          <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </aside>
 
-        {/* Map Area */}
-        <div className="flex-1 relative bg-slate-100 flex items-center justify-center">
-          <div className="text-center text-slate-400">
-            <span className="material-icons text-6xl mb-4 block">map</span>
-            <p className="font-semibold">지도 영역</p>
-            <p className="text-sm">Kakao Map / Naver Map 연동 예정</p>
-          </div>
-          {/* Map Overlay Pins */}
-          {places.map((place, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-xl px-3 py-2 shadow-hover border border-slate-200 flex items-center gap-2 cursor-pointer hover:shadow-lg transition-all"
-              style={{ top: `${20 + i * 20}%`, left: `${25 + i * 15}%` }}
-            >
-              <span className={`material-icons text-sm ${place.color.split(' ')[1]}`}>{place.icon}</span>
-              <span className="text-xs font-bold text-slate-700 whitespace-nowrap">{place.name}</span>
+        {/* ===== 지도 ===== */}
+        <div className="flex-1 relative">
+          <MapContainer
+            center={[37.5665, 126.9780]}
+            zoom={12}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {flyTarget && <FlyToPlace center={flyTarget} />}
+
+            {places.map(place =>
+              place.latitude && place.longitude ? (
+                <Marker
+                  key={place.id}
+                  position={[place.latitude, place.longitude]}
+                  icon={createColorMarker(currentType.color)}
+                  eventHandlers={{ click: () => handleMarkerClick(place) }}
+                >
+                  <Popup>
+                    <div style={{ minWidth: '160px' }}>
+                      <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{place.name}</p>
+                      <p style={{ fontSize: '12px', color: '#64748B' }}>{place.address}</p>
+                      {place.operatingHours && (
+                        <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                          {place.operatingHours}
+                        </p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null
+            )}
+          </MapContainer>
+
+          {/* 유형 범례 */}
+          {selectedType && (
+            <div className="absolute bottom-6 right-4 bg-white rounded-xl shadow-md border border-slate-200 px-3 py-2 flex items-center gap-2 z-[1000]">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentType.color }} />
+              <span className="text-xs font-bold text-slate-700">{currentType.label}</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

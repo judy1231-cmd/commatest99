@@ -17,6 +17,7 @@ import RestTypeTest from './pages/user/RestTypeTest';
 import StressTest from './pages/user/StressTest';
 import RestRecord from './pages/user/RestRecord';
 import MapPage from './pages/user/MapPage';
+import PlaceDetail from './pages/user/PlaceDetail';
 import Settings from './pages/user/Settings';
 import Notifications from './pages/user/Notifications';
 
@@ -71,6 +72,7 @@ function App() {
       <Route path="/password-reset" element={<PasswordReset />} />
       <Route path="/community" element={<Community />} />
       <Route path="/map" element={<MapPage />} />
+      <Route path="/places/:id" element={<PlaceDetail />} />
       <Route path="/rest-test" element={<RestTypeTest />} />
       <Route path="/stress-test" element={<StressTest />} />
       <Route path="/rest/physical" element={<RestPhysical />} />

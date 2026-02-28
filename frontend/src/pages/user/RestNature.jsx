@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -27,6 +28,139 @@ const places = [
   { type: 'Nature Park', name: '비밀의 정원', location: '제주 서귀포시', rating: '4.7', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwK_x6GismrvUQt0ZUWnogmUiKmmO4R6FrqA-qSy9t1qpndd1J4WtvszjAgquU-RTtFkgVJhqLYt3f8uz1f5OVMBzkRyNbKKG_ArS-4f8d0F5FilvTK5iZkJRZrLBkikBITpvTZDXE9dofqxUjD8o9yNxSV0ClVpUixgBYH7lNC0sl7zJ-hSbV2waNIphW0EPLI3ePHGKrThdTNSVzqQJVcYarG6rPGprL86eiwvImYmS80pWC87Fsk_lnk9XhN3SxSE4clyfuH0A' },
 ];
 
+// 걷기 강도 옵션
+const INTENSITY_OPTIONS = [
+  {
+    key: 'light',
+    label: '산책',
+    emoji: '🌿',
+    time: '20~30분',
+    distance: '1km 이하',
+    desc: '천천히 걸으며 주변을 둘러보는 가벼운 산책',
+    color: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+    activeColor: 'bg-emerald-500 border-emerald-500 text-white',
+  },
+  {
+    key: 'moderate',
+    label: '가볍게',
+    emoji: '🚶',
+    time: '1시간',
+    distance: '1~3km',
+    desc: '적당히 걷고 벤치에 앉아 쉬어가는 코스',
+    color: 'bg-green-50 border-green-200 text-green-700',
+    activeColor: 'bg-green-500 border-green-500 text-white',
+  },
+  {
+    key: 'long',
+    label: '활기차게',
+    emoji: '🏃',
+    time: '2시간+',
+    distance: '3km 이상',
+    desc: '땀 흘리며 자연 속을 충분히 누비는 코스',
+    color: 'bg-teal-50 border-teal-200 text-teal-700',
+    activeColor: 'bg-teal-500 border-teal-500 text-white',
+  },
+];
+
+// 날씨 옵션
+const WEATHER_OPTIONS = [
+  { key: 'sunny',   label: '맑음',     emoji: '☀️' },
+  { key: 'cloudy',  label: '흐림',     emoji: '⛅' },
+  { key: 'indoor',  label: '비/눈',    emoji: '🌧️' },
+];
+
+// 장소 데이터 — intensity + weather 태그로 필터링
+const WALK_PLACES = [
+  {
+    name: '올림픽공원',
+    location: '서울 송파구',
+    distance: '둘레 6.5km',
+    desc: '평탄한 산책로와 넓은 잔디밭. 벤치가 많아 중간 휴식 가능',
+    intensity: ['light', 'moderate', 'long'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['공원', '포장길', '벤치'],
+    icon: 'park',
+    color: '#059669',
+  },
+  {
+    name: '서울숲',
+    location: '서울 성동구',
+    distance: '1~3km 코스',
+    desc: '도심 속 숲. 평지 위주라 가볍게 걷기에 딱 좋아',
+    intensity: ['light', 'moderate'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['숲길', '평지', '가족'],
+    icon: 'forest',
+    color: '#16a34a',
+  },
+  {
+    name: '북한산 둘레길',
+    location: '서울 은평구',
+    distance: '구간별 3~7km',
+    desc: '경사 완만한 숲길. 피톤치드 가득한 자연 속 걷기',
+    intensity: ['moderate', 'long'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['숲길', '경사', '자연'],
+    icon: 'landscape',
+    color: '#15803d',
+  },
+  {
+    name: '한강 반포지구',
+    location: '서울 서초구',
+    distance: '1~5km 자유 코스',
+    desc: '탁 트인 한강변. 바람 맞으며 원하는 만큼 걸을 수 있어',
+    intensity: ['light', 'moderate', 'long'],
+    weather: ['sunny'],
+    tags: ['강변', '평지', '야경'],
+    icon: 'water',
+    color: '#0284c7',
+  },
+  {
+    name: '국립중앙박물관 야외정원',
+    location: '서울 용산구',
+    distance: '0.5~1km',
+    desc: '조용한 정원 산책. 거리 짧고 지붕 있는 회랑도 있어',
+    intensity: ['light'],
+    weather: ['sunny', 'cloudy', 'indoor'],
+    tags: ['정원', '짧은 거리', '실내 연결'],
+    icon: 'museum',
+    color: '#b45309',
+  },
+  {
+    name: '코엑스 아쿠아리움 & 별마당도서관',
+    location: '서울 강남구',
+    distance: '실내 자유 이동',
+    desc: '비 오는 날 실내에서 자연 감성 충전. 물과 식물 가득',
+    intensity: ['light'],
+    weather: ['indoor'],
+    tags: ['실내', '비오는날', '도심'],
+    icon: 'water_drop',
+    color: '#6366f1',
+  },
+  {
+    name: '경의선 숲길',
+    location: '서울 마포구',
+    distance: '6.3km (전 구간)',
+    desc: '마을과 자연이 어우러진 선형 공원. 중간에 카페도 많아',
+    intensity: ['moderate', 'long'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['선형공원', '포장길', '카페'],
+    icon: 'route',
+    color: '#65a30d',
+  },
+  {
+    name: '수목원 (홈플식물원)',
+    location: '경기 고양시',
+    distance: '1~2km',
+    desc: '흐린 날도 초록이 가득. 온실 있어 비가 와도 구경 가능',
+    intensity: ['light', 'moderate'],
+    weather: ['sunny', 'cloudy', 'indoor'],
+    tags: ['식물원', '온실', '당일치기'],
+    icon: 'local_florist',
+    color: '#16a34a',
+  },
+];
+
 const checklist = [
   '창문 없는 방에 갇힌 기분이 든다.',
   '디지털 기기 없이는 불안하다.',
@@ -35,6 +169,15 @@ const checklist = [
 ];
 
 function RestNature() {
+  const [intensity, setIntensity] = useState('light');
+  const [weather, setWeather] = useState('sunny');
+
+  const filteredPlaces = WALK_PLACES.filter(
+    p => p.intensity.includes(intensity) && p.weather.includes(weather)
+  );
+
+  const currentIntensity = INTENSITY_OPTIONS.find(o => o.key === intensity);
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -131,6 +274,127 @@ function RestNature() {
                 <p className="text-gray-500 text-sm mt-1">{act.desc}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ===== 오늘 어떻게 걸을까요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">오늘 어떻게 걸을까요?</h3>
+            <p className="text-gray-500 mt-2">강도와 날씨를 선택하면 딱 맞는 장소를 추천해줄게요</p>
+          </div>
+
+          {/* 걷기 강도 선택 */}
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">걷기 강도</p>
+            <div className="grid grid-cols-3 gap-3">
+              {INTENSITY_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => setIntensity(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                    intensity === opt.key ? opt.activeColor : opt.color
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${intensity === opt.key ? 'text-white/80' : 'opacity-70'}`}>
+                    {opt.time} · {opt.distance}
+                  </p>
+                </button>
+              ))}
+            </div>
+            {currentIntensity && (
+              <p className="text-sm text-slate-500 mt-3 pl-1">{currentIntensity.desc}</p>
+            )}
+          </div>
+
+          {/* 날씨 선택 */}
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">오늘 날씨</p>
+            <div className="flex gap-3">
+              {WEATHER_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => setWeather(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${
+                    weather === opt.key
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-green-300'
+                  }`}
+                >
+                  <span>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 필터링된 장소 카드 */}
+          {filteredPlaces.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">🌿</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 장소를 찾는 중이에요</p>
+              <p className="text-slate-400 text-sm mt-1">날씨나 강도를 바꿔보세요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlaces.map((place, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow"
+                >
+                  {/* 아이콘 + 이름 */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${place.color}18` }}
+                    >
+                      <span className="material-icons text-base" style={{ color: place.color }}>
+                        {place.icon}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+
+                  {/* 거리 뱃지 */}
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="material-icons text-slate-400" style={{ fontSize: '13px' }}>straighten</span>
+                    <span className="text-xs font-semibold text-slate-500">{place.distance}</span>
+                  </div>
+
+                  {/* 설명 */}
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+
+                  {/* 태그 */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span
+                        key={j}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: `${place.color}15`, color: place.color }}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 지도에서 실제 장소 찾기 버튼 */}
+          <div className="mt-6 text-center">
+            <Link
+              to="/map?restType=nature"
+              className="inline-flex items-center gap-2 bg-green-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-green-600 transition-colors"
+            >
+              <span className="material-icons text-base">map</span>
+              지도에서 내 주변 자연 장소 찾기
+            </Link>
           </div>
         </section>
 
