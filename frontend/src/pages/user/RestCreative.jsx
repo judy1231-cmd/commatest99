@@ -1,5 +1,33 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+
+const FIELD_OPTIONS = [
+  { key: 'art',    label: '미술·드로잉', emoji: '🎨', desc: '손으로 그리고 만들기' },
+  { key: 'music',  label: '음악',        emoji: '🎵', desc: '듣거나 연주하거나' },
+  { key: 'write',  label: '글쓰기',      emoji: '✍️', desc: '생각을 문장으로' },
+  { key: 'cook',   label: '요리·베이킹', emoji: '🍳', desc: '맛있게 만들고 먹기' },
+  { key: 'craft',  label: '공예·DIY',    emoji: '🧶', desc: '손끝으로 만드는 것들' },
+];
+
+const TIME_OPTIONS = [
+  { key: 'short',  label: '30분',  emoji: '⚡' },
+  { key: 'medium', label: '1시간', emoji: '🕐' },
+  { key: 'long',   label: '반나절', emoji: '🌅' },
+];
+
+const CREATIVE_PLACES = [
+  { name: '드로잉 유튜브 따라하기', location: '집에서', desc: '준비물: 스케치북과 연필 하나. 30분이면 한 장 완성', field: ['art'], time: ['short','medium'], tags: ['드로잉', '무료', '집에서'], icon: 'brush', color: '#F97316' },
+  { name: '수채화 원데이클래스', location: '홍대·성수동', desc: '강사와 함께 2시간. 완성작을 집에 가져갈 수 있어', field: ['art'], time: ['long'], tags: ['수채화', '원데이', '초보가능'], icon: 'palette', color: '#f97316' },
+  { name: '피아노 연습 (유튜브)', location: '집에서', desc: '악보 없이 코드만으로 팝송 배우기. 30분도 충분', field: ['music'], time: ['short','medium'], tags: ['피아노', '유튜브', '혼자'], icon: 'piano', color: '#6366f1' },
+  { name: '재즈바 라이브 감상', location: '이태원·홍대', desc: '연주를 들으며 영감 충전. 악기 없이도 음악적 충전 가능', field: ['music'], time: ['medium','long'], tags: ['재즈', '라이브', '분위기'], icon: 'music_note', color: '#8b5cf6' },
+  { name: '에세이 쓰기 (메모앱)', location: '카페·집 어디서든', desc: '오늘 하루 인상적인 장면 하나 200자로 써보기', field: ['write'], time: ['short'], tags: ['에세이', '200자', '즉시가능'], icon: 'edit', color: '#0891b2' },
+  { name: '북카페에서 독서+글쓰기', location: '동네 북카페', desc: '책 읽고 느낀 점 노트에 쓰기. 생각이 정리되는 느낌', field: ['write'], time: ['long'], tags: ['북카페', '독서', '글쓰기'], icon: 'menu_book', color: '#14b8a6' },
+  { name: '간단한 집밥 요리', location: '집에서', desc: '레시피 보며 파스타·볶음밥 도전. 만들고 먹으면 행복', field: ['cook'], time: ['medium'], tags: ['집밥', '파스타', '성취감'], icon: 'restaurant', color: '#10b981' },
+  { name: '베이킹 클래스', location: '동네 베이킹 스튜디오', desc: '마카롱·쿠키·케이크 만들기. 달콤한 결과물이 기다려', field: ['cook'], time: ['long'], tags: ['베이킹', '마카롱', '선물용'], icon: 'cake', color: '#f43f5e' },
+  { name: '도자기 공방 체험', location: '성수동·이태원', desc: '흙을 손으로 빚는 촉각적 집중. 완성된 작품은 소유 가능', field: ['craft'], time: ['long'], tags: ['도자기', '공방', '촉각'], icon: 'water_drop', color: '#b45309' },
+  { name: '뜨개질·자수 입문', location: '집에서·공방', desc: '바늘 잡는 법부터 유튜브로. 반복 동작이 명상처럼 작용', field: ['craft'], time: ['medium','long'], tags: ['뜨개질', '자수', '집중'], icon: 'texture', color: '#8b5cf6' },
+];
 
 const activities = [
   {
@@ -32,6 +60,12 @@ const checklist = [
 ];
 
 function RestCreative() {
+  const [field, setField] = useState('art');
+  const [timeOpt, setTimeOpt] = useState('short');
+  const filteredPlaces = CREATIVE_PLACES.filter(
+    p => p.field.includes(field) && p.time.includes(timeOpt)
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -136,6 +170,76 @@ function RestCreative() {
                     <span className="material-symbols-outlined text-green-400 p-2">map</span>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            {/* ===== 오늘 어떤 창작 활동을 할까요? ===== */}
+            <section className="mb-16">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-gray-800">오늘 어떤 창작 활동을 할까요?</h3>
+                <p className="text-gray-500 mt-2">분야와 시간을 선택하면 딱 맞는 활동을 추천해줄게요</p>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-sm font-bold text-slate-600 mb-3">창작 분야</p>
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                  {FIELD_OPTIONS.map(opt => (
+                    <button key={opt.key} onClick={() => setField(opt.key)}
+                      className={`p-4 rounded-2xl border-2 text-left transition-all ${field === opt.key ? 'bg-orange-500 border-orange-500 text-white' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>
+                      <div className="text-2xl mb-2">{opt.emoji}</div>
+                      <p className="font-bold text-xs">{opt.label}</p>
+                      <p className={`text-[10px] mt-1 ${field === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <p className="text-sm font-bold text-slate-600 mb-3">소요 시간</p>
+                <div className="flex gap-3">
+                  {TIME_OPTIONS.map(opt => (
+                    <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${timeOpt === opt.key ? 'bg-orange-500 border-orange-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-orange-300'}`}>
+                      <span>{opt.emoji}</span>{opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {filteredPlaces.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+                  <span className="text-4xl mb-3 block">🎨</span>
+                  <p className="text-slate-500 font-medium">이 조건에 맞는 활동을 준비 중이에요</p>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPlaces.map((place, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                          <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                          <p className="text-xs text-slate-400">{place.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {place.tags.map((tag, j) => (
+                          <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 text-center">
+                <a href="/map?restType=creative" className="inline-flex items-center gap-2 bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors">
+                  <span className="material-icons text-base">map</span>
+                  지도에서 창작 공간 찾기
+                </a>
               </div>
             </section>
 

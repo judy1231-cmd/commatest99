@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -28,6 +29,29 @@ const places = [
   { name: '서울 식물원', location: '서울 강서구', tag: '공원/식물원', rating: '4.7', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4' },
 ];
 
+const TIME_OPTIONS = [
+  { key: 'short',  label: '10분',   emoji: '⚡', desc: '짬짬이 가능한 초단기 루틴' },
+  { key: 'medium', label: '30분',   emoji: '🌙', desc: '퇴근 후 잠깐 집중 회복' },
+  { key: 'long',   label: '1시간+', emoji: '🌟', desc: '반나절 온전히 나를 위한 시간' },
+];
+
+const WITH_OPTIONS = [
+  { key: 'alone',  label: '혼자',    emoji: '🧍' },
+  { key: 'space',  label: '조용한 공간', emoji: '🏛️' },
+  { key: 'guided', label: '안내 받기', emoji: '🎧' },
+];
+
+const MENTAL_PLACES = [
+  { name: '마음챙김 호흡 (5분)', location: '어디서든', desc: '4-7-8 호흡법. 들숨 4초, 멈춤 7초, 날숨 8초 × 4회', time: ['short'], with: ['alone'], tags: ['즉시가능', '호흡', '무료'], icon: 'air', color: '#10B981' },
+  { name: '저널링 (10분)', location: '집·카페 어디서든', desc: '지금 머릿속에 있는 것 모두 종이에 쓰기. 판단 없이', time: ['short', 'medium'], with: ['alone'], tags: ['글쓰기', '감정정리', '무료'], icon: 'edit_note', color: '#059669' },
+  { name: '국립중앙도서관', location: '서울 서초구', desc: '완벽한 고요함. 책을 읽지 않아도 앉아있는 것만으로도 회복', time: ['medium', 'long'], with: ['space'], tags: ['도서관', '무료', '고요함'], icon: 'local_library', color: '#0891b2' },
+  { name: '교보문고 광화문', location: '서울 종로구', desc: '책향기 가득한 공간에서 어슬렁거리기. 사야 한다는 부담 없이', time: ['medium'], with: ['space', 'alone'], tags: ['서점', '책', '자유로움'], icon: 'menu_book', color: '#7c3aed' },
+  { name: '명상 앱 (코끼리·마보)', location: '집·어디서든', desc: '가이드 명상 10~20분. 초보도 바로 시작 가능', time: ['short', 'medium'], with: ['guided'], tags: ['앱', '가이드명상', '무료체험'], icon: 'self_improvement', color: '#10B981' },
+  { name: '사찰 템플스테이', location: '전국 사찰', desc: '1박 2일 당일형 선택 가능. 예불·참선·공양 체험', time: ['long'], with: ['guided', 'space'], tags: ['템플스테이', '사찰', '1박2일'], icon: 'temple_buddhist', color: '#b45309' },
+  { name: '조용한 전통찻집', location: '인사동·북촌', desc: '차 한 잔 마시며 아무것도 안 하는 시간. 스마트폰은 내려두기', time: ['medium'], with: ['alone', 'space'], tags: ['전통차', '고요함', '인사동'], icon: 'local_cafe', color: '#92400e' },
+  { name: '명상 스튜디오', location: '강남·마포·홍대', desc: '전문 명상 지도사가 이끄는 50분 집중 프로그램', time: ['long'], with: ['guided'], tags: ['전문명상', '예약', '프리미엄'], icon: 'spa', color: '#6366f1' },
+];
+
 const checklist = [
   '생각이 너무 많아 멈출 수가 없다.',
   '한 가지 일에 집중하기 어렵다.',
@@ -36,6 +60,12 @@ const checklist = [
 ];
 
 function RestMental() {
+  const [timeOpt, setTimeOpt] = useState('short');
+  const [withOpt, setWithOpt] = useState('alone');
+  const filteredPlaces = MENTAL_PLACES.filter(
+    p => p.time.includes(timeOpt) && p.with.includes(withOpt)
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -116,6 +146,76 @@ function RestMental() {
                 <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ===== 지금 어떻게 쉬고 싶어요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">지금 어떻게 쉬고 싶어요?</h3>
+            <p className="text-gray-500 mt-2">시간과 방식을 선택하면 딱 맞는 공간을 추천해줄게요</p>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">가능한 시간</p>
+            <div className="grid grid-cols-3 gap-3">
+              {TIME_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${timeOpt === opt.key ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${timeOpt === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">휴식 방식</p>
+            <div className="flex gap-3 flex-wrap">
+              {WITH_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setWithOpt(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${withOpt === opt.key ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300'}`}>
+                  <span>{opt.emoji}</span>{opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredPlaces.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">🧘</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlaces.map((place, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <a href="/map?restType=mental" className="inline-flex items-center gap-2 bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-emerald-600 transition-colors">
+              <span className="material-icons text-base">map</span>
+              지도에서 내 주변 명상 공간 찾기
+            </a>
           </div>
         </section>
 

@@ -2,6 +2,29 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
+const COMPANION_OPTIONS = [
+  { key: 'alone',    label: '혼자',    emoji: '🧍', desc: '나 혼자 조용히 회복하고 싶어' },
+  { key: 'together', label: '누군가와', emoji: '🤝', desc: '옆에 누가 있으면 좋겠어' },
+  { key: 'pet',      label: '반려동물', emoji: '🐾', desc: '말 없는 따뜻한 존재가 필요해' },
+];
+
+const METHOD_OPTIONS = [
+  { key: 'activity', label: '활동',  emoji: '🎭' },
+  { key: 'viewing',  label: '감상',  emoji: '🎬' },
+  { key: 'writing',  label: '기록',  emoji: '📝' },
+];
+
+const EMOTIONAL_PLACES = [
+  { name: '동물카페', location: '홍대·합정·신촌', desc: '강아지·고양이와 교감. 무조건적인 애정으로 정서 충전', companion: ['pet'], method: ['activity'], tags: ['동물카페', '힐링', '귀여움'], icon: 'pets', color: '#EC4899' },
+  { name: '반려동물 돌봄 봉사', location: '유기동물 보호센터', desc: '유기동물 돌보기 봉사. 나보다 더 필요한 존재에게 온기 나누기', companion: ['pet'], method: ['activity'], tags: ['봉사', '유기동물', '보람'], icon: 'favorite', color: '#f43f5e' },
+  { name: '힐링 영화관 (독립영화)', location: '씨네큐브·아트하우스', desc: '감동적인 독립영화 관람. 울어도 되는 공간', companion: ['alone'], method: ['viewing'], tags: ['영화', '독립영화', '감동'], icon: 'movie', color: '#8b5cf6' },
+  { name: 'OTT 감성 영화 마라톤', location: '집에서', desc: '넷플릭스·웨이브에서 감동 영화 연속 감상. 울고 싶을 때 마음껏', companion: ['alone'], method: ['viewing'], tags: ['넷플릭스', '영화마라톤', '집관'], icon: 'tv', color: '#6366f1' },
+  { name: '편지 쓰기 카페', location: '연남동·망원동', desc: '종이에 손으로 편지 쓰기. 보내지 않아도 괜찮아, 쓰는 것만으로 치유', companion: ['alone'], method: ['writing'], tags: ['편지', '아날로그', '감정해소'], icon: 'mail', color: '#f59e0b' },
+  { name: '감정 일기 쓰기', location: '집·카페 어디서든', desc: '오늘 느낀 감정 단어 5개 적기. 작은 것부터 시작', companion: ['alone'], method: ['writing'], tags: ['일기', '감정정리', '무료'], icon: 'book', color: '#10b981' },
+  { name: '친한 친구와 야식 먹기', location: '편한 식당·집', desc: '맛있는 것 앞에서 하는 수다는 최고의 정서 치유', companion: ['together'], method: ['activity'], tags: ['친구', '야식', '수다'], icon: 'restaurant', color: '#f97316' },
+  { name: '보드게임 카페 (소수)', location: '홍대·건대', desc: '2~4명이서 보드게임. 웃다 보면 어느새 기분이 풀려', companion: ['together'], method: ['activity'], tags: ['보드게임', '소규모', '웃음'], icon: 'casino', color: '#0ea5e9' },
+];
+
 const moods = [
   { icon: 'wb_sunny', label: '평온함' },
   { icon: 'cloudy_snowing', label: '지침' },
@@ -22,6 +45,11 @@ const weekData = [
 
 function RestEmotional() {
   const [selectedMood, setSelectedMood] = useState(0);
+  const [companion, setCompanion] = useState('alone');
+  const [method, setMethod] = useState('activity');
+  const filteredEmotional = EMOTIONAL_PLACES.filter(
+    p => p.companion.includes(companion) && p.method.includes(method)
+  );
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
@@ -166,6 +194,76 @@ function RestEmotional() {
               ))}
             </div>
             <p className="text-center mt-4 text-slate-500 text-sm">이번 주에는 명상을 3번 실천하셨네요! 잘하고 있어요.</p>
+          </div>
+        </section>
+
+        {/* ===== 지금 어떤 방식으로 위로받고 싶어요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">지금 어떤 방식으로 위로받고 싶어요?</h3>
+            <p className="text-slate-500 mt-2">함께할 대상과 방식을 선택하면 딱 맞는 것을 추천해줄게요</p>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">함께할 대상</p>
+            <div className="grid grid-cols-3 gap-3">
+              {COMPANION_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setCompanion(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${companion === opt.key ? 'bg-pink-500 border-pink-500 text-white' : 'bg-pink-50 border-pink-200 text-pink-700'}`}>
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${companion === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">방식</p>
+            <div className="flex gap-3">
+              {METHOD_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setMethod(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${method === opt.key ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-pink-300'}`}>
+                  <span>{opt.emoji}</span>{opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredEmotional.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">💗</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 활동을 준비 중이에요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {filteredEmotional.map((place, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <a href="/map?restType=emotional" className="inline-flex items-center gap-2 bg-pink-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-pink-600 transition-colors">
+              <span className="material-icons text-base">map</span>
+              지도에서 정서 힐링 공간 찾기
+            </a>
           </div>
         </section>
       </main>

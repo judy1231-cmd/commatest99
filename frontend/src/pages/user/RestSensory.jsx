@@ -1,5 +1,30 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+
+const SENSE_OPTIONS = [
+  { key: 'sound',   label: '청각',  emoji: '👂', desc: '소리로 감각을 쉬게 하기' },
+  { key: 'visual',  label: '시각',  emoji: '👁️', desc: '눈의 피로를 풀어주기' },
+  { key: 'touch',   label: '촉각',  emoji: '🤲', desc: '몸의 긴장 녹이기' },
+  { key: 'smell',   label: '후각',  emoji: '👃', desc: '향으로 마음 안정시키기' },
+];
+
+const TIME_OPTIONS = [
+  { key: 'day',     label: '낮',    emoji: '☀️' },
+  { key: 'evening', label: '저녁',  emoji: '🌆' },
+  { key: 'night',   label: '밤',    emoji: '🌙' },
+];
+
+const SENSORY_PLACES = [
+  { name: 'ASMR 유튜브 (빗소리·숲소리)', location: '집에서', desc: '귀를 편안하게 감싸는 자연음. 백색소음으로 집중력도 회복', sense: ['sound'], time: ['day','evening','night'], tags: ['ASMR', '무료', '즉시가능'], icon: 'headphones', color: '#F59E0B' },
+  { name: '클래식 음악 카페', location: '인사동·홍대', desc: '라이브 또는 고음질 클래식이 흐르는 공간. 말 없이 앉아있어도 OK', sense: ['sound'], time: ['day','evening'], tags: ['클래식', '조용한카페', '힐링'], icon: 'music_note', color: '#f59e0b' },
+  { name: '국립현대미술관', location: '서울 종로구·과천', desc: '눈이 쉬는 예술 감상. 형태와 색채에 집중하며 잡념 내려놓기', sense: ['visual'], time: ['day'], tags: ['미술관', '무료입장일', '조용함'], icon: 'palette', color: '#8b5cf6' },
+  { name: '플라네타리움 (별자리관)', location: '서울 어린이대공원·노원', desc: '어두운 돔 안에서 별을 바라보며 시각 이완', sense: ['visual'], time: ['evening','night'], tags: ['별자리', '힐링', '어두운공간'], icon: 'stars', color: '#6366f1' },
+  { name: '아로마 테라피샵', location: '가로수길·이태원', desc: '라벤더·유칼립투스·베르가못 직접 맡아보고 나에게 맞는 향 찾기', sense: ['smell'], time: ['day','evening'], tags: ['아로마', '향수', '체험'], icon: 'spa', color: '#ec4899' },
+  { name: '향초 DIY 클래스', location: '성수동·합정', desc: '나만의 향 블렌딩 후 캔들 제작. 만드는 과정 자체가 힐링', sense: ['smell'], time: ['day','evening'], tags: ['향초', '원데이클래스', '선물용'], icon: 'local_fire_department', color: '#f97316' },
+  { name: '스파·찜질방', location: '전국 스파시설', desc: '온탕·냉탕 교대로 피부 감각 자극. 가성비 최고 촉각 힐링', sense: ['touch'], time: ['day','evening','night'], tags: ['찜질방', '저렴', '촉각'], icon: 'hot_tub', color: '#0ea5e9' },
+  { name: '마사지샵 (발마사지)', location: '동네 마사지샵', desc: '발바닥 반사구 자극 30분. 피로 집중 해소', sense: ['touch'], time: ['evening','night'], tags: ['마사지', '발관리', '피로회복'], icon: 'airline_seat_flat', color: '#14b8a6' },
+];
 
 const activities = [
   { icon: 'dark_mode', title: '어둠 테라피', desc: '조명을 낮추거나 끄고 30분간 시각 자극 없이 지냅니다.' },
@@ -17,6 +42,12 @@ const checklist = [
 ];
 
 function RestSensory() {
+  const [sense, setSense] = useState('sound');
+  const [timeOfDay, setTimeOfDay] = useState('day');
+  const filteredPlaces = SENSORY_PLACES.filter(
+    p => p.sense.includes(sense) && p.time.includes(timeOfDay)
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -42,6 +73,76 @@ function RestSensory() {
               <button className="px-8 py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg">휴식 시작하기</button>
               <button className="px-8 py-3 bg-white/20 backdrop-blur text-white border border-white/30 rounded-xl font-bold hover:bg-white/30 transition-colors">자세히 알아보기</button>
             </div>
+          </div>
+        </section>
+
+        {/* ===== 지금 어떤 감각을 쉬게 하고 싶어요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">지금 어떤 감각을 쉬게 하고 싶어요?</h3>
+            <p className="text-gray-500 mt-2">감각 유형과 시간대를 선택하면 딱 맞는 공간을 추천해줄게요</p>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">감각 유형</p>
+            <div className="grid grid-cols-4 gap-3">
+              {SENSE_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setSense(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${sense === opt.key ? 'bg-amber-500 border-amber-500 text-white' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${sense === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">지금 시간대</p>
+            <div className="flex gap-3">
+              {TIME_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setTimeOfDay(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${timeOfDay === opt.key ? 'bg-amber-500 border-amber-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-amber-300'}`}>
+                  <span>{opt.emoji}</span>{opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredPlaces.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">✨</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlaces.map((place, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <a href="/map?restType=sensory" className="inline-flex items-center gap-2 bg-amber-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-amber-600 transition-colors">
+              <span className="material-icons text-base">map</span>
+              지도에서 감각 힐링 공간 찾기
+            </a>
           </div>
         </section>
 

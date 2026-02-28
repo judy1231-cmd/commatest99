@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -28,6 +29,30 @@ const places = [
   { name: '제주 힐링 요가원', location: '제주 서귀포시', tag: '요가/명상', rating: '4.7', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4' },
 ];
 
+const INTENSITY_OPTIONS = [
+  { key: 'light',  label: '가볍게', emoji: '🧘', desc: '스트레칭·요가·가벼운 산책', color: 'bg-red-50 border-red-200 text-red-600', activeColor: 'bg-red-400 border-red-400 text-white' },
+  { key: 'medium', label: '보통',   emoji: '🚴', desc: '수영·자전거·필라테스',       color: 'bg-red-50 border-red-200 text-red-600', activeColor: 'bg-red-500 border-red-500 text-white' },
+  { key: 'hard',   label: '강하게', emoji: '🏋️', desc: '웨이트·클라이밍·크로스핏',  color: 'bg-red-50 border-red-200 text-red-600', activeColor: 'bg-red-700 border-red-700 text-white' },
+];
+
+const PLACE_TYPE_OPTIONS = [
+  { key: 'indoor',  label: '실내', emoji: '🏢' },
+  { key: 'outdoor', label: '실외', emoji: '🌤️' },
+  { key: 'home',    label: '홈트', emoji: '🏠' },
+];
+
+const EXERCISE_PLACES = [
+  { name: '스트레칭 루틴 (유튜브)', location: '집에서', desc: '10~15분 전신 스트레칭. 코어힐링TV, 하루10분 채널 추천', intensity: ['light'], type: ['home'], tags: ['무료', '유튜브', '즉시가능'], icon: 'play_circle', color: '#EF4444' },
+  { name: '요가원 (동네)', location: '가까운 요가원', desc: '초보반 60분. 몸의 긴장을 천천히 풀어주는 회복 요가', intensity: ['light', 'medium'], type: ['indoor'], tags: ['요가', '60분', '예약'], icon: 'self_improvement', color: '#f97316' },
+  { name: '실내 수영장', location: '구청·주민센터 수영장', desc: '저강도 자유형 30분. 관절 부담 없이 전신 운동', intensity: ['medium'], type: ['indoor'], tags: ['수영', '관절부담없음', '저렴'], icon: 'pool', color: '#0ea5e9' },
+  { name: '필라테스 스튜디오', location: '동네 필라테스', desc: '소도구 필라테스 50분. 코어와 자세 교정에 효과적', intensity: ['light', 'medium'], type: ['indoor'], tags: ['필라테스', '소그룹', '자세교정'], icon: 'accessibility_new', color: '#ec4899' },
+  { name: '한강 자전거길', location: '서울 한강변', desc: '한강 자전거 대여 후 왕복 10~20km. 바람 맞으며 유산소', intensity: ['medium'], type: ['outdoor'], tags: ['자전거', '한강', '대여가능'], icon: 'directions_bike', color: '#10b981' },
+  { name: '클라이밍 짐', location: '홍대·신촌·강남', desc: '볼더링 입문 2시간. 문제 풀 듯 집중하며 전신 운동', intensity: ['hard'], type: ['indoor'], tags: ['클라이밍', '집중력', '초보가능'], icon: 'sports_gymnastics', color: '#8b5cf6' },
+  { name: '크로스핏 박스', location: '동네 크로스핏', desc: '고강도 기능성 운동 1시간. 땀 흠뻑 흘리고 싶을 때', intensity: ['hard'], type: ['indoor'], tags: ['고강도', '땀', '동기부여'], icon: 'fitness_center', color: '#dc2626' },
+  { name: '공원 인터벌 러닝', location: '올림픽공원·한강공원', desc: '달리기 20분+걷기 10분 반복. 유산소 최대 효율', intensity: ['hard'], type: ['outdoor'], tags: ['러닝', '인터벌', '무료'], icon: 'directions_run', color: '#f59e0b' },
+  { name: '홈 웨이트 (유튜브)', location: '집에서', desc: '맨몸 웨이트 30분. 덤벨 없어도 충분한 자극', intensity: ['medium', 'hard'], type: ['home'], tags: ['홈트', '맨몸운동', '무료'], icon: 'sports_mma', color: '#EF4444' },
+];
+
 const checklist = [
   '어깨와 목이 항상 뭉쳐있다.',
   '잠을 자도 피로가 풀리지 않는다.',
@@ -38,6 +63,12 @@ const checklist = [
 ];
 
 function RestPhysical() {
+  const [intensity, setIntensity] = useState('light');
+  const [placeType, setPlaceType] = useState('indoor');
+  const filteredPlaces = EXERCISE_PLACES.filter(
+    p => p.intensity.includes(intensity) && p.type.includes(placeType)
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -109,6 +140,76 @@ function RestPhysical() {
                 <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ===== 오늘 어떤 운동을 할까요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">오늘 어떤 운동을 할까요?</h3>
+            <p className="text-gray-500 mt-2">강도와 장소를 선택하면 딱 맞는 활동을 추천해줄게요</p>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">운동 강도</p>
+            <div className="grid grid-cols-3 gap-3">
+              {INTENSITY_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setIntensity(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${intensity === opt.key ? opt.activeColor : opt.color}`}>
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${intensity === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">장소 유형</p>
+            <div className="flex gap-3">
+              {PLACE_TYPE_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setPlaceType(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${placeType === opt.key ? 'bg-red-500 border-red-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-red-300'}`}>
+                  <span>{opt.emoji}</span>{opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredPlaces.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">💪</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 활동을 준비 중이에요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlaces.map((place, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <a href="/map?restType=physical" className="inline-flex items-center gap-2 bg-red-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-red-600 transition-colors">
+              <span className="material-icons text-base">map</span>
+              지도에서 내 주변 운동 시설 찾기
+            </a>
           </div>
         </section>
 

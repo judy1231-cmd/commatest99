@@ -1,5 +1,28 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+
+const SCALE_OPTIONS = [
+  { key: 'solo',   label: '나홀로', emoji: '🧍', desc: '혼자지만 사회적인 공간에서' },
+  { key: 'duo',    label: '둘이서', emoji: '👫', desc: '친한 한 명과 조용히' },
+  { key: 'group',  label: '소그룹', emoji: '👥', desc: '3~5명 편한 모임으로' },
+];
+
+const VIBE_OPTIONS = [
+  { key: 'quiet',  label: '조용히', emoji: '🤫' },
+  { key: 'active', label: '활기차게', emoji: '🎉' },
+];
+
+const SOCIAL_PLACES = [
+  { name: '조용한 브런치 카페', location: '연남동·성수동', desc: '혼자 가도 어색하지 않은 분위기. 창가 자리에서 사람 구경', scale: ['solo'], vibe: ['quiet'], tags: ['브런치', '혼카페', '창가자리'], icon: 'local_cafe', color: '#8B5CF6' },
+  { name: '독립서점', location: '전국 동네 서점', desc: '취향 맞는 책 구경하다 점원과 짧게 대화. 가벼운 연결감', scale: ['solo'], vibe: ['quiet'], tags: ['서점', '취향', '혼자'], icon: 'menu_book', color: '#7c3aed' },
+  { name: '소규모 북클럽', location: '도서관·서점 프로그램', desc: '같은 책을 읽은 3~5명이 이야기 나누기. 깊은 연결', scale: ['group'], vibe: ['quiet'], tags: ['독서모임', '소그룹', '공감'], icon: 'groups', color: '#6366f1' },
+  { name: '조용한 찻집 둘이서', location: '인사동·북촌', desc: '친한 한 명과 차 마시며 천천히 이야기', scale: ['duo'], vibe: ['quiet'], tags: ['찻집', '둘이서', '대화'], icon: 'emoji_food_beverage', color: '#b45309' },
+  { name: '보드게임 카페', location: '홍대·강남·건대', desc: '2~6명이 신나게 게임. 웃음이 넘치는 사회적 휴식', scale: ['duo','group'], vibe: ['active'], tags: ['보드게임', '웃음', '경쟁'], icon: 'casino', color: '#0ea5e9' },
+  { name: '방탈출 카페', location: '전국 방탈출', desc: '2~4명 팀으로 협력. 몰입하다 보면 일상 스트레스 잊혀', scale: ['duo','group'], vibe: ['active'], tags: ['방탈출', '협력', '몰입'], icon: 'lock', color: '#dc2626' },
+  { name: '취미 원데이클래스', location: '플리마켓·문화센터', desc: '낯선 사람들과 같은 것 만들기. 자연스러운 대화와 연결', scale: ['solo','group'], vibe: ['active'], tags: ['원데이클래스', '취미', '새로운 인연'], icon: 'brush', color: '#10b981' },
+  { name: '혼자 가기 좋은 재즈바', location: '이태원·홍대', desc: '바 카운터에 앉아 라이브 재즈 감상. 혼자지만 외롭지 않은 밤', scale: ['solo'], vibe: ['active'], tags: ['재즈바', '라이브', '분위기'], icon: 'music_note', color: '#f97316' },
+];
 
 const activities = [
   {
@@ -36,6 +59,12 @@ const checklist = [
 ];
 
 function RestSocial() {
+  const [scale, setScale] = useState('solo');
+  const [vibe, setVibe] = useState('quiet');
+  const filteredPlaces = SOCIAL_PLACES.filter(
+    p => p.scale.includes(scale) && p.vibe.includes(vibe)
+  );
+
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -162,6 +191,76 @@ function RestSocial() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ===== 오늘 어떤 사회적 휴식을 원해요? ===== */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800">오늘 어떤 사회적 휴식을 원해요?</h3>
+            <p className="text-gray-500 mt-2">함께할 인원과 분위기를 선택하면 딱 맞는 장소를 추천해줄게요</p>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-sm font-bold text-slate-600 mb-3">함께할 인원</p>
+            <div className="grid grid-cols-3 gap-3">
+              {SCALE_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setScale(opt.key)}
+                  className={`p-4 rounded-2xl border-2 text-left transition-all ${scale === opt.key ? 'bg-purple-500 border-purple-500 text-white' : 'bg-purple-50 border-purple-200 text-purple-700'}`}>
+                  <div className="text-2xl mb-2">{opt.emoji}</div>
+                  <p className="font-bold text-sm">{opt.label}</p>
+                  <p className={`text-xs mt-1 ${scale === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-sm font-bold text-slate-600 mb-3">원하는 분위기</p>
+            <div className="flex gap-3">
+              {VIBE_OPTIONS.map(opt => (
+                <button key={opt.key} onClick={() => setVibe(opt.key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${vibe === opt.key ? 'bg-purple-500 border-purple-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300'}`}>
+                  <span>{opt.emoji}</span>{opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredPlaces.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="text-4xl mb-3 block">🎭</span>
+              <p className="text-slate-500 font-medium">이 조건에 맞는 장소를 준비 중이에요</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPlaces.map((place, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
+                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                      <p className="text-xs text-slate-400">{place.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {place.tags.map((tag, j) => (
+                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <a href="/map?restType=social" className="inline-flex items-center gap-2 bg-purple-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-purple-600 transition-colors">
+              <span className="material-icons text-base">map</span>
+              지도에서 사회적 휴식 공간 찾기
+            </a>
           </div>
         </section>
 

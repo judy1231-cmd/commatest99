@@ -60,6 +60,16 @@ const INTENSITY_OPTIONS = [
     color: 'bg-teal-50 border-teal-200 text-teal-700',
     activeColor: 'bg-teal-500 border-teal-500 text-white',
   },
+  {
+    key: 'trekking',
+    label: '트레킹',
+    emoji: '🥾',
+    time: '3시간+',
+    distance: '5km 이상',
+    desc: '등산로나 둘레길을 따라 자연 깊숙이 들어가는 코스',
+    color: 'bg-stone-50 border-stone-200 text-stone-700',
+    activeColor: 'bg-stone-600 border-stone-600 text-white',
+  },
 ];
 
 // 날씨 옵션
@@ -158,6 +168,98 @@ const WALK_PLACES = [
     tags: ['식물원', '온실', '당일치기'],
     icon: 'local_florist',
     color: '#16a34a',
+  },
+
+  // 일본식 정원 / 일본풍 산책지
+  {
+    name: '순천만국가정원 일본정원',
+    location: '전남 순천시',
+    distance: '2~4km (정원 전체)',
+    desc: '국내 유일 국가 공인 일본정원. 고요한 연못과 모래 정원이 명상 분위기를 만들어줘',
+    intensity: ['light', 'moderate'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['일본정원', '연못', '당일치기'],
+    icon: 'temple_buddhist',
+    color: '#b45309',
+  },
+  {
+    name: '창덕궁 후원 (비원)',
+    location: '서울 종로구',
+    distance: '약 1.5km',
+    desc: '조선의 비밀 정원. 일본 정원 감성과 비슷한 고요함. 예약 필수, 소규모 해설 투어',
+    intensity: ['light'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['궁궐정원', '예약필수', '고요함'],
+    icon: 'account_balance',
+    color: '#7c3aed',
+  },
+  {
+    name: '담양 죽녹원',
+    location: '전남 담양군',
+    distance: '2.4km 산책로',
+    desc: '대나무 숲이 만드는 일본 교토 같은 분위기. 바람 소리가 ASMR 그 자체',
+    intensity: ['light', 'moderate'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['대나무숲', '교토감성', '포토스팟'],
+    icon: 'forest',
+    color: '#15803d',
+  },
+  {
+    name: '진해 경화역 공원',
+    location: '경남 창원시 진해구',
+    distance: '1km 내외',
+    desc: '벚꽃 시즌엔 일본 우에노공원 부럽지 않은 풍경. 봄철 특히 추천',
+    intensity: ['light'],
+    weather: ['sunny'],
+    tags: ['벚꽃', '봄시즌', '일본감성'],
+    icon: 'local_florist',
+    color: '#ec4899',
+  },
+
+  // 트레킹 전용
+  {
+    name: '북한산 국립공원 (백운대)',
+    location: '서울 강북구',
+    distance: '약 8km (왕복)',
+    desc: '서울에서 가장 유명한 트레킹 코스. 정상에서 서울 전체 조망 가능',
+    intensity: ['trekking'],
+    weather: ['sunny'],
+    tags: ['등산', '정상', '서울조망'],
+    icon: 'landscape',
+    color: '#78716c',
+  },
+  {
+    name: '설악산 울산바위',
+    location: '강원 속초시',
+    distance: '약 6km (왕복)',
+    desc: '기암절벽과 탁 트인 동해 뷰. 당일치기 가능한 강원 대표 트레킹',
+    intensity: ['trekking'],
+    weather: ['sunny'],
+    tags: ['트레킹', '동해뷰', '당일치기'],
+    icon: 'terrain',
+    color: '#57534e',
+  },
+  {
+    name: '지리산 둘레길',
+    location: '전남/전북/경남',
+    distance: '구간별 10~20km',
+    desc: '3개 도에 걸친 장거리 트레킹. 마을과 자연이 이어진 치유의 길',
+    intensity: ['trekking'],
+    weather: ['sunny', 'cloudy'],
+    tags: ['장거리', '둘레길', '힐링'],
+    icon: 'hiking',
+    color: '#65a30d',
+  },
+  {
+    name: '한라산 성판악 코스',
+    location: '제주 제주시',
+    distance: '약 19km (왕복)',
+    desc: '제주 최고봉 트레킹. 예약 필수, 체력 소모 크지만 성취감 최고',
+    intensity: ['trekking'],
+    weather: ['sunny'],
+    tags: ['제주', '예약필수', '고난이도'],
+    icon: 'filter_hdr',
+    color: '#0891b2',
   },
 ];
 
@@ -287,7 +389,7 @@ function RestNature() {
           {/* 걷기 강도 선택 */}
           <div className="mb-6">
             <p className="text-sm font-bold text-slate-600 mb-3">걷기 강도</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               {INTENSITY_OPTIONS.map(opt => (
                 <button
                   key={opt.key}
