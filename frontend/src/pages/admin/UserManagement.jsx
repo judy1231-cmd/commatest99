@@ -1,33 +1,85 @@
+import { useState, useEffect, useCallback } from 'react';
+import { fetchWithAuth } from '../../api/fetchWithAuth';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 
-const users = [
-  { id: '#10234', name: '이지은', email: 'jieun@email.com', type: '조용한 산책자', status: '활성', joined: '2023.09.12', img: null },
-  { id: '#10235', name: '박준호', email: 'junho@email.com', type: '능동적 탐험가', status: '활성', joined: '2023.10.03', img: null },
-  { id: '#10236', name: '최수정', email: 'sujeong@email.com', type: '감각적 몽상가', status: '휴면', joined: '2023.07.21', img: null },
-  { id: '#10237', name: '김민재', email: 'minjae@email.com', type: '분석적 사색가', status: '활성', joined: '2023.11.01', img: null },
-  { id: '#10238', name: '정다은', email: 'daeun@email.com', type: '창의적 유희인', status: '제한', joined: '2023.08.15', img: null },
-];
+const STATUS_STYLES = {
+  active:  { label: '활성', style: 'bg-green-50 text-green-600' },
+  dormant: { label: '휴면', style: 'bg-gray-100 text-gray-500' },
+  banned:  { label: '제한', style: 'bg-red-50 text-red-500' },
+};
 
 function UserManagement() {
+  const [users, setUsers] = useState([]);
+  const [keyword, setKeyword] = useState('');
+  const [inputKeyword, setInputKeyword] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page, size: 20 });
+      if (keyword) params.set('keyword', keyword);
+      if (statusFilter) params.set('status', statusFilter);
+
+      const data = await fetchWithAuth(`/api/admin/users?${params}`);
+      if (data.success && data.data) {
+        setUsers(data.data.users || []);
+        setTotal(data.data.total || 0);
+        setTotalPages(data.data.totalPages || 1);
+      }
+    } catch {
+      // 무시
+    } finally {
+      setLoading(false);
+    }
+  }, [page, keyword, statusFilter]);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setKeyword(inputKeyword);
+    setPage(1);
+  };
+
+  const handleStatusChange = async (쉼표번호, newStatus) => {
+    const label = STATUS_STYLES[newStatus]?.label || newStatus;
+    if (!window.confirm(`사용자 상태를 '${label}'(으)로 변경할까요?`)) return;
+    try {
+      await fetchWithAuth(`/api/admin/users/${쉼표번호}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setUsers((prev) => prev.map((u) => (u.쉼표번호 === 쉼표번호 ? { ...u, status: newStatus } : u)));
+    } catch {
+      // 무시
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('ko-KR');
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background-light">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader title="사용자 관리" subtitle="전체 회원 현황 및 관리">
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-all">
-            <span className="material-icons-round text-lg">person_add</span>
-            사용자 초대
-          </button>
-        </AdminHeader>
+        <AdminHeader title="사용자 관리" subtitle="전체 회원 현황 및 관리" />
         <main className="flex-1 overflow-y-auto p-6">
+
           {/* Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
-              { label: '전체 회원', value: '24,832', icon: 'people', color: 'text-primary' },
-              { label: '신규 (이번 달)', value: '1,284', icon: 'person_add', color: 'text-blue-500' },
-              { label: '활성 사용자', value: '18,943', icon: 'verified', color: 'text-green-500' },
-              { label: '제한/휴면', value: '342', icon: 'block', color: 'text-red-400' },
+              { label: '전체 회원', value: total.toLocaleString(), icon: 'people', color: 'text-primary' },
+              { label: '활성 사용자', value: users.filter(u => u.status === 'active').length, icon: 'verified', color: 'text-green-500' },
+              { label: '휴면', value: users.filter(u => u.status === 'dormant').length, icon: 'hotel', color: 'text-gray-400' },
+              { label: '제한', value: users.filter(u => u.status === 'banned').length, icon: 'block', color: 'text-red-400' },
             ].map((s, i) => (
               <div key={i} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
                 <span className={`material-icons-round ${s.color} text-2xl`}>{s.icon}</span>
@@ -40,94 +92,110 @@ function UserManagement() {
           {/* Search & Filter */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-3">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
-                <input
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                  placeholder="이름, 이메일, 사용자 ID로 검색"
-                  type="text"
-                />
-              </div>
-              <div className="flex gap-2">
-                <select className="px-3 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-600 focus:ring-primary outline-none">
-                  <option>전체 상태</option>
-                  <option>활성</option>
-                  <option>휴면</option>
-                  <option>제한</option>
-                </select>
-                <select className="px-3 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-600 focus:ring-primary outline-none">
-                  <option>최근 가입순</option>
-                  <option>이름순</option>
-                  <option>활동순</option>
-                </select>
-              </div>
+              <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+                <div className="relative flex-1">
+                  <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
+                  <input
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                    placeholder="이름, 이메일, 쉼표번호로 검색"
+                    value={inputKeyword}
+                    onChange={(e) => setInputKeyword(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-all">
+                  검색
+                </button>
+              </form>
+              <select
+                value={statusFilter}
+                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                className="px-3 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-600 focus:ring-primary outline-none"
+              >
+                <option value="">전체 상태</option>
+                <option value="active">활성</option>
+                <option value="dormant">휴면</option>
+                <option value="banned">제한</option>
+              </select>
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase">
-                  <tr>
-                    <th className="px-6 py-3">사용자</th>
-                    <th className="px-6 py-3">휴식 유형</th>
-                    <th className="px-6 py-3">상태</th>
-                    <th className="px-6 py-3">가입일</th>
-                    <th className="px-6 py-3 text-right">관리</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {users.map((user, i) => (
-                    <tr key={i} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                            <span className="material-icons-round text-lg">person</span>
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{user.name}</p>
-                            <p className="text-xs text-gray-400">{user.email} · {user.id}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-accent-mint text-teal-600 text-[11px] font-bold rounded-full">{user.type}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-[11px] font-bold ${
-                          user.status === '활성' ? 'bg-green-50 text-green-600' :
-                          user.status === '휴면' ? 'bg-gray-100 text-gray-500' :
-                          'bg-red-50 text-red-500'
-                        }`}>{user.status}</span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-500">{user.joined}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary transition-colors">
-                            <span className="material-icons-round text-base">visibility</span>
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-500 transition-colors">
-                            <span className="material-icons-round text-base">edit</span>
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
-                            <span className="material-icons-round text-base">block</span>
-                          </button>
-                        </div>
-                      </td>
+            {loading ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase">
+                    <tr>
+                      <th className="px-6 py-3">사용자</th>
+                      <th className="px-6 py-3">쉼표번호</th>
+                      <th className="px-6 py-3">상태</th>
+                      <th className="px-6 py-3">가입일</th>
+                      <th className="px-6 py-3 text-right">관리</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-sm">
+                    {users.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-400">검색 결과가 없어요</td>
+                      </tr>
+                    ) : users.map((user) => {
+                      const statusInfo = STATUS_STYLES[user.status] || { label: user.status, style: 'bg-gray-100 text-gray-500' };
+                      return (
+                        <tr key={user.쉼표번호} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                                <span className="material-icons-round text-lg">person</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{user.nickname || '-'}</p>
+                                <p className="text-xs text-gray-400">{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 font-mono text-xs">{user.쉼표번호}</td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded-full text-[11px] font-bold ${statusInfo.style}`}>
+                              {statusInfo.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-gray-500">{formatDate(user.createdAt)}</td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              {user.status !== 'active' && (
+                                <button onClick={() => handleStatusChange(user.쉼표번호, 'active')} className="px-2 py-1 text-[11px] font-bold text-green-600 border border-green-200 rounded-lg hover:bg-green-50 transition-all">활성화</button>
+                              )}
+                              {user.status !== 'banned' && (
+                                <button onClick={() => handleStatusChange(user.쉼표번호, 'banned')} className="px-2 py-1 text-[11px] font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition-all">제한</button>
+                              )}
+                              {user.status !== 'dormant' && (
+                                <button onClick={() => handleStatusChange(user.쉼표번호, 'dormant')} className="px-2 py-1 text-[11px] font-bold text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">휴면</button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Pagination */}
             <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-              <p className="text-sm text-gray-500">전체 24,832명 중 1-5 표시</p>
+              <p className="text-sm text-gray-500">전체 {total.toLocaleString()}명 중 {(page - 1) * 20 + 1}–{Math.min(page * 20, total)} 표시</p>
               <div className="flex gap-1">
-                {[1, 2, 3, '...', 10].map((p, i) => (
-                  <button key={i} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${p === 1 ? 'bg-primary text-white' : 'hover:bg-gray-100 text-gray-500'}`}>
-                    {p}
-                  </button>
-                ))}
+                <button disabled={page === 1} onClick={() => setPage(page - 1)} className="w-8 h-8 rounded-lg text-sm font-medium hover:bg-gray-100 text-gray-500 disabled:opacity-30">‹</button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, page - 2) + i;
+                  if (p > totalPages) return null;
+                  return (
+                    <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${p === page ? 'bg-primary text-white' : 'hover:bg-gray-100 text-gray-500'}`}>{p}</button>
+                  );
+                })}
+                <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="w-8 h-8 rounded-lg text-sm font-medium hover:bg-gray-100 text-gray-500 disabled:opacity-30">›</button>
               </div>
             </div>
           </div>
