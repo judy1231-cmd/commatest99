@@ -19,7 +19,8 @@ services:
       - mysql_data:/var/lib/mysql
       - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./backend/src/main/resources/seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql
-      - ./backend/src/main/resources/seed_test_data.sql:/docker-entrypoint-initdb.d/03_seed_test.sql
+      - ./backend/src/main/resources/seed_places.sql:/docker-entrypoint-initdb.d/03_seed_places.sql
+      - ./backend/src/main/resources/seed_test_data.sql:/docker-entrypoint-initdb.d/04_seed_test.sql
     ports:
       - "3306:3306"
     healthcheck:
