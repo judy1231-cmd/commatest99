@@ -48,10 +48,8 @@ INSERT INTO survey_questions (question_content, category, display_order, active)
 ('오늘 하루 가장 많이 느낀 피로감은 어디인가요?',          'physical',  1, 1),
 ('지금 당장 가장 하고 싶은 것은 무엇인가요?',              'mental',    2, 1),
 ('최근 가장 스트레스를 받은 상황은?',                      'emotional', 3, 1),
-('오늘 하루를 한 단어로 표현한다면?',                      'sensory',   4, 1),
-('지금 나에게 가장 필요한 것은?',                          'social',    5, 1),
-('지난 한 주 나를 가장 행복하게 만든 것은?',               'nature',    6, 1),
-('이상적인 주말 오후를 고른다면?',                         'creative',  7, 1);
+('지금 나에게 가장 필요한 것은?',                          'social',    4, 1),
+('이상적인 주말 오후를 고른다면?',                         'creative',  5, 1);
 
 -- survey_choices — LAST_INSERT_ID() 방식 대신 서브쿼리 사용 (안전)
 INSERT INTO survey_choices (question_id, choice_content, score, display_order)
@@ -82,15 +80,6 @@ SELECT id, '도시·실내 생활의 피로감',                      6, 6 FROM 
 SELECT id, '창의적 에너지를 발산할 곳이 없음',              7, 7 FROM survey_questions WHERE question_content LIKE '최근 가장 스트레스%';
 
 INSERT INTO survey_choices (question_id, choice_content, score, display_order)
-SELECT id, '무기력', 1, 1 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '혼돈',   2, 2 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '소음',   3, 3 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '외로움', 4, 4 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '단절',   5, 5 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '갑갑함', 6, 6 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%' UNION ALL
-SELECT id, '답답함', 7, 7 FROM survey_questions WHERE question_content LIKE '오늘 하루를 한 단어%';
-
-INSERT INTO survey_choices (question_id, choice_content, score, display_order)
 SELECT id, '몸을 쉬게 해줄 공간',                          1, 1 FROM survey_questions WHERE question_content LIKE '지금 나에게%' UNION ALL
 SELECT id, '생각을 비울 수 있는 고요함',                    2, 2 FROM survey_questions WHERE question_content LIKE '지금 나에게%' UNION ALL
 SELECT id, '자극 없는 조용한 환경',                         3, 3 FROM survey_questions WHERE question_content LIKE '지금 나에게%' UNION ALL
@@ -98,15 +87,6 @@ SELECT id, '감정을 나눌 수 있는 사람',                      4, 4 FROM 
 SELECT id, '편하게 웃을 수 있는 시간',                      5, 5 FROM survey_questions WHERE question_content LIKE '지금 나에게%' UNION ALL
 SELECT id, '자연과 함께하는 순간',                          6, 6 FROM survey_questions WHERE question_content LIKE '지금 나에게%' UNION ALL
 SELECT id, '나만의 무언가를 만드는 시간',                   7, 7 FROM survey_questions WHERE question_content LIKE '지금 나에게%';
-
-INSERT INTO survey_choices (question_id, choice_content, score, display_order)
-SELECT id, '편한 자세로 늘어지게 쉬었을 때',               1, 1 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '잠깐이라도 혼자 조용히 있었을 때',              2, 2 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '알림 없이 온전히 쉬었을 때',                   3, 3 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '누군가가 내 이야기를 들어줬을 때',              4, 4 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '오랜만에 친구와 만났을 때',                     5, 5 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '바깥에서 신선한 공기를 마셨을 때',              6, 6 FROM survey_questions WHERE question_content LIKE '지난 한 주%' UNION ALL
-SELECT id, '손으로 무언가를 만들었을 때',                   7, 7 FROM survey_questions WHERE question_content LIKE '지난 한 주%';
 
 INSERT INTO survey_choices (question_id, choice_content, score, display_order)
 SELECT id, '집에서 아무것도 안 하고 뒹굴기',               1, 1 FROM survey_questions WHERE question_content LIKE '이상적인 주말%' UNION ALL
