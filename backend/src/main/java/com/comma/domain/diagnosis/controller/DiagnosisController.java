@@ -83,10 +83,11 @@ public class DiagnosisController {
     @PostMapping("/calculate")
     public ResponseEntity<ApiResponse<DiagnosisResult>> calculate(
             HttpServletRequest request,
-            @RequestBody Map<String, Long> body) {
+            @RequestBody Map<String, Object> body) {
         String 쉼표번호 = (String) request.getAttribute("쉼표번호");
         try {
-            Long sessionId = body.get("sessionId");
+            Object rawSessionId = body.get("sessionId");
+            Long sessionId = rawSessionId != null ? ((Number) rawSessionId).longValue() : null;
             DiagnosisResult result = diagnosisService.calculateDiagnosis(쉼표번호, sessionId);
             return ResponseEntity.ok(ApiResponse.ok(result, "진단이 완료되었습니다."));
         } catch (IllegalArgumentException e) {

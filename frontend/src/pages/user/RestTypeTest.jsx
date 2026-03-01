@@ -69,6 +69,7 @@ function RestTypeTest() {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({}); // { questionId: choiceId }
+  const [otherTexts, setOtherTexts] = useState({}); // { questionId: string }
   const [result, setResult] = useState(null); // DiagnosisResult
   const [typeScores, setTypeScores] = useState([]); // 정렬된 유형별 점수
   const [toast, setToast] = useState({ message: '', type: 'success' });
@@ -127,10 +128,11 @@ function RestTypeTest() {
         body: JSON.stringify(responseList),
       });
 
-      // Step 2: 진단 계산 (세션 없이도 설문만으로 가능하도록 sessionId=null 전송)
+      // Step 2: 진단 계산 (기타 텍스트 포함)
+      const otherTextList = Object.values(otherTexts).filter((t) => t.trim() !== '');
       const diagRes = await fetchWithAuth('/api/diagnosis/calculate', {
         method: 'POST',
-        body: JSON.stringify({ sessionId: null }),
+        body: JSON.stringify({ sessionId: null, otherTexts: otherTextList }),
       });
 
       if (diagRes.success && diagRes.data) {
@@ -308,6 +310,22 @@ function RestTypeTest() {
                   </button>
                 );
               })}
+
+              {/* 기타 입력란 */}
+              <div className="flex items-center gap-3 pt-1">
+                <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 bg-slate-100 text-slate-400">
+                  기타
+                </span>
+                <input
+                  type="text"
+                  placeholder="보기에 없으면 직접 입력해보세요 (선택)"
+                  value={otherTexts[current.question.id] || ''}
+                  onChange={(e) =>
+                    setOtherTexts({ ...otherTexts, [current.question.id]: e.target.value })
+                  }
+                  className="flex-1 h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm text-slate-700 placeholder:text-slate-400"
+                />
+              </div>
             </div>
           </div>
 
@@ -521,6 +539,7 @@ function RestTypeTest() {
                 setStep('intro');
                 setCurrentIndex(0);
                 setAnswers({});
+                setOtherTexts({});
                 setResult(null);
                 setTypeScores([]);
               }}
