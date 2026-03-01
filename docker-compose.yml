@@ -1,0 +1,85 @@
+version: '3.8'
+
+# ── 로컬 개발용 (MySQL + Redis 포함) ──────────────────────────
+# 실행: docker-compose up --build
+# 접속: http://localhost (프론트), http://localhost:8080 (백엔드)
+
+services:
+
+  # ── MySQL ─────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: comma-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-comma1234}
+      MYSQL_DATABASE: comma_db
+      MYSQL_CHARSET: utf8mb4
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/src/main/resources/seed_data.sql:/docker-entrypoint-initdb.d/02_seed_data.sql
+      - ./backend/src/main/resources/seed_test_data.sql:/docker-entrypoint-initdb.d/03_seed_test.sql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: comma-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ── Spring Boot 백엔드 ─────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: comma-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/comma_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-comma1234}
+      REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-comma-secret-key-must-be-at-least-256-bits-long-for-hs256}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      APP_FRONT_URL: ${APP_FRONT_URL:-http://localhost}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/rest-types"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── React 프론트엔드 (Nginx) ────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: comma-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+volumes:
+  mysql_data:
