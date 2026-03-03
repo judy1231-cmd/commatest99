@@ -273,16 +273,24 @@ function HeartRateCheck() {
                   <p className="text-slate-400">※ <span className="font-semibold">「토큰:」</span> 뒤 텍스트만 복사해서 단축어에 붙여넣기</p>
                 </div>
 
-                {/* PC에서 클립보드 복사도 지원 */}
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(localStorage.getItem('accessToken') || '');
-                    setToast({ message: '토큰이 클립보드에 복사됐어요', type: 'success' });
-                  }}
-                  className="w-full text-xs border border-slate-200 text-slate-500 font-semibold py-2 rounded-xl hover:bg-slate-50 transition-all"
-                >
-                  PC 클립보드에 복사 (카카오톡으로 나에게 보내기용)
-                </button>
+                {/* 전송 방법 버튼 모음 */}
+                <div className="w-full grid grid-cols-2 gap-2">
+                  <a
+                    href={`mailto:?subject=쉼표 로그인 토큰&body=아래 토큰을 단축어 Authorization 값에 붙여넣으세요.%0A%0ABearer ${localStorage.getItem('accessToken') || ''}`}
+                    className="text-xs border border-slate-200 text-slate-500 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-all text-center"
+                  >
+                    📧 이메일로 받기
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(localStorage.getItem('accessToken') || '');
+                      setToast({ message: '토큰 복사됨 — 메신저로 나에게 보내세요', type: 'success' });
+                    }}
+                    className="text-xs border border-slate-200 text-slate-500 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-all"
+                  >
+                    📋 클립보드 복사
+                  </button>
+                </div>
               </div>
             </div>
 
