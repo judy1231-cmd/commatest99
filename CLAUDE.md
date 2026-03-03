@@ -30,6 +30,19 @@
 
 승인 받은 후에 코드 작업 시작해줘.
 
+### 작업 완료 후 자동 커밋 (필수)
+코드 작업이 끝나면 **반드시 자동으로 git commit**해줘. 커밋 여부를 따로 물어보지 말고 바로 실행해:
+
+```bash
+git add .
+git commit -m "feat/fix/style: 작업 내용 한 줄 요약
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+```
+
+- push는 하지 마 (push는 내가 직접 할게)
+- 커밋 메시지는 실제 작업 내용을 정확하게 요약해줘
+
 ---
 
 ## 📌 프로젝트 개요
