@@ -93,9 +93,9 @@ function RestTypeTest() {
     }
   };
 
-  // 선택지 클릭 처리 — score까지 함께 저장 (find 없이 오프라인 계산 가능)
-  const handleSelect = (questionId, choiceId, score) => {
-    const newAnswers = { ...answers, [questionId]: { choiceId, score } };
+  // 선택지 클릭 처리 — score + displayOrder 함께 저장 (오프라인 계산 시 displayOrder 사용)
+  const handleSelect = (questionId, choiceId, score, displayOrder) => {
+    const newAnswers = { ...answers, [questionId]: { choiceId, score, displayOrder } };
     setAnswers(newAnswers);
 
     // 자동으로 다음 질문으로 이동 (0.3초 딜레이)
@@ -166,14 +166,14 @@ function RestTypeTest() {
 
     console.log('[진단] answers 스냅샷:', JSON.stringify(currentAnswers));
 
-    // 각 유형이 선택된 횟수 집계 — answers에서 score를 직접 읽음
+    // 각 유형이 선택된 횟수 집계 — displayOrder(1~7)로 유형 매핑 (score가 DB에 잘못 저장돼도 동작)
     const frequency = {};
     types.forEach((t) => { frequency[t] = 0; });
 
     for (const answer of Object.values(currentAnswers)) {
-      const { score } = answer;
-      console.log('[진단] score:', score, '→ type:', SCORE_TO_TYPE[score]);
-      const mappedType = SCORE_TO_TYPE[score];
+      // displayOrder 우선, 없으면 score 폴백 (하위 호환)
+      const typeKey = answer.displayOrder ?? answer.score;
+      const mappedType = SCORE_TO_TYPE[typeKey];
       if (mappedType) frequency[mappedType]++;
     }
 
@@ -296,7 +296,7 @@ function RestTypeTest() {
                 return (
                   <button
                     key={choice.id}
-                    onClick={() => handleSelect(current.question.id, choice.id, choice.score)}
+                    onClick={() => handleSelect(current.question.id, choice.id, choice.score, choice.displayOrder)}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3 ${
                       isSelected
                         ? 'border-primary bg-soft-mint text-primary'
