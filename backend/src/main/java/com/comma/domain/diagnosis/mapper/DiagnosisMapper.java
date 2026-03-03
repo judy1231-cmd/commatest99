@@ -31,6 +31,9 @@ public interface DiagnosisMapper {
 
     HeartRateMeasurement findLatestMeasurementBySessionId(@Param("sessionId") Long sessionId);
 
+    // 사용자의 가장 최근 활성(종료되지 않은) 세션 조회 — iPhone 단축어용
+    MeasurementSession findLatestActiveSessionBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
+
     // ==================== 진단 결과 ====================
 
     void insertDiagnosisResult(DiagnosisResult result);

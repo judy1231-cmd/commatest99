@@ -27,7 +27,7 @@ function HeartRateCheck() {
   const [avgBpm, setAvgBpm] = useState(null);
   const [deviceType, setDeviceType] = useState('manual');
   const [toast, setToast] = useState({ message: '', type: 'success' });
-  const [pollCount, setPollCount] = useState(0); // Apple Watch 폴링 횟수
+  const [pollCount, setPollCount] = useState(0);
 
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
@@ -226,90 +226,143 @@ function HeartRateCheck() {
         {phase === 'measuring' && deviceType === 'apple_watch' && (
           <div className="w-full space-y-3">
 
-            {/* 수신 상태 */}
+            {/* 수신 상태 배너 */}
             <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
               pollCount > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
             }`}>
-              <span className={`material-icons ${pollCount > 0 ? 'text-emerald-500' : 'text-amber-500'}`}>
-                {pollCount > 0 ? 'favorite' : 'watch'}
-              </span>
+              <span className="text-2xl">{pollCount > 0 ? '✅' : '⏳'}</span>
               <div>
                 <p className={`text-sm font-bold ${pollCount > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
-                  {pollCount > 0 ? `✓ Apple Watch 심박수 수신 중 (${pollCount}회)` : '단축어 실행을 기다리는 중...'}
+                  {pollCount > 0
+                    ? `Apple Watch 심박수 수신 중 (총 ${pollCount}회)`
+                    : 'iPhone 단축어 실행을 기다리는 중...'}
                 </p>
                 <p className={`text-xs mt-0.5 ${pollCount > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {pollCount > 0 ? '아래 단축어를 반복 실행하면 계속 업데이트돼요' : 'iPhone에서 아래 단축어를 실행해주세요'}
+                  {pollCount > 0
+                    ? 'iPhone에서 단축어를 반복 실행할수록 BPM이 업데이트돼요'
+                    : '아래 가이드를 따라 단축어를 설정하고 실행해주세요'}
                 </p>
               </div>
             </div>
 
-            {/* 세션 ID + 토큰 복사 */}
+            {/* 토큰 복사 카드 */}
             <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <p className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">단축어에 필요한 정보</p>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="text-xs text-slate-400">세션 ID</p>
-                    <p className="font-mono font-bold text-slate-800 text-lg">{sessionId}</p>
-                  </div>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(String(sessionId)); setToast({ message: '세션 ID 복사됨', type: 'success' }); }}
-                    className="text-xs bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all"
-                  >
-                    복사
-                  </button>
+              <p className="text-xs font-bold text-slate-500 mb-3">① 먼저 토큰을 복사해두세요</p>
+              <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
+                <div className="overflow-hidden">
+                  <p className="text-xs text-slate-400 mb-1">내 로그인 토큰 (단축어에 붙여넣기용)</p>
+                  <p className="font-mono text-xs text-slate-600 truncate">
+                    {localStorage.getItem('accessToken')?.substring(0, 30)}...
+                  </p>
                 </div>
-
-                <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="text-xs text-slate-400">액세스 토큰</p>
-                    <p className="font-mono text-xs text-slate-600 truncate max-w-[200px]">
-                      {localStorage.getItem('accessToken')?.substring(0, 24)}...
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(localStorage.getItem('accessToken') || ''); setToast({ message: '토큰 복사됨', type: 'success' }); }}
-                    className="text-xs bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all"
-                  >
-                    복사
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(localStorage.getItem('accessToken') || '');
+                    setToast({ message: '토큰이 클립보드에 복사됐어요', type: 'success' });
+                  }}
+                  className="ml-3 shrink-0 text-xs bg-primary text-white font-bold px-3 py-2 rounded-lg hover:bg-primary/90 transition-all"
+                >
+                  복사
+                </button>
               </div>
             </div>
 
             {/* 단축어 설정 가이드 */}
             <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">⚡</span>
-                <p className="text-sm font-bold text-slate-700">iPhone 단축어 설정 (최초 1회)</p>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">📱</span>
+                <p className="text-sm font-bold text-slate-700">iPhone 단축어 설정 (최초 1회만)</p>
               </div>
+              <p className="text-xs text-slate-400 mb-4 pl-7">한 번 만들면 앞으로 계속 써요 — URL이 고정이라 수정 불필요</p>
 
-              <ol className="space-y-3">
-                {[
-                  { step: '1', title: '단축어 앱 열기', desc: 'iPhone에서 기본 앱 "단축어" 실행 → 우측 상단 + 버튼' },
-                  { step: '2', title: '"건강 샘플 가져오기" 추가', desc: '검색창에 "건강" 입력 → 유형: 심박수, 정렬: 최신순, 개수: 1' },
-                  { step: '3', title: '"URL" 동작 추가', desc: `http://192.168.0.15:8080/api/diagnosis/sessions/${sessionId}/measurements` },
-                  { step: '4', title: '"URL 내용 가져오기" 추가', desc: '방법: POST / 헤더: Authorization → Bearer [토큰 붙여넣기] / 본문: JSON → bpm: 건강샘플의 수량' },
-                  { step: '5', title: '단축어 저장 후 실행', desc: 'Apple Watch에서 단축어 앱으로도 바로 실행 가능해요' },
-                ].map(({ step, title, desc }) => (
-                  <li key={step} className="flex gap-3">
-                    <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      {step}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">{title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{desc}</p>
+              <ol className="space-y-4">
+
+                {/* STEP 1 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">단축어 앱 → 새 단축어 만들기</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      iPhone 기본 앱 <span className="font-semibold text-slate-600">「단축어」</span> 실행
+                      → 우측 상단 <span className="font-semibold text-slate-600">「+」</span> 버튼 탭
+                    </p>
+                  </div>
+                </li>
+
+                {/* STEP 2 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">심박수 읽기 동작 추가</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      하단 <span className="font-semibold text-slate-600">「동작 추가」</span> 탭
+                      → 검색창에 <span className="font-semibold text-slate-600">「건강」</span> 입력
+                      → <span className="font-semibold text-slate-600">「건강 샘플 찾기」</span> 선택
+                    </p>
+                    <div className="mt-2 bg-slate-50 rounded-lg p-3 text-xs text-slate-600 space-y-1">
+                      <p>• <span className="font-semibold">유형</span> → 「심박수」 선택</p>
+                      <p>• <span className="font-semibold">정렬 기준</span> → 「최신 항목」</p>
+                      <p>• <span className="font-semibold">제한</span> → 「1」</p>
                     </div>
-                  </li>
-                ))}
+                  </div>
+                </li>
+
+                {/* STEP 3 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">URL 전송 동작 추가</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      다시 <span className="font-semibold text-slate-600">「동작 추가」</span>
+                      → 검색창에 <span className="font-semibold text-slate-600">「URL 내용 가져오기」</span> 입력 → 선택
+                    </p>
+                    <div className="mt-2 bg-slate-50 rounded-lg p-3 text-xs space-y-2">
+                      <div>
+                        <p className="text-slate-500 font-semibold mb-1">URL 칸에 입력:</p>
+                        <p className="font-mono text-slate-700 break-all bg-white rounded px-2 py-1.5 border border-slate-200">
+                          http://192.168.0.15:8080/api/diagnosis/measurements
+                        </p>
+                      </div>
+                      <p className="text-slate-500 font-semibold">아래 설정도 변경:</p>
+                      <p className="text-slate-600">• <span className="font-semibold">방법</span> → 「POST」</p>
+                      <p className="text-slate-600">• <span className="font-semibold">헤더</span> → 「헤더 추가」 탭</p>
+                      <div className="bg-white rounded px-2 py-1.5 border border-slate-200 space-y-1">
+                        <p className="text-slate-500">키: <span className="font-mono font-semibold text-slate-700">Authorization</span></p>
+                        <p className="text-slate-500">값: <span className="font-mono font-semibold text-slate-700">Bearer </span>
+                          <span className="text-primary font-semibold">← 여기에 복사한 토큰 붙여넣기</span>
+                        </p>
+                      </div>
+                      <p className="text-slate-600">• <span className="font-semibold">요청 본문</span> → 「JSON」 선택</p>
+                      <div className="bg-white rounded px-2 py-1.5 border border-slate-200 space-y-1">
+                        <p className="text-slate-500">키: <span className="font-mono font-semibold text-slate-700">bpm</span></p>
+                        <p className="text-slate-500">값: <span className="font-semibold text-slate-700">「변수」 탭</span> → 「건강 샘플」 선택 → 「수량」 선택</p>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+
+                {/* STEP 4 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">이름 입력 후 저장 → 실행!</p>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      우측 상단 <span className="font-semibold text-slate-600">「완료」</span> 탭
+                      → 단축어 이름 입력 (예: <span className="font-semibold">심박수 전송</span>)
+                      → <span className="font-semibold text-primary">▶ 실행 버튼</span>으로 테스트
+                    </p>
+                  </div>
+                </li>
               </ol>
 
-              <div className="mt-4 bg-blue-50 rounded-xl p-3">
-                <p className="text-xs text-blue-700 font-semibold">💡 팁</p>
-                <p className="text-xs text-blue-600 mt-1">
-                  단축어를 저장하면 Apple Watch의 단축어 앱에서도 손목으로 바로 실행할 수 있어요.
-                  10~30초 간격으로 반복 실행하면 실시간처럼 BPM이 업데이트돼요.
+              <div className="mt-4 bg-blue-50 rounded-xl p-3 space-y-1">
+                <p className="text-xs font-bold text-blue-700">💡 이렇게 쓰면 돼요</p>
+                <p className="text-xs text-blue-600 leading-relaxed">
+                  웹에서 「측정 시작」 → iPhone 단축어 앱에서 「심박수 전송」 실행 (10~20초 간격 반복)
+                  → 웹 화면에서 BPM이 실시간으로 업데이트돼요.
+                </p>
+                <p className="text-xs text-blue-600 leading-relaxed">
+                  Apple Watch에서도 단축어 앱을 열면 손목에서 바로 실행할 수 있어요!
                 </p>
               </div>
             </div>

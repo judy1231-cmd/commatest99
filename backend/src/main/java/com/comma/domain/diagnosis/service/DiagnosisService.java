@@ -200,6 +200,25 @@ public class DiagnosisService {
         return Math.min(100, maxScore - avgScore + 40);
     }
 
+    /**
+     * iPhone 단축어 전용 — 세션ID 없이 JWT만으로 최신 활성 세션에 심박 저장
+     * 단축어 URL이 고정되어 매번 수정할 필요 없음
+     */
+    @Transactional
+    public void saveMeasurementToLatestSession(String 쉼표번호, Integer bpm, Double hrv) {
+        MeasurementSession session = diagnosisMapper.findLatestActiveSessionBy쉼표번호(쉼표번호);
+        if (session == null) {
+            throw new IllegalArgumentException("진행 중인 측정 세션이 없습니다. 웹에서 측정을 먼저 시작해주세요.");
+        }
+        HeartRateMeasurement measurement = new HeartRateMeasurement();
+        measurement.setSessionId(session.getId());
+        measurement.set쉼표번호(쉼표번호);
+        measurement.setBpm(bpm);
+        measurement.setHrv(hrv);
+        measurement.setMeasuredAt(LocalDateTime.now());
+        diagnosisMapper.insertMeasurement(measurement);
+    }
+
     public DiagnosisResult getLatestDiagnosis(String 쉼표번호) {
         DiagnosisResult result = diagnosisMapper.findLatestBy쉼표번호(쉼표번호);
         if (result == null) throw new IllegalArgumentException("진단 결과가 없습니다. 설문을 먼저 완료해주세요.");

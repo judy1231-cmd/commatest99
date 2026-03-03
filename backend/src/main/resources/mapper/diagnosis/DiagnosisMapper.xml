@@ -40,6 +40,16 @@
         LIMIT 1
     </select>
 
+    <!-- iPhone 단축어용 — 가장 최근 활성 세션 (ended_at IS NULL) -->
+    <select id="findLatestActiveSessionBy쉼표번호" resultType="com.comma.domain.diagnosis.model.MeasurementSession">
+        SELECT id, `쉼표번호`, started_at, ended_at, device_type, reliability
+        FROM measurement_sessions
+        WHERE `쉼표번호` = #{쉼표번호}
+          AND ended_at IS NULL
+        ORDER BY started_at DESC
+        LIMIT 1
+    </select>
+
     <select id="findMeasurementsBySessionId" resultType="com.comma.domain.diagnosis.model.HeartRateMeasurement">
         SELECT id, session_id, `쉼표번호`, bpm, hrv, measured_at
         FROM heart_rate_measurements

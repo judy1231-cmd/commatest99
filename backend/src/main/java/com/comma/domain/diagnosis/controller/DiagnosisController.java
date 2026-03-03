@@ -92,6 +92,22 @@ public class DiagnosisController {
         }
     }
 
+    // POST /api/diagnosis/measurements  [JWT 필요] — iPhone 단축어 전용 (세션ID 불필요, 고정 URL)
+    @PostMapping("/measurements")
+    public ResponseEntity<ApiResponse<Void>> saveMeasurementAuto(
+            HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        try {
+            Integer bpm = ((Number) body.get("bpm")).intValue();
+            Double hrv = body.get("hrv") != null ? ((Number) body.get("hrv")).doubleValue() : null;
+            diagnosisService.saveMeasurementToLatestSession(쉼표번호, bpm, hrv);
+            return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // ==================== 진단 ====================
 
     // POST /api/diagnosis/calculate  [JWT 필요]
