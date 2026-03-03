@@ -146,12 +146,14 @@ function RestTypeTest() {
         setTypeScores(sorted);
         setStep('result');
       } else {
-        setToast({ message: diagRes.message || '진단에 실패했어요.', type: 'error' });
-        setStep('survey');
+        // API 실패 시 오프라인 간이 결과로 폴백 (백엔드 미완성 환경 대응)
+        setToast({ message: '서버 오류 — 로컬 결과를 보여드려요.', type: 'error' });
+        showOfflineResult();
       }
     } catch {
-      setToast({ message: '진단 중 오류가 발생했어요.', type: 'error' });
-      setStep('survey');
+      // 네트워크 오류 시에도 오프라인 결과로 폴백
+      setToast({ message: '서버 연결 실패 — 로컬 결과를 보여드려요.', type: 'error' });
+      showOfflineResult();
     }
   };
 
