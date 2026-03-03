@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
@@ -245,24 +246,42 @@ function HeartRateCheck() {
               </div>
             </div>
 
-            {/* 토큰 복사 카드 */}
+            {/* QR 코드 — iPhone 카메라로 스캔해서 토큰 복사 */}
             <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <p className="text-xs font-bold text-slate-500 mb-3">① 먼저 토큰을 복사해두세요</p>
-              <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
-                <div className="overflow-hidden">
-                  <p className="text-xs text-slate-400 mb-1">내 로그인 토큰 (단축어에 붙여넣기용)</p>
-                  <p className="font-mono text-xs text-slate-600 truncate">
-                    {localStorage.getItem('accessToken')?.substring(0, 30)}...
-                  </p>
+              <p className="text-xs font-bold text-slate-500 mb-1">① 토큰을 iPhone으로 전송</p>
+              <p className="text-xs text-slate-400 mb-4">
+                iPhone 카메라로 QR 코드 스캔 → 링크 탭 → 토큰 텍스트 전체 복사
+              </p>
+
+              <div className="flex flex-col items-center gap-4">
+                {/* QR 코드 */}
+                <div className="p-3 bg-white border-2 border-slate-200 rounded-2xl">
+                  <QRCodeSVG
+                    value={`토큰:${localStorage.getItem('accessToken') || ''}`}
+                    size={180}
+                    bgColor="#ffffff"
+                    fgColor="#1e293b"
+                    level="M"
+                  />
                 </div>
+
+                <div className="w-full bg-slate-50 rounded-xl p-3 space-y-1 text-xs text-slate-500">
+                  <p className="font-semibold text-slate-600">📷 iPhone에서 스캔하는 법</p>
+                  <p>1. iPhone 기본 카메라 앱 열기</p>
+                  <p>2. QR 코드에 카메라 갖다 대기</p>
+                  <p>3. 상단에 뜨는 알림 탭 → 텍스트 복사</p>
+                  <p className="text-slate-400">※ <span className="font-semibold">「토큰:」</span> 뒤 텍스트만 복사해서 단축어에 붙여넣기</p>
+                </div>
+
+                {/* PC에서 클립보드 복사도 지원 */}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(localStorage.getItem('accessToken') || '');
                     setToast({ message: '토큰이 클립보드에 복사됐어요', type: 'success' });
                   }}
-                  className="ml-3 shrink-0 text-xs bg-primary text-white font-bold px-3 py-2 rounded-lg hover:bg-primary/90 transition-all"
+                  className="w-full text-xs border border-slate-200 text-slate-500 font-semibold py-2 rounded-xl hover:bg-slate-50 transition-all"
                 >
-                  복사
+                  PC 클립보드에 복사 (카카오톡으로 나에게 보내기용)
                 </button>
               </div>
             </div>
@@ -329,8 +348,9 @@ function HeartRateCheck() {
                       <div className="bg-white rounded px-2 py-1.5 border border-slate-200 space-y-1">
                         <p className="text-slate-500">키: <span className="font-mono font-semibold text-slate-700">Authorization</span></p>
                         <p className="text-slate-500">값: <span className="font-mono font-semibold text-slate-700">Bearer </span>
-                          <span className="text-primary font-semibold">← 여기에 복사한 토큰 붙여넣기</span>
+                          <span className="text-primary font-semibold">← QR 스캔으로 복사한 토큰 붙여넣기</span>
                         </p>
+                        <p className="text-[10px] text-slate-400">예) Bearer eyJhbGci... (「토큰:」 다음 텍스트)</p>
                       </div>
                       <p className="text-slate-600">• <span className="font-semibold">요청 본문</span> → 「JSON」 선택</p>
                       <div className="bg-white rounded px-2 py-1.5 border border-slate-200 space-y-1">
