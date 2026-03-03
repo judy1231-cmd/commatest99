@@ -93,9 +93,9 @@ function RestTypeTest() {
     }
   };
 
-  // 선택지 클릭 처리 — score + displayOrder 함께 저장 (오프라인 계산 시 displayOrder 사용)
-  const handleSelect = (questionId, choiceId, score, displayOrder) => {
-    const newAnswers = { ...answers, [questionId]: { choiceId, score, displayOrder } };
+  // 선택지 클릭 처리 — category(유형), score(강도) 함께 저장
+  const handleSelect = (questionId, choiceId, score, category) => {
+    const newAnswers = { ...answers, [questionId]: { choiceId, score, category } };
     setAnswers(newAnswers);
 
     // 자동으로 다음 질문으로 이동 (0.3초 딜레이)
@@ -153,37 +153,21 @@ function RestTypeTest() {
     }
   };
 
-  // 비로그인 간이 결과 — answers에 저장된 score를 직접 사용 (find 불필요)
-  // 빈도 기반: 가장 많이 선택된 유형이 100점, 나머지는 비례 환산
+  // 비로그인 간이 결과 — 질문 category(유형) + 선택 score(강도 20~100) 직접 사용
   const showOfflineResult = (answersSnapshot) => {
     setStep('loading');
 
-    // answersSnapshot: 호출 시점의 answers를 인자로 받아 클로저 stale 문제 방지
     const currentAnswers = answersSnapshot || answers;
-
-    const SCORE_TO_TYPE = { 1: 'physical', 2: 'mental', 3: 'sensory', 4: 'emotional', 5: 'social', 6: 'nature', 7: 'creative' };
     const types = ['physical', 'mental', 'sensory', 'emotional', 'social', 'nature', 'creative'];
 
-    console.log('[진단] answers 스냅샷:', JSON.stringify(currentAnswers));
-
-    // 각 유형이 선택된 횟수 집계 — displayOrder(1~7)로 유형 매핑 (score가 DB에 잘못 저장돼도 동작)
-    const frequency = {};
-    types.forEach((t) => { frequency[t] = 0; });
+    // 유형별 점수: 질문의 category = 유형, 선택지 score = 피로도 강도 (20/40/70/100)
+    const typeScoreMap = {};
+    types.forEach((t) => { typeScoreMap[t] = 0; });
 
     for (const answer of Object.values(currentAnswers)) {
-      // displayOrder 우선, 없으면 score 폴백 (하위 호환)
-      const typeKey = answer.displayOrder ?? answer.score;
-      const mappedType = SCORE_TO_TYPE[typeKey];
-      if (mappedType) frequency[mappedType]++;
-    }
-
-    console.log('[진단] frequency:', JSON.stringify(frequency));
-
-    // 최다 선택 유형 = 100점 기준, 나머지 비례 환산
-    const maxFreq = Math.max(...Object.values(frequency), 1);
-    const typeScoreMap = {};
-    for (const t of types) {
-      typeScoreMap[t] = maxFreq > 0 ? Math.round((frequency[t] / maxFreq) * 100) : 0;
+      if (answer.category && typeScoreMap[answer.category] !== undefined) {
+        typeScoreMap[answer.category] = answer.score;
+      }
     }
 
     const sorted = Object.entries(typeScoreMap)
@@ -191,9 +175,8 @@ function RestTypeTest() {
       .sort((a, b) => b.score - a.score);
 
     const primary = sorted[0].type;
-    const maxScore = sorted[0].score;
     const avgScore = Math.round(sorted.reduce((sum, s) => sum + s.score, 0) / 7);
-    const stressIndex = Math.min(100, maxScore - avgScore + 40);
+    const stressIndex = Math.min(100, avgScore);
 
     setResult({
       primaryRestType: primary,
@@ -296,7 +279,7 @@ function RestTypeTest() {
                 return (
                   <button
                     key={choice.id}
-                    onClick={() => handleSelect(current.question.id, choice.id, choice.score, choice.displayOrder)}
+                    onClick={() => handleSelect(current.question.id, choice.id, choice.score, current.question.category)}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3 ${
                       isSelected
                         ? 'border-primary bg-soft-mint text-primary'

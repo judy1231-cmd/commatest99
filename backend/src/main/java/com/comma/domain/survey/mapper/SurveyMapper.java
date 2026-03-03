@@ -13,6 +13,8 @@ public interface SurveyMapper {
 
     List<SurveyQuestion> findActiveQuestions();
 
+    SurveyQuestion findQuestionById(@Param("id") Long id);
+
     List<SurveyChoice> findChoicesByQuestionId(@Param("questionId") Long questionId);
 
     void insertResponse(SurveyResponse response);

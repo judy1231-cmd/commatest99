@@ -74,23 +74,18 @@ public class DiagnosisService {
 
     // ==================== 진단 계산 ====================
 
-    // 선택지의 score 값 → 휴식유형 매핑 (시나리오형 설문 기준)
-    private static final Map<Integer, String> SCORE_TO_TYPE = Map.of(
-            1, "physical", 2, "mental", 3, "sensory",
-            4, "emotional", 5, "social", 6, "nature", 7, "creative"
-    );
-
     private static final String[] REST_TYPES = {
             "physical", "mental", "sensory", "emotional", "social", "nature", "creative"
     };
 
     /**
-     * 시나리오 기반 설문 + 심박 데이터를 종합하여 진단 결과 생성
+     * 설문 + 심박 데이터를 종합하여 진단 결과 생성
      *
      * 점수 계산 방식:
-     * 1) 선택지의 score 값(1~7)이 휴식유형 ID를 의미
-     * 2) 각 유형이 선택된 횟수를 세고, 전체 응답 수 대비 비율로 환산 (0~100)
-     * 3) 심박 데이터가 있으면 스트레스 보정 (높은 심박 = 높은 스트레스)
+     * 1) 질문의 category(physical/mental/...)가 휴식유형을 결정
+     * 2) 선택지의 score(20/40/70/100)가 해당 유형의 피로도 강도
+     * 3) 7개 유형 각각의 점수를 그대로 사용 (질문 1개당 유형 1개)
+     * 4) 심박 데이터가 있으면 스트레스 지수 보정
      */
     @Transactional
     public DiagnosisResult calculateDiagnosis(String 쉼표번호, Long sessionId) {
@@ -99,42 +94,32 @@ public class DiagnosisService {
             throw new IllegalArgumentException("설문 응답 데이터가 없습니다. 설문을 먼저 완료해주세요.");
         }
 
-        // Step 1: 각 응답에서 선택지의 score(유형ID)를 읽어서 빈도 집계
-        Map<String, Integer> typeFrequency = new HashMap<>();
+        // Step 1: 질문 category → 피로도 점수(20/40/70/100) 직접 매핑
+        Map<String, Integer> typeScores = new HashMap<>();
         for (String type : REST_TYPES) {
-            typeFrequency.put(type, 0);
+            typeScores.put(type, 0);
         }
 
         int validResponses = 0;
         for (SurveyResponse response : responses) {
+            com.comma.domain.survey.model.SurveyQuestion question =
+                    surveyMapper.findQuestionById(response.getQuestionId());
+            if (question == null || question.getCategory() == null) continue;
+
             List<SurveyChoice> choices = surveyMapper.findChoicesByQuestionId(response.getQuestionId());
             SurveyChoice selected = choices.stream()
                     .filter(c -> c.getId().equals(response.getChoiceId()))
                     .findFirst()
                     .orElse(null);
 
-            if (selected != null) {
-                String mappedType = SCORE_TO_TYPE.get(selected.getScore());
-                if (mappedType != null) {
-                    typeFrequency.merge(mappedType, 1, (a, b) -> a + b);
-                    validResponses++;
-                }
+            if (selected != null && typeScores.containsKey(question.getCategory())) {
+                typeScores.put(question.getCategory(), selected.getScore());
+                validResponses++;
             }
         }
 
         if (validResponses == 0) {
             throw new IllegalArgumentException("유효한 설문 응답이 없습니다.");
-        }
-
-        // Step 2: 빈도 → 0~100 점수 환산 (가장 많이 선택된 유형 = 100점 기준)
-        int maxFrequency = typeFrequency.values().stream().max(Integer::compareTo).orElse(1);
-        Map<String, Integer> typeScores = new HashMap<>();
-
-        for (String type : REST_TYPES) {
-            int frequency = typeFrequency.get(type);
-            // 최다 선택 유형이 100점, 나머지는 비례 환산
-            int score = maxFrequency > 0 ? Math.round((float) frequency / maxFrequency * 100) : 0;
-            typeScores.put(type, score);
         }
 
         // Step 3: 심박 데이터로 스트레스 지수 보정

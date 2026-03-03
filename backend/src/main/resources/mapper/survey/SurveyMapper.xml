@@ -11,6 +11,12 @@
         ORDER BY display_order
     </select>
 
+    <select id="findQuestionById" resultType="com.comma.domain.survey.model.SurveyQuestion">
+        SELECT id, question_content, category, display_order, active
+        FROM survey_questions
+        WHERE id = #{id}
+    </select>
+
     <select id="findChoicesByQuestionId" resultType="com.comma.domain.survey.model.SurveyChoice">
         SELECT id, question_id, choice_content, score, display_order
         FROM survey_choices
