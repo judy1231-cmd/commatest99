@@ -32,6 +32,14 @@
         VALUES (#{sessionId}, #{쉼표번호}, #{bpm}, #{hrv}, #{measuredAt})
     </insert>
 
+    <select id="findLatestMeasurementBySessionId" resultType="com.comma.domain.diagnosis.model.HeartRateMeasurement">
+        SELECT id, session_id, `쉼표번호`, bpm, hrv, measured_at
+        FROM heart_rate_measurements
+        WHERE session_id = #{sessionId}
+        ORDER BY measured_at DESC
+        LIMIT 1
+    </select>
+
     <select id="findMeasurementsBySessionId" resultType="com.comma.domain.diagnosis.model.HeartRateMeasurement">
         SELECT id, session_id, `쉼표번호`, bpm, hrv, measured_at
         FROM heart_rate_measurements

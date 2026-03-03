@@ -29,6 +29,8 @@ public interface DiagnosisMapper {
 
     List<HeartRateMeasurement> findMeasurementsBySessionId(@Param("sessionId") Long sessionId);
 
+    HeartRateMeasurement findLatestMeasurementBySessionId(@Param("sessionId") Long sessionId);
+
     // ==================== 진단 결과 ====================
 
     void insertDiagnosisResult(DiagnosisResult result);

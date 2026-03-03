@@ -59,6 +59,22 @@ public class DiagnosisService {
         diagnosisMapper.insertMeasurement(measurement);
     }
 
+    public MeasurementSession getSessionEntity(Long sessionId, String 쉼표번호) {
+        MeasurementSession session = diagnosisMapper.findSessionById(sessionId);
+        if (session == null) throw new IllegalArgumentException("존재하지 않는 측정 세션입니다.");
+        if (!session.get쉼표번호().equals(쉼표번호)) throw new IllegalArgumentException("접근 권한이 없습니다.");
+        return session;
+    }
+
+    public HeartRateMeasurement getLatestMeasurement(Long sessionId) {
+        return diagnosisMapper.findLatestMeasurementBySessionId(sessionId);
+    }
+
+    public int getMeasurementCount(Long sessionId) {
+        List<HeartRateMeasurement> list = diagnosisMapper.findMeasurementsBySessionId(sessionId);
+        return list.size();
+    }
+
     public Map<String, Object> getSession(Long sessionId, String 쉼표번호) {
         MeasurementSession session = diagnosisMapper.findSessionById(sessionId);
         if (session == null) throw new IllegalArgumentException("존재하지 않는 측정 세션입니다.");

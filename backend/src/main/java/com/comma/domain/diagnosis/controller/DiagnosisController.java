@@ -63,6 +63,21 @@ public class DiagnosisController {
         }
     }
 
+    // GET /api/diagnosis/sessions/{sessionId}/measurements/latest  [JWT 필요] — 웹 폴링용
+    @GetMapping("/sessions/{sessionId}/measurements/latest")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getLatestMeasurement(
+            HttpServletRequest request,
+            @PathVariable Long sessionId) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        MeasurementSession session = diagnosisService.getSessionEntity(sessionId, 쉼표번호);
+        var latest = diagnosisService.getLatestMeasurement(sessionId);
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("session", session);
+        result.put("latest", latest);
+        result.put("measurementCount", diagnosisService.getMeasurementCount(sessionId));
+        return ResponseEntity.ok(ApiResponse.ok(result, "최신 측정값 조회 성공"));
+    }
+
     // GET /api/diagnosis/sessions/{sessionId}  [JWT 필요]
     @GetMapping("/sessions/{sessionId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getSession(

@@ -27,9 +27,11 @@ function HeartRateCheck() {
   const [avgBpm, setAvgBpm] = useState(null);
   const [deviceType, setDeviceType] = useState('manual');
   const [toast, setToast] = useState({ message: '', type: 'success' });
+  const [pollCount, setPollCount] = useState(0); // Apple Watch 폴링 횟수
 
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
+  const pollRef = useRef(null);
 
   // 측정 시작
   const startMeasuring = async () => {
@@ -46,15 +48,37 @@ function HeartRateCheck() {
         body: JSON.stringify({ deviceType }),
       });
       if (res.success && res.data) {
-        setSessionId(res.data.id);
+        const sid = res.data.id;
+        setSessionId(sid);
         setPhase('measuring');
-        startSimulation(res.data.id);
+        if (deviceType === 'apple_watch') {
+          startAppleWatchPolling(sid);
+        } else {
+          startSimulation(sid);
+        }
       } else {
         setToast({ message: res.message || '측정 시작에 실패했어요.', type: 'error' });
       }
     } catch {
       setToast({ message: '서버에 연결할 수 없어요.', type: 'error' });
     }
+  };
+
+  // Apple Watch 모드 — 3초마다 백엔드 폴링하여 모바일 앱이 보낸 BPM 표시
+  const startAppleWatchPolling = (sid) => {
+    setPollCount(0);
+    timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetchWithAuth(`/api/diagnosis/sessions/${sid}/measurements/latest`);
+        if (res.success && res.data?.latest) {
+          const bpm = res.data.latest.bpm;
+          setCurrentBpm(bpm);
+          setBpmHistory((prev) => [...prev.slice(-49), bpm]);
+          setPollCount(res.data.measurementCount || 0);
+        }
+      } catch { /* 폴링 실패 시 무시 */ }
+    }, 3000);
   };
 
   const startSimulation = (sid) => {
@@ -88,6 +112,7 @@ function HeartRateCheck() {
   const stopMeasuring = async () => {
     clearInterval(intervalRef.current);
     clearInterval(timerRef.current);
+    clearInterval(pollRef.current);
 
     const avg = bpmHistory.length
       ? Math.round(bpmHistory.reduce((s, b) => s + b, 0) / bpmHistory.length)
@@ -119,6 +144,7 @@ function HeartRateCheck() {
     return () => {
       clearInterval(intervalRef.current);
       clearInterval(timerRef.current);
+      clearInterval(pollRef.current);
     };
   }, []);
 
@@ -194,6 +220,35 @@ function HeartRateCheck() {
             )}
           </div>
         </div>
+
+        {/* Apple Watch 연동 안내 (측정 중) */}
+        {phase === 'measuring' && deviceType === 'apple_watch' && (
+          <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-icons text-primary text-lg">smartphone</span>
+              <span className="text-sm font-bold text-slate-700">모바일 앱 연동</span>
+              {pollCount > 0 && (
+                <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+                  ✓ 수신 중 ({pollCount}회)
+                </span>
+              )}
+            </div>
+            <div className="bg-slate-50 rounded-xl p-3 mb-3 flex items-center justify-between">
+              <span className="text-xs text-slate-500">세션 ID</span>
+              <span className="font-mono font-bold text-lg text-slate-800">{sessionId}</span>
+            </div>
+            <ol className="text-xs text-slate-500 space-y-1 list-decimal list-inside">
+              <li>쉼표 모바일 앱 실행</li>
+              <li>세션 ID <strong className="text-slate-700">{sessionId}</strong> 입력</li>
+              <li>Apple Watch 착용 상태로 측정 시작</li>
+            </ol>
+            {pollCount === 0 && (
+              <p className="text-xs text-amber-600 mt-3 text-center animate-pulse">
+                모바일 앱의 데이터를 기다리는 중...
+              </p>
+            )}
+          </div>
+        )}
 
         {/* 경과 시간 (측정 중) */}
         {phase === 'measuring' && (
