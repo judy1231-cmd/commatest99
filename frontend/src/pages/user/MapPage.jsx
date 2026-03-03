@@ -5,6 +5,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import UserNavbar from '../../components/user/UserNavbar';
 
+const VWORLD_KEY = process.env.REACT_APP_VWORLD_KEY || '';
+
 // Leaflet 기본 마커 아이콘 경로 수정 (React 빌드 환경 이슈)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -291,8 +293,10 @@ function MapPage() {
             style={{ width: '100%', height: '100%' }}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.vworld.kr" target="_blank" rel="noreferrer">국토지리정보원</a>'
+              url={`https://api.vworld.kr/req/wmts/1.0.0/${VWORLD_KEY}/Base/{z}/{y}/{x}.png`}
+              minZoom={6}
+              maxZoom={18}
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}

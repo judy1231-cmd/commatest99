@@ -43,3 +43,7 @@ backend/.project
 
 # Spring Boot 로컬 환경변수 (비밀번호 포함 — git 올리면 안 됨)
 backend/src/main/resources/application-local.yml
+
+# React 환경변수 (API 키 포함 — git 올리면 안 됨)
+frontend/.env
+frontend/.env.local
