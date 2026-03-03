@@ -39,6 +39,11 @@ function MyPage() {
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [nicknameEditing, setNicknameEditing] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [nicknameSaving, setNicknameSaving] = useState(false);
+  const [nicknameError, setNicknameError] = useState(null);
+
   useEffect(() => {
     loadAll();
   }, []);
@@ -73,6 +78,40 @@ function MyPage() {
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
+  };
+
+  const handleNicknameEdit = () => {
+    setNicknameInput(user?.nickname || '');
+    setNicknameError(null);
+    setNicknameEditing(true);
+  };
+
+  const handleNicknameSave = async () => {
+    setNicknameError(null);
+    if (!nicknameInput.trim()) { setNicknameError('닉네임을 입력해주세요.'); return; }
+    if (nicknameInput.length < 2 || nicknameInput.length > 20) { setNicknameError('2~20자로 입력해주세요.'); return; }
+
+    try {
+      setNicknameSaving(true);
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/auth/me/nickname', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ nickname: nicknameInput })
+      });
+      const data = await res.json();
+      if (!data.success) { setNicknameError(data.message); return; }
+
+      // 로컬 상태 & localStorage 갱신
+      setProfile(prev => ({ ...prev, user: data.data }));
+      const stored = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({ ...stored, nickname: data.data.nickname }));
+      setNicknameEditing(false);
+    } catch {
+      setNicknameError('저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setNicknameSaving(false);
+    }
   };
 
   const primaryType = latestDiagnosis?.primaryRestType
@@ -122,9 +161,47 @@ function MyPage() {
             </div>
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-slate-900">
-                  {user?.nickname || '사용자'} <span className="text-lg font-normal text-slate-400 ml-1">님</span>
-                </h1>
+                {nicknameEditing ? (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        className="text-2xl font-bold border-b-2 border-primary bg-transparent outline-none text-slate-900 w-48"
+                        value={nicknameInput}
+                        onChange={e => setNicknameInput(e.target.value)}
+                        maxLength={20}
+                        autoFocus
+                        onKeyDown={e => { if (e.key === 'Enter') handleNicknameSave(); if (e.key === 'Escape') setNicknameEditing(false); }}
+                      />
+                      <button
+                        onClick={handleNicknameSave}
+                        disabled={nicknameSaving}
+                        className="px-3 py-1 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {nicknameSaving ? '저장 중' : '저장'}
+                      </button>
+                      <button
+                        onClick={() => setNicknameEditing(false)}
+                        className="px-3 py-1 bg-slate-100 text-slate-500 text-sm font-bold rounded-lg hover:bg-slate-200"
+                      >
+                        취소
+                      </button>
+                    </div>
+                    {nicknameError && <p className="text-xs text-red-500">{nicknameError}</p>}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-3xl font-bold text-slate-900">
+                      {user?.nickname || '사용자'} <span className="text-lg font-normal text-slate-400 ml-1">님</span>
+                    </h1>
+                    <button
+                      onClick={handleNicknameEdit}
+                      className="p-1 rounded-lg text-slate-400 hover:text-primary hover:bg-green-50 transition-colors"
+                      title="닉네임 변경"
+                    >
+                      <span className="material-icons text-lg">edit</span>
+                    </button>
+                  </div>
+                )}
                 {profile?.badgeCount > 0 && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold">
                     <span className="material-icons text-sm mr-1">emoji_events</span>

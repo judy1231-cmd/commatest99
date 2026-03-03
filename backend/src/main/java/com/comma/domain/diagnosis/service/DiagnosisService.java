@@ -4,7 +4,6 @@ import com.comma.domain.diagnosis.mapper.DiagnosisMapper;
 import com.comma.domain.diagnosis.model.*;
 import com.comma.domain.survey.mapper.SurveyMapper;
 import com.comma.domain.survey.model.SurveyChoice;
-import com.comma.domain.survey.model.SurveyQuestion;
 import com.comma.domain.survey.model.SurveyResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -117,7 +116,7 @@ public class DiagnosisService {
             if (selected != null) {
                 String mappedType = SCORE_TO_TYPE.get(selected.getScore());
                 if (mappedType != null) {
-                    typeFrequency.merge(mappedType, 1, Integer::sum);
+                    typeFrequency.merge(mappedType, 1, (a, b) -> a + b);
                     validResponses++;
                 }
             }

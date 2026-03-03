@@ -102,13 +102,6 @@ public class RestTypeClassifier {
 
         // Step 2: 키워드 매칭 실패 → Claude API 시도
         try {
-            String prompt = String.format(
-                    "다음 활동/취미가 7가지 휴식유형 중 어디에 해당하는지 한 단어로만 답해줘.\n"
-                            + "유형: physical, mental, sensory, emotional, social, nature, creative\n"
-                            + "활동: %s\n"
-                            + "답 (유형 이름만):",
-                    text
-            );
             String response = claudeApiClient.getRestAdvice(text, 50, "분류 요청");
 
             // 응답에서 유형 이름 찾기

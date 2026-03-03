@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     `쉼표번호`      VARCHAR(12)  NOT NULL PRIMARY KEY,
     email           VARCHAR(100) NOT NULL UNIQUE,
     password        VARCHAR(255) NOT NULL,
-    nickname        VARCHAR(50)  NOT NULL,
+    username        VARCHAR(50)  NOT NULL UNIQUE,   -- 사용자가 직접 정하는 로그인 아이디
+    nickname        VARCHAR(50)  NOT NULL,           -- 자동 부여되는 쉼표번호 (표시용)
     status          ENUM('active','dormant','banned') NOT NULL DEFAULT 'active',
     email_verified  TINYINT(1)   NOT NULL DEFAULT 0,
     role            ENUM('USER','ADMIN') NOT NULL DEFAULT 'USER',

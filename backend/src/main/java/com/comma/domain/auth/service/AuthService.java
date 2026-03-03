@@ -31,9 +31,12 @@ public class AuthService {
     // ==================== 회원가입 ====================
 
     @Transactional
-    public User signup(String email, String password, String nickname) {
+    public User signup(String email, String username, String password) {
         if (authMapper.countByEmail(email.trim()) > 0) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+        if (authMapper.countByUsername(username.trim()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
 
         // 동시 가입 시 race condition 방지 — MAX 조회 후 즉시 INSERT (같은 트랜잭션)
@@ -43,7 +46,8 @@ public class AuthService {
         user.set쉼표번호(쉼표번호);
         user.setEmail(email.trim());
         user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-        user.setNickname(nickname.trim());
+        user.setUsername(username.trim());
+        user.setNickname(쉼표번호);  // 닉네임 = 자동 부여된 쉼표번호
         // DB DEFAULT 값을 Java 객체에도 반영 — 응답에서 null 방지
         user.setStatus("active");
         user.setEmailVerified(false);
@@ -67,10 +71,10 @@ public class AuthService {
     // ==================== 로그인 ====================
 
     public Map<String, Object> login(String identifier, String password) {
-        // @ 포함이면 이메일, 아니면 닉네임으로 조회
+        // @ 포함이면 이메일, 아니면 아이디(username)로 조회
         User user = identifier.contains("@")
                 ? authMapper.findByEmail(identifier)
-                : authMapper.findByNickname(identifier);
+                : authMapper.findByUsername(identifier);
         if (user == null) {
             throw new IllegalArgumentException("존재하지 않는 계정입니다.");
         }
@@ -244,6 +248,21 @@ public class AuthService {
             redisTemplate.delete(REFRESH_TOKEN_PREFIX + 쉼표번호);
         } catch (Exception ignored) {
         }
+    }
+
+    // ==================== 닉네임 변경 ====================
+
+    public User updateNickname(String 쉼표번호, String newNickname) {
+        if (newNickname == null || newNickname.isBlank())
+            throw new IllegalArgumentException("닉네임을 입력해주세요.");
+        if (newNickname.length() < 2 || newNickname.length() > 20)
+            throw new IllegalArgumentException("닉네임은 2~20자로 입력해주세요.");
+
+        authMapper.updateNickname(쉼표번호, newNickname.trim());
+
+        User user = authMapper.findBy쉼표번호(쉼표번호);
+        user.setPassword(null);
+        return user;
     }
 
     // ==================== 내부 유틸 ====================

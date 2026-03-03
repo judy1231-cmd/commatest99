@@ -3,12 +3,14 @@ package com.comma.global.config;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
 
 @Component
+@SuppressWarnings("null") // JJWT 라이브러리가 @NonNull 미지원 — Eclipse 정적 분석 억제
 public class JwtUtil {
 
     private final Key key;
@@ -25,7 +27,7 @@ public class JwtUtil {
         this.refreshExpiration = refreshExpiration;
     }
 
-    public String generateAccessToken(String 쉼표번호, String role) {
+    public @NonNull String generateAccessToken(String 쉼표번호, String role) {
         return Jwts.builder()
                 .setSubject(쉼표번호)
                 .claim("role", role)
@@ -35,7 +37,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String 쉼표번호) {
+    public @NonNull String generateRefreshToken(String 쉼표번호) {
         return Jwts.builder()
                 .setSubject(쉼표번호)
                 .setIssuedAt(new Date())
@@ -44,11 +46,11 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String extract쉼표번호(String token) {
+    public @NonNull String extract쉼표번호(String token) {
         return parseClaims(token).getSubject();
     }
 
-    public String extractRole(String token) {
+    public @NonNull String extractRole(String token) {
         return parseClaims(token).get("role", String.class);
     }
 

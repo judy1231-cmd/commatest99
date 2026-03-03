@@ -1,0 +1,64 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://${SPRING_DATASOURCE_URL_HOST:mysql}:3306/comma_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: 6379
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: >
+    com.comma.domain.user.model,
+    com.comma.domain.survey.model,
+    com.comma.domain.diagnosis.model,
+    com.comma.domain.place.model,
+    com.comma.domain.rest.model,
+    com.comma.domain.recommendation.model,
+    com.comma.domain.stats.model,
+    com.comma.domain.notification.model,
+    com.comma.domain.badge.model,
+    com.comma.domain.admin.model
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 1800000     # 30분 (ms)
+  refresh-expiration: 1209600000 # 14일 (ms)
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  front-url: ${APP_FRONT_URL:http://localhost}
+
+claude:
+  api:
+    key: ${CLAUDE_API_KEY:}
+  model: claude-sonnet-4-20250514
+
+logging:
+  level:
+    com.comma: INFO
+    root: WARN

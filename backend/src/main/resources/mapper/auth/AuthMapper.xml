@@ -7,30 +7,38 @@
     <!-- ==================== 회원 ==================== -->
 
     <insert id="insertUser" parameterType="User">
-        INSERT INTO users (`쉼표번호`, email, password, nickname, status, email_verified, role)
-        VALUES (#{쉼표번호}, #{email}, #{password}, #{nickname}, 'active', 0, 'USER')
+        INSERT INTO users (`쉼표번호`, email, password, username, nickname, status, email_verified, role)
+        VALUES (#{쉼표번호}, #{email}, #{password}, #{username}, #{nickname}, 'active', 0, 'USER')
     </insert>
 
     <select id="findByEmail" resultType="User">
-        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE email = #{email}
     </select>
 
-    <select id="findByNickname" resultType="User">
-        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+    <select id="findByUsername" resultType="User">
+        SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
-        WHERE nickname = #{nickname}
+        WHERE username = #{username}
     </select>
 
     <select id="findBy쉼표번호" resultType="User">
-        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
     <select id="countByEmail" resultType="int">
         SELECT COUNT(*) FROM users WHERE email = #{email}
+    </select>
+
+    <select id="countByUsername" resultType="int">
+        SELECT COUNT(*) FROM users WHERE username = #{username}
+    </select>
+
+    <select id="countBy쉼표번호" resultType="int">
+        SELECT COUNT(*) FROM users WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
     <!-- USER role만 조회 — 관리자 번호(쉼표9xxx) 제외 -->
@@ -82,6 +90,10 @@
 
     <update id="updatePassword">
         UPDATE users SET password = #{password} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <update id="updateNickname">
+        UPDATE users SET nickname = #{nickname} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
 </mapper>

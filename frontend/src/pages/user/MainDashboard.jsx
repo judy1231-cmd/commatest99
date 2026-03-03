@@ -83,48 +83,40 @@ function MainDashboard() {
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-16 pb-24 md:pb-10">
 
-        {/* 진단 소개 섹션 */}
-        <section>
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">나에게 맞는 진단을 선택하세요</h2>
-            <p className="text-slate-500 text-sm">몸의 신호를 읽는 방법부터 마음을 돌보는 방법까지, 3가지 방식으로 지금 상태를 확인해보세요</p>
+        {/* 진단 소개 섹션 — Hero */}
+        <section className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 rounded-3xl px-8 py-12 border border-emerald-100/60 shadow-sm">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-wider uppercase">
+              <span className="material-icons text-sm">self_improvement</span>
+              지금 바로 시작하세요
+            </span>
+            <h2 className="text-4xl font-extrabold text-slate-800 mb-4 leading-tight">
+              나에게 맞는<br className="md:hidden" /> 휴식을 찾아볼까요?
+            </h2>
+            <p className="text-slate-500 text-base max-w-md mx-auto">
+              3가지 진단 중 하나를 선택해 지금 내 상태를 확인하고 맞춤 휴식을 추천받아요
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* 심박수 체크 */}
-            <Link to="/heartrate" className="relative overflow-hidden group rounded-2xl bg-white border border-gray-100 shadow-soft hover:shadow-hover transition-all">
-              <div className="bg-gradient-to-br from-soft-mint to-emerald-50/30 p-7 pb-5">
-                <div className="flex items-center gap-2 mb-3">
+            <Link to="/heartrate" className="group rounded-2xl bg-white border-2 border-emerald-300/70 shadow-soft hover:shadow-hover hover:-translate-y-1 transition-all duration-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-soft-mint to-emerald-50/30 p-8 pb-6">
+                <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                   <span className="text-xs font-bold text-emerald-600 tracking-wider">HEALTH CHECK</span>
                   <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">객관적 측정</span>
                 </div>
-                <h2 className="text-xl font-bold text-slate-800 mb-1">심박수 체크</h2>
-                <p className="text-primary font-semibold text-sm">스마트워치로 실시간 스트레스 측정</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-1.5">심박수 체크</h3>
+                <p className="text-emerald-600 font-semibold text-sm">스마트워치로 스트레스 수치 측정</p>
               </div>
-              <div className="p-7 pt-5">
-                <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                  심장 박동 데이터를 분석해서 지금 내 몸이 얼마나 긴장하고 있는지 객관적으로 확인해요.
+              <div className="p-8 pt-5 flex flex-col justify-between h-[160px]">
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  심박수(BPM)와 심박변이도(HRV)를 분석해 지금 내 몸의 긴장 상태를 숫자로 확인해요.
                 </p>
-                <div className="space-y-2.5 mb-5">
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-emerald-500 text-base mt-0.5">monitor_heart</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">BPM (분당 심박수)</p>
-                      <p className="text-xs text-slate-400">1분에 심장이 뛰는 횟수예요. 안정 시 60~80이 정상이고, 높을수록 긴장 상태</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-emerald-500 text-base mt-0.5">timeline</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">HRV (심박변이도)</p>
-                      <p className="text-xs text-slate-400">심장 박동 간격의 미세한 변화예요. HRV가 높을수록 몸이 편안한 상태</p>
-                    </div>
-                  </div>
-                </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Apple Watch / Galaxy Watch 연동</span>
-                  <span className="bg-emerald-500 text-white font-bold py-2 px-5 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-emerald-600 transition-colors">
+                  <span className="text-xs text-slate-400">Apple Watch / Galaxy Watch</span>
+                  <span className="bg-emerald-500 text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-emerald-600 transition-colors">
                     <span className="material-icons text-base">favorite</span>
                     측정
                   </span>
@@ -132,40 +124,27 @@ function MainDashboard() {
               </div>
             </Link>
 
-            {/* 휴식유형 테스트 */}
-            <Link to="/rest-test" className="relative overflow-hidden group rounded-2xl bg-white border border-gray-100 shadow-soft hover:shadow-hover transition-all">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50/30 p-7 pb-5">
-                <div className="flex items-center gap-2 mb-3">
+            {/* 휴식유형 테스트 — 메인 강조 */}
+            <Link to="/rest-test" className="group rounded-2xl bg-white border-2 border-primary/40 shadow-soft hover:shadow-hover hover:-translate-y-1 transition-all duration-200 overflow-hidden relative">
+              <div className="absolute top-4 right-4 z-10">
+                <span className="bg-primary text-white text-[10px] font-extrabold px-3 py-1 rounded-full shadow">추천</span>
+              </div>
+              <div className="bg-gradient-to-br from-primary/10 to-blue-50/60 p-8 pb-6">
+                <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-primary"></span>
                   <span className="text-xs font-bold text-primary tracking-wider">REST TYPE</span>
                   <span className="ml-auto text-[10px] font-bold text-primary bg-blue-100 px-2 py-0.5 rounded-full">가장 인기</span>
                 </div>
-                <h2 className="text-xl font-bold text-slate-800 mb-1">휴식 유형 진단</h2>
-                <p className="text-primary font-semibold text-sm">14가지 시나리오로 나를 알아가기</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-1.5">휴식 유형 진단</h3>
+                <p className="text-primary font-semibold text-sm">나에게 맞는 휴식 유형 찾기</p>
               </div>
-              <div className="p-7 pt-5">
-                <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                  일상 속 상황을 골라보면 지금 나에게 가장 필요한 휴식이 7가지 유형 중 어디인지 알 수 있어요.
+              <div className="p-8 pt-5 flex flex-col justify-between h-[160px]">
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  간단한 질문 5개에 답하면 7가지 휴식 유형 중 지금 내게 필요한 것을 바로 알려드려요.
                 </p>
-                <div className="space-y-2.5 mb-5">
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-primary text-base mt-0.5">category</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">7가지 휴식 유형 분류</p>
-                      <p className="text-xs text-slate-400">신체, 정신, 감각, 정서, 사회, 자연, 창조 중 나에게 맞는 유형을 찾아요</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-primary text-base mt-0.5">bolt</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">MBTI처럼 재미있는 시나리오</p>
-                      <p className="text-xs text-slate-400">"이상적인 주말 오후는?" 같은 질문에 답하면 끝. 약 2분이면 완료</p>
-                    </div>
-                  </div>
-                </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">14문항 / 약 2분 소요</span>
-                  <span className="bg-primary text-white font-bold py-2 px-5 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-primary/90 transition-colors">
+                  <span className="text-xs text-slate-400">5문항 / 약 1분 소요</span>
+                  <span className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-primary/90 transition-colors">
                     <span className="material-icons text-base">psychology</span>
                     시작
                   </span>
@@ -174,39 +153,23 @@ function MainDashboard() {
             </Link>
 
             {/* 스트레스 심화 진단 (PSS) */}
-            <Link to="/stress-test" className="relative overflow-hidden group rounded-2xl bg-white border border-gray-100 shadow-soft hover:shadow-hover transition-all">
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50/30 p-7 pb-5">
-                <div className="flex items-center gap-2 mb-3">
+            <Link to="/stress-test" className="group rounded-2xl bg-white border-2 border-amber-300/70 shadow-soft hover:shadow-hover hover:-translate-y-1 transition-all duration-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50/30 p-8 pb-6">
+                <div className="flex items-center gap-2 mb-4">
                   <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   <span className="text-xs font-bold text-amber-600 tracking-wider">PSS STANDARD</span>
                   <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">국제 표준</span>
                 </div>
-                <h2 className="text-xl font-bold text-slate-800 mb-1">스트레스 진단</h2>
-                <p className="text-amber-600 font-semibold text-sm">전 세계가 사용하는 PSS 검사</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-1.5">스트레스 진단</h3>
+                <p className="text-amber-600 font-semibold text-sm">내 스트레스 점수 확인하기</p>
               </div>
-              <div className="p-7 pt-5">
-                <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                  내 스트레스가 정확히 얼마나 되는지 수치로 확인하고 싶다면 이 검사가 딱이에요.
+              <div className="p-8 pt-5 flex flex-col justify-between h-[160px]">
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  전 세계가 사용하는 PSS 검사로 스트레스 수준을 0~40점으로 측정해 낮음·보통·높음으로 알려드려요.
                 </p>
-                <div className="space-y-2.5 mb-5">
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-amber-500 text-base mt-0.5">verified</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">PSS (지각된 스트레스 척도)</p>
-                      <p className="text-xs text-slate-400">1983년 개발, 전 세계 수만 건 연구에서 검증된 가장 신뢰도 높은 도구</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="material-icons text-amber-500 text-base mt-0.5">score</span>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">0~40점 스트레스 지수</p>
-                      <p className="text-xs text-slate-400">낮음(0~13) / 보통(14~26) / 높음(27~40)으로 명확하게 알려드려요</p>
-                    </div>
-                  </div>
-                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-400">10문항 / 약 3분 소요</span>
-                  <span className="bg-amber-500 text-white font-bold py-2 px-5 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-amber-600 transition-colors">
+                  <span className="bg-amber-500 text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-amber-600 transition-colors">
                     <span className="material-icons text-base">psychology_alt</span>
                     진단
                   </span>

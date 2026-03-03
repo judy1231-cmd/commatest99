@@ -22,18 +22,20 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<User>> signup(@RequestBody Map<String, String> body) {
         String email    = body.get("email");
+        String username = body.get("username"); // 사용자가 직접 정하는 로그인 아이디
         String password = body.get("password");
-        String nickname = body.get("nickname");
 
         if (email == null || email.isBlank())
             return ResponseEntity.badRequest().body(ApiResponse.fail("이메일을 입력해주세요."));
+        if (username == null || username.isBlank())
+            return ResponseEntity.badRequest().body(ApiResponse.fail("아이디를 입력해주세요."));
+        if (username.length() < 2 || username.length() > 20)
+            return ResponseEntity.badRequest().body(ApiResponse.fail("아이디는 2~20자로 입력해주세요."));
         if (password == null || password.length() < 8)
             return ResponseEntity.badRequest().body(ApiResponse.fail("비밀번호는 8자 이상이어야 합니다."));
-        if (nickname == null || nickname.isBlank())
-            return ResponseEntity.badRequest().body(ApiResponse.fail("닉네임을 입력해주세요."));
 
         try {
-            User user = authService.signup(email, password, nickname);
+            User user = authService.signup(email, username, password);
             return ResponseEntity.ok(ApiResponse.ok(user, "회원가입이 완료되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
@@ -116,6 +118,21 @@ public class AuthController {
         try {
             authService.verifyEmail(token);
             return ResponseEntity.ok(ApiResponse.ok("이메일 인증이 완료되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    // ==================== 닉네임 변경 ====================
+    // PATCH /api/auth/me/nickname  [JWT 필요]
+    @PatchMapping("/me/nickname")
+    public ResponseEntity<ApiResponse<User>> updateNickname(
+            HttpServletRequest request,
+            @RequestBody Map<String, String> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        try {
+            User user = authService.updateNickname(쉼표번호, body.get("nickname"));
+            return ResponseEntity.ok(ApiResponse.ok(user, "닉네임이 변경되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }

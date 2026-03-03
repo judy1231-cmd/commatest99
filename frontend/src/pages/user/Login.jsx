@@ -86,7 +86,7 @@ function Login() {
                   <span className="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl">person</span>
                   <input
                     className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400"
-                    placeholder="닉네임 또는 이메일을 입력하세요"
+                    placeholder="아이디 또는 이메일을 입력하세요"
                     type="text"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}

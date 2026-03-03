@@ -5,9 +5,9 @@ function Signup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: '',
+    username: '',
     password: '',
-    passwordConfirm: '',
-    nickname: ''
+    passwordConfirm: ''
   });
   const [agreements, setAgreements] = useState({
     all: false,
@@ -60,7 +60,8 @@ function Signup() {
     if (!form.email.trim()) { setError('이메일을 입력해주세요.'); return; }
     if (form.password.length < 8) { setError('비밀번호는 8자 이상이어야 합니다.'); return; }
     if (form.password !== form.passwordConfirm) { setError('비밀번호가 일치하지 않습니다.'); return; }
-    if (!form.nickname.trim()) { setError('닉네임을 입력해주세요.'); return; }
+    if (!form.username.trim()) { setError('아이디를 입력해주세요.'); return; }
+    if (form.username.length < 2 || form.username.length > 20) { setError('아이디는 2~20자로 입력해주세요.'); return; }
     if (!agreements.age || !agreements.terms || !agreements.privacy) {
       setError('필수 약관에 모두 동의해주세요.');
       return;
@@ -73,8 +74,8 @@ function Signup() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email,
-          password: form.password,
-          nickname: form.nickname
+          username: form.username,
+          password: form.password
         })
       });
       const data = await res.json();
@@ -97,12 +98,12 @@ function Signup() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm overflow-hidden">
               <img src="/logo_comma.png" alt="쉼표" className="w-4 h-4 object-contain" />
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900">쉼표</span>
-          </div>
+          </Link>
           <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
         </div>
       </nav>
@@ -178,13 +179,13 @@ function Signup() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">닉네임</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">아이디</label>
               <input
                 className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                placeholder="사용하실 닉네임을 입력해주세요"
+                placeholder="로그인에 사용할 아이디 (2~20자)"
                 type="text"
-                name="nickname"
-                value={form.nickname}
+                name="username"
+                value={form.username}
                 onChange={handleChange}
                 disabled={loading}
               />

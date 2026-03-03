@@ -3,6 +3,7 @@ package com.comma.global.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -33,7 +34,8 @@ public class JwtInterceptor implements HandlerInterceptor {
     };
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+    @SuppressWarnings("null") // getServletPath() / PUBLIC_PATHS 요소는 런타임에 null 아님 — Eclipse 정적 분석 억제
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws IOException {
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;

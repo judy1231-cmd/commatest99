@@ -16,11 +16,15 @@ public interface AuthMapper {
 
     User findByEmail(@Param("email") String email);
 
-    User findByNickname(@Param("nickname") String nickname);
+    User findByUsername(@Param("username") String username);
 
     User findBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
 
     int countByEmail(@Param("email") String email);
+
+    int countByUsername(@Param("username") String username);
+
+    int countBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
 
     // USER role만 조회 — 관리자 번호(쉼표9xxx) 제외
     String findMax쉼표번호ForUser();
@@ -54,4 +58,6 @@ public interface AuthMapper {
     void markPasswordResetTokenUsed(@Param("token") String token);
 
     void updatePassword(@Param("쉼표번호") String 쉼표번호, @Param("password") String password);
+
+    void updateNickname(@Param("쉼표번호") String 쉼표번호, @Param("nickname") String nickname);
 }

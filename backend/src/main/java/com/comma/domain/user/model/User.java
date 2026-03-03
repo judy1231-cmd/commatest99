@@ -14,7 +14,8 @@ public class User {
     private String 쉼표번호;         // PK — "쉼표" + 4자리 숫자 (예: 쉼표0001), String 타입 고정
     private String email;
     private String password;         // BCrypt 암호화된 비밀번호 (응답 시 null 처리)
-    private String nickname;
+    private String username;         // 사용자가 직접 정하는 로그인 아이디
+    private String nickname;         // 자동 부여되는 쉼표번호 (표시용)
     private String status;           // active / dormant / banned
     private Boolean emailVerified;
     private String role;             // USER / ADMIN
