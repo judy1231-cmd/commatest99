@@ -4,9 +4,6 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 
-const months = ['1월', '2월', '3월', '4월', '5월', '6월'];
-const chartHeights = [40, 55, 45, 70, 85, 100];
-
 const STATUS_LABELS = {
   pending: '대기',
   approved: '승인',
@@ -16,6 +13,7 @@ const STATUS_LABELS = {
 function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [pendingPlaces, setPendingPlaces] = useState([]);
+  const [dailySignups, setDailySignups] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,9 +23,10 @@ function AdminDashboard() {
   const loadDashboard = async () => {
     setLoading(true);
     try {
-      const [dashRes, placesRes] = await Promise.allSettled([
+      const [dashRes, placesRes, analyticsRes] = await Promise.allSettled([
         fetchWithAuth('/api/admin/dashboard'),
         fetchWithAuth('/api/admin/places?status=pending&page=1&size=5'),
+        fetchWithAuth('/api/admin/analytics'),
       ]);
 
       if (dashRes.status === 'fulfilled' && dashRes.value.success) {
@@ -35,6 +34,9 @@ function AdminDashboard() {
       }
       if (placesRes.status === 'fulfilled' && placesRes.value.success) {
         setPendingPlaces(placesRes.value.data?.places || []);
+      }
+      if (analyticsRes.status === 'fulfilled' && analyticsRes.value.success) {
+        setDailySignups(analyticsRes.value.data?.dailySignups || []);
       }
     } finally {
       setLoading(false);
@@ -94,21 +96,45 @@ function AdminDashboard() {
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-lg">사용자 증가 추이</h3>
-                    <span className="text-xs text-gray-400">최근 6개월 (예시)</span>
+                    <h3 className="font-bold text-lg">신규 가입자 추이</h3>
+                    <span className="text-xs text-gray-400">최근 30일</span>
                   </div>
-                  <div className="relative h-48 w-full flex items-end gap-2 px-2">
-                    {chartHeights.map((h, i) => (
-                      <div key={i} className={`flex-1 ${h > 80 ? 'bg-primary/40 hover:bg-primary/60' : 'bg-primary/20 hover:bg-primary/40'} transition-colors rounded-t-lg group relative`} style={{ height: `${h}%` }}>
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          {[12, 15, 14, 22, 28, 32][i]}k
+                  {dailySignups.length > 0 ? (() => {
+                    const maxCount = Math.max(...dailySignups.map(d => Number(d.count) || 0), 1);
+                    const labelIdxs = [0, Math.floor(dailySignups.length / 2), dailySignups.length - 1];
+                    return (
+                      <>
+                        <div className="relative h-48 w-full flex items-end gap-0.5 px-1">
+                          {dailySignups.map((d, i) => {
+                            const h = Math.max(Math.round((Number(d.count) / maxCount) * 100), 3);
+                            return (
+                              <div
+                                key={i}
+                                className={`flex-1 ${h > 60 ? 'bg-primary/50 hover:bg-primary/70' : 'bg-primary/20 hover:bg-primary/40'} transition-colors rounded-t group relative`}
+                                style={{ height: `${h}%` }}
+                              >
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[9px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                  {d.count}명
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-4 px-2 text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-                    {months.map(m => <span key={m}>{m}</span>)}
-                  </div>
+                        <div className="flex justify-between mt-3 px-1 text-[10px] text-gray-400">
+                          {dailySignups.map((d, i) =>
+                            labelIdxs.includes(i)
+                              ? <span key={i}>{String(d.date).slice(5)}</span>
+                              : <span key={i} />
+                          )}
+                        </div>
+                      </>
+                    );
+                  })() : (
+                    <div className="h-48 flex flex-col items-center justify-center text-gray-300">
+                      <span className="material-icons text-4xl mb-2">bar_chart</span>
+                      <p className="text-sm">아직 가입 데이터가 없어요</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">

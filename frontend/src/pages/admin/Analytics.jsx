@@ -7,6 +7,7 @@ const REST_TYPE_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-r
 
 function Analytics() {
   const [analytics, setAnalytics] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,8 +17,16 @@ function Analytics() {
   const loadAnalytics = async () => {
     setLoading(true);
     try {
-      const data = await fetchWithAuth('/api/admin/analytics');
-      if (data.success && data.data) setAnalytics(data.data);
+      const [analyticsRes, dashRes] = await Promise.allSettled([
+        fetchWithAuth('/api/admin/analytics'),
+        fetchWithAuth('/api/admin/dashboard'),
+      ]);
+      if (analyticsRes.status === 'fulfilled' && analyticsRes.value.success) {
+        setAnalytics(analyticsRes.value.data);
+      }
+      if (dashRes.status === 'fulfilled' && dashRes.value.success) {
+        setDashboard(dashRes.value.data);
+      }
     } catch {
       // 무시
     } finally {
@@ -25,15 +34,15 @@ function Analytics() {
     }
   };
 
-  // analytics 데이터 파싱 — 백엔드가 주는 형태에 맞게 사용, 없으면 기본값 표시
-  const kpis = analytics ? [
-    { label: '총 사용자', value: analytics.totalUsers?.toLocaleString() || '0', up: true },
-    { label: '활성 사용자', value: analytics.activeUsers?.toLocaleString() || '0', up: true },
-    { label: '전체 휴식 기록', value: analytics.totalRestLogs?.toLocaleString() || '0', up: true },
-    { label: '오늘 신규 가입', value: analytics.todaySignups?.toLocaleString() || '0', up: true },
+  const kpis = dashboard ? [
+    { label: '총 사용자', value: dashboard.totalUsers?.toLocaleString() || '0', up: true },
+    { label: '활성 사용자', value: dashboard.activeUsers?.toLocaleString() || '0', up: true },
+    { label: '전체 휴식 기록', value: dashboard.totalRestLogs?.toLocaleString() || '0', up: true },
+    { label: '오늘 신규 가입', value: dashboard.todaySignups?.toLocaleString() || '0', up: true },
   ] : [];
 
-  const restTypeStats = analytics?.restTypeStats || [];
+  const dailySignups = analytics?.dailySignups || [];
+  const restTypeStats = analytics?.restTypePopularity || [];
   const maxPct = Math.max(...restTypeStats.map(r => r.count || 0), 1);
 
   return (
@@ -65,26 +74,50 @@ function Analytics() {
 
               {/* Charts Row */}
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* 월별 신규 가입 (정적 차트 — 실제 연동 확장 가능) */}
+                {/* 신규 가입자 추이 — 실제 API 데이터 */}
                 <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h3 className="font-bold text-lg text-slate-800">신규 가입자 추이</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">최근 12개월</p>
+                      <p className="text-xs text-slate-400 mt-0.5">최근 30일 (일별)</p>
                     </div>
                   </div>
-                  <div className="h-48 flex items-end gap-1">
-                    {[30, 45, 38, 55, 42, 68, 75, 60, 80, 90, 85, 100].map((h, i) => (
-                      <div key={i} className="flex-1 bg-primary/20 hover:bg-primary/40 rounded-t transition-colors group relative" style={{ height: `${h}%` }}>
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap">
-                          {[800, 1200, 980, 1450, 1100, 1800, 2000, 1600, 2100, 2400, 2250, 2700][i]}명
+                  {dailySignups.length > 0 ? (() => {
+                    const maxCount = Math.max(...dailySignups.map(d => Number(d.count) || 0), 1);
+                    const labelIdxs = [0, Math.floor(dailySignups.length / 2), dailySignups.length - 1];
+                    return (
+                      <>
+                        <div className="h-48 flex items-end gap-0.5">
+                          {dailySignups.map((d, i) => {
+                            const h = Math.max(Math.round((Number(d.count) / maxCount) * 100), 3);
+                            return (
+                              <div
+                                key={i}
+                                className={`flex-1 ${h > 60 ? 'bg-primary/50 hover:bg-primary/70' : 'bg-primary/20 hover:bg-primary/40'} rounded-t transition-colors group relative`}
+                                style={{ height: `${h}%` }}
+                              >
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10">
+                                  {d.count}명
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-3 text-[10px] text-slate-400 font-medium">
-                    {['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'].map(m => <span key={m}>{m}</span>)}
-                  </div>
+                        <div className="flex justify-between mt-3 text-[10px] text-slate-400">
+                          {dailySignups.map((d, i) =>
+                            labelIdxs.includes(i)
+                              ? <span key={i}>{String(d.date).slice(5)}</span>
+                              : <span key={i} />
+                          )}
+                        </div>
+                      </>
+                    );
+                  })() : (
+                    <div className="h-48 flex flex-col items-center justify-center text-slate-300">
+                      <span className="material-icons text-4xl mb-2">bar_chart</span>
+                      <p className="text-sm">최근 30일 가입 데이터가 없어요</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* 휴식 유형 분포 */}
