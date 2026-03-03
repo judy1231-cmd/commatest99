@@ -68,7 +68,7 @@ function RestTypeTest() {
   const [step, setStep] = useState('intro'); // intro → survey → loading → result
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({}); // { questionId: choiceId }
+  const [answers, setAnswers] = useState({}); // { questionId: { choiceId, score } }
   const [otherTexts, setOtherTexts] = useState({}); // { questionId: string }
   const [result, setResult] = useState(null); // DiagnosisResult
   const [typeScores, setTypeScores] = useState([]); // 정렬된 유형별 점수
@@ -93,9 +93,9 @@ function RestTypeTest() {
     }
   };
 
-  // 선택지 클릭 처리
-  const handleSelect = (questionId, choiceId) => {
-    const newAnswers = { ...answers, [questionId]: choiceId };
+  // 선택지 클릭 처리 — score까지 함께 저장 (find 없이 오프라인 계산 가능)
+  const handleSelect = (questionId, choiceId, score) => {
+    const newAnswers = { ...answers, [questionId]: { choiceId, score } };
     setAnswers(newAnswers);
 
     // 자동으로 다음 질문으로 이동 (0.3초 딜레이)
@@ -118,7 +118,7 @@ function RestTypeTest() {
 
     try {
       // Step 1: 설문 응답 제출
-      const responseList = Object.entries(answers).map(([questionId, choiceId]) => ({
+      const responseList = Object.entries(answers).map(([questionId, { choiceId }]) => ({
         questionId: Number(questionId),
         choiceId: Number(choiceId),
       }));
@@ -157,7 +157,7 @@ function RestTypeTest() {
     }
   };
 
-  // 비로그인 간이 결과 — 선택지의 score(1~7)가 휴식유형 ID를 의미
+  // 비로그인 간이 결과 — answers에 저장된 score를 직접 사용 (find 불필요)
   // 빈도 기반: 가장 많이 선택된 유형이 100점, 나머지는 비례 환산
   const showOfflineResult = () => {
     setStep('loading');
@@ -165,18 +165,14 @@ function RestTypeTest() {
     const SCORE_TO_TYPE = { 1: 'physical', 2: 'mental', 3: 'sensory', 4: 'emotional', 5: 'social', 6: 'nature', 7: 'creative' };
     const types = ['physical', 'mental', 'sensory', 'emotional', 'social', 'nature', 'creative'];
 
-    // 각 유형이 선택된 횟수 집계
+    // 각 유형이 선택된 횟수 집계 — answers에서 score를 직접 읽음
     const frequency = {};
     types.forEach((t) => { frequency[t] = 0; });
 
-    for (const q of questions) {
-      const choiceId = answers[q.question.id];
-      if (!choiceId) continue;
-      const selected = q.choices.find((c) => c.id === choiceId);
-      if (selected) {
-        const mappedType = SCORE_TO_TYPE[selected.score];
-        if (mappedType) frequency[mappedType]++;
-      }
+    for (const answer of Object.values(answers)) {
+      const { score } = answer;
+      const mappedType = SCORE_TO_TYPE[score];
+      if (mappedType) frequency[mappedType]++;
     }
 
     // 최다 선택 유형 = 100점 기준, 나머지 비례 환산
@@ -292,11 +288,11 @@ function RestTypeTest() {
 
             <div className="space-y-3">
               {current.choices.map((choice) => {
-                const isSelected = answers[current.question.id] === choice.id;
+                const isSelected = answers[current.question.id]?.choiceId === choice.id;
                 return (
                   <button
                     key={choice.id}
-                    onClick={() => handleSelect(current.question.id, choice.id)}
+                    onClick={() => handleSelect(current.question.id, choice.id, choice.score)}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3 ${
                       isSelected
                         ? 'border-primary bg-soft-mint text-primary'
@@ -345,7 +341,7 @@ function RestTypeTest() {
             {currentIndex < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentIndex(currentIndex + 1)}
-                disabled={!answers[current.question.id]}
+                disabled={!answers[current.question.id]?.choiceId}
                 className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-40"
               >
                 다음
