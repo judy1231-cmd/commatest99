@@ -25,7 +25,7 @@ try {
   // Expo Go 또는 Android — 시뮬레이션 모드로 동작
 }
 
-const BACKEND_URL = 'http://192.168.0.0:8080'; // ⚠️ 실제 PC IP로 변경 필요
+const BACKEND_URL = 'http://192.168.0.15:8080';
 
 const HEALTHKIT_OPTIONS = {
   permissions: {
