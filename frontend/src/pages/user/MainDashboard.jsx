@@ -140,10 +140,10 @@ function MainDashboard() {
               </div>
               <div className="p-8 pt-5 flex flex-col justify-between h-[160px]">
                 <p className="text-slate-500 text-sm leading-relaxed">
-                  간단한 질문 5개에 답하면 7가지 휴식 유형 중 지금 내게 필요한 것을 바로 알려드려요.
+                  간단한 질문 7개에 답하면 7가지 휴식 유형 중 지금 내게 필요한 것을 바로 알려드려요.
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">5문항 / 약 1분 소요</span>
+                  <span className="text-xs text-slate-400">7문항 / 약 2분 소요</span>
                   <span className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl flex items-center gap-1.5 text-sm group-hover:bg-primary/90 transition-colors">
                     <span className="material-icons text-base">psychology</span>
                     시작
