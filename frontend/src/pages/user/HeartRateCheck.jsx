@@ -183,9 +183,9 @@ function HeartRateCheck() {
             <h3 className="font-bold text-slate-700 mb-3 text-sm">측정 방식 선택</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { value: 'apple_watch', label: 'Apple Watch', icon: 'watch' },
-                { value: 'galaxy_watch', label: 'Galaxy Watch', icon: 'watch' },
-                { value: 'manual', label: '시뮬레이션', icon: 'computer' },
+                { value: 'apple_watch', label: 'Apple Watch', icon: 'watch', sub: 'iPhone 단축어' },
+                { value: 'galaxy_watch', label: 'Galaxy Watch', icon: 'watch', sub: '시뮬레이션' },
+                { value: 'manual', label: '시뮬레이션', icon: 'computer', sub: '테스트용' },
               ].map((d) => (
                 <button
                   key={d.value}
@@ -197,7 +197,8 @@ function HeartRateCheck() {
                   }`}
                 >
                   <span className="material-icons text-xl">{d.icon}</span>
-                  {d.label}
+                  <span>{d.label}</span>
+                  <span className="text-[10px] opacity-60">{d.sub}</span>
                 </button>
               ))}
             </div>
@@ -221,32 +222,97 @@ function HeartRateCheck() {
           </div>
         </div>
 
-        {/* Apple Watch 연동 안내 (측정 중) */}
+        {/* Apple Watch — iPhone 단축어 가이드 */}
         {phase === 'measuring' && deviceType === 'apple_watch' && (
-          <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-icons text-primary text-lg">smartphone</span>
-              <span className="text-sm font-bold text-slate-700">모바일 앱 연동</span>
-              {pollCount > 0 && (
-                <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
-                  ✓ 수신 중 ({pollCount}회)
-                </span>
-              )}
+          <div className="w-full space-y-3">
+
+            {/* 수신 상태 */}
+            <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
+              pollCount > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <span className={`material-icons ${pollCount > 0 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                {pollCount > 0 ? 'favorite' : 'watch'}
+              </span>
+              <div>
+                <p className={`text-sm font-bold ${pollCount > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  {pollCount > 0 ? `✓ Apple Watch 심박수 수신 중 (${pollCount}회)` : '단축어 실행을 기다리는 중...'}
+                </p>
+                <p className={`text-xs mt-0.5 ${pollCount > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {pollCount > 0 ? '아래 단축어를 반복 실행하면 계속 업데이트돼요' : 'iPhone에서 아래 단축어를 실행해주세요'}
+                </p>
+              </div>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3 mb-3 flex items-center justify-between">
-              <span className="text-xs text-slate-500">세션 ID</span>
-              <span className="font-mono font-bold text-lg text-slate-800">{sessionId}</span>
+
+            {/* 세션 ID + 토큰 복사 */}
+            <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <p className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">단축어에 필요한 정보</p>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-xs text-slate-400">세션 ID</p>
+                    <p className="font-mono font-bold text-slate-800 text-lg">{sessionId}</p>
+                  </div>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(String(sessionId)); setToast({ message: '세션 ID 복사됨', type: 'success' }); }}
+                    className="text-xs bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all"
+                  >
+                    복사
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
+                  <div>
+                    <p className="text-xs text-slate-400">액세스 토큰</p>
+                    <p className="font-mono text-xs text-slate-600 truncate max-w-[200px]">
+                      {localStorage.getItem('accessToken')?.substring(0, 24)}...
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(localStorage.getItem('accessToken') || ''); setToast({ message: '토큰 복사됨', type: 'success' }); }}
+                    className="text-xs bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all"
+                  >
+                    복사
+                  </button>
+                </div>
+              </div>
             </div>
-            <ol className="text-xs text-slate-500 space-y-1 list-decimal list-inside">
-              <li>쉼표 모바일 앱 실행</li>
-              <li>세션 ID <strong className="text-slate-700">{sessionId}</strong> 입력</li>
-              <li>Apple Watch 착용 상태로 측정 시작</li>
-            </ol>
-            {pollCount === 0 && (
-              <p className="text-xs text-amber-600 mt-3 text-center animate-pulse">
-                모바일 앱의 데이터를 기다리는 중...
-              </p>
-            )}
+
+            {/* 단축어 설정 가이드 */}
+            <div className="w-full bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-lg">⚡</span>
+                <p className="text-sm font-bold text-slate-700">iPhone 단축어 설정 (최초 1회)</p>
+              </div>
+
+              <ol className="space-y-3">
+                {[
+                  { step: '1', title: '단축어 앱 열기', desc: 'iPhone에서 기본 앱 "단축어" 실행 → 우측 상단 + 버튼' },
+                  { step: '2', title: '"건강 샘플 가져오기" 추가', desc: '검색창에 "건강" 입력 → 유형: 심박수, 정렬: 최신순, 개수: 1' },
+                  { step: '3', title: '"URL" 동작 추가', desc: `http://192.168.0.15:8080/api/diagnosis/sessions/${sessionId}/measurements` },
+                  { step: '4', title: '"URL 내용 가져오기" 추가', desc: '방법: POST / 헤더: Authorization → Bearer [토큰 붙여넣기] / 본문: JSON → bpm: 건강샘플의 수량' },
+                  { step: '5', title: '단축어 저장 후 실행', desc: 'Apple Watch에서 단축어 앱으로도 바로 실행 가능해요' },
+                ].map(({ step, title, desc }) => (
+                  <li key={step} className="flex gap-3">
+                    <span className="w-6 h-6 bg-primary text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      {step}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700">{title}</p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-4 bg-blue-50 rounded-xl p-3">
+                <p className="text-xs text-blue-700 font-semibold">💡 팁</p>
+                <p className="text-xs text-blue-600 mt-1">
+                  단축어를 저장하면 Apple Watch의 단축어 앱에서도 손목으로 바로 실행할 수 있어요.
+                  10~30초 간격으로 반복 실행하면 실시간처럼 BPM이 업데이트돼요.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
