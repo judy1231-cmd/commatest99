@@ -108,17 +108,18 @@ function RestTypeTest() {
 
   // 설문 제출 + 진단 계산
   const handleSubmit = async () => {
+    // async 클로저 stale 문제 방지 — 제출 시점의 answers를 캡처
+    const answersAtSubmit = { ...answers };
+
     if (!isLoggedIn) {
-      // 비로그인 사용자는 간이 결과 표시
-      showOfflineResult();
+      showOfflineResult(answersAtSubmit);
       return;
     }
 
     setStep('loading');
 
     try {
-      // Step 1: 설문 응답 제출
-      const responseList = Object.entries(answers).map(([questionId, { choiceId }]) => ({
+      const responseList = Object.entries(answersAtSubmit).map(([questionId, { choiceId }]) => ({
         questionId: Number(questionId),
         choiceId: Number(choiceId),
       }));
@@ -128,7 +129,6 @@ function RestTypeTest() {
         body: JSON.stringify(responseList),
       });
 
-      // Step 2: 진단 계산 (기타 텍스트 포함)
       const otherTextList = Object.values(otherTexts).filter((t) => t.trim() !== '');
       const diagRes = await fetchWithAuth('/api/diagnosis/calculate', {
         method: 'POST',
@@ -137,8 +137,6 @@ function RestTypeTest() {
 
       if (diagRes.success && diagRes.data) {
         setResult(diagRes.data);
-
-        // Step 3: 점수 JSON 파싱하여 정렬
         const scores = JSON.parse(diagRes.data.scoresJson || '{}');
         const sorted = Object.entries(scores)
           .map(([type, score]) => ({ type, score }))
@@ -146,34 +144,40 @@ function RestTypeTest() {
         setTypeScores(sorted);
         setStep('result');
       } else {
-        // API 실패 시 오프라인 간이 결과로 폴백 (백엔드 미완성 환경 대응)
         setToast({ message: '서버 오류 — 로컬 결과를 보여드려요.', type: 'error' });
-        showOfflineResult();
+        showOfflineResult(answersAtSubmit);
       }
     } catch {
-      // 네트워크 오류 시에도 오프라인 결과로 폴백
       setToast({ message: '서버 연결 실패 — 로컬 결과를 보여드려요.', type: 'error' });
-      showOfflineResult();
+      showOfflineResult(answersAtSubmit);
     }
   };
 
   // 비로그인 간이 결과 — answers에 저장된 score를 직접 사용 (find 불필요)
   // 빈도 기반: 가장 많이 선택된 유형이 100점, 나머지는 비례 환산
-  const showOfflineResult = () => {
+  const showOfflineResult = (answersSnapshot) => {
     setStep('loading');
+
+    // answersSnapshot: 호출 시점의 answers를 인자로 받아 클로저 stale 문제 방지
+    const currentAnswers = answersSnapshot || answers;
 
     const SCORE_TO_TYPE = { 1: 'physical', 2: 'mental', 3: 'sensory', 4: 'emotional', 5: 'social', 6: 'nature', 7: 'creative' };
     const types = ['physical', 'mental', 'sensory', 'emotional', 'social', 'nature', 'creative'];
+
+    console.log('[진단] answers 스냅샷:', JSON.stringify(currentAnswers));
 
     // 각 유형이 선택된 횟수 집계 — answers에서 score를 직접 읽음
     const frequency = {};
     types.forEach((t) => { frequency[t] = 0; });
 
-    for (const answer of Object.values(answers)) {
+    for (const answer of Object.values(currentAnswers)) {
       const { score } = answer;
+      console.log('[진단] score:', score, '→ type:', SCORE_TO_TYPE[score]);
       const mappedType = SCORE_TO_TYPE[score];
       if (mappedType) frequency[mappedType]++;
     }
+
+    console.log('[진단] frequency:', JSON.stringify(frequency));
 
     // 최다 선택 유형 = 100점 기준, 나머지 비례 환산
     const maxFreq = Math.max(...Object.values(frequency), 1);
