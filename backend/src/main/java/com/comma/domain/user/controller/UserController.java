@@ -61,6 +61,27 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok("설정이 저장되었습니다."));
     }
 
+    // PATCH /api/auth/me/nickname  [JWT 필요] — MyPage.jsx 호환용
+    @PatchMapping("/nickname")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateNickname(
+            HttpServletRequest request,
+            @RequestBody Map<String, String> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        String nickname = body.get("nickname");
+        if (nickname == null || nickname.isBlank() || nickname.length() < 2 || nickname.length() > 20) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("닉네임은 2~20자로 입력해주세요."));
+        }
+        try {
+            userService.updateProfile(쉼표번호, nickname.trim());
+            Map<String, Object> data = new java.util.HashMap<>();
+            data.put("쉼표번호", 쉼표번호);
+            data.put("nickname", nickname.trim());
+            return ResponseEntity.ok(ApiResponse.ok(data, "닉네임이 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // DELETE /api/user/account  [JWT 필요]
     @DeleteMapping("/account")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(HttpServletRequest request) {

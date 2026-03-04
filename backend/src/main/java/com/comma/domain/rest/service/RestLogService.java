@@ -1,9 +1,11 @@
 package com.comma.domain.rest.service;
 
+import com.comma.domain.badge.service.BadgeService;
 import com.comma.domain.rest.mapper.RestLogMapper;
 import com.comma.domain.rest.model.RestActivity;
 import com.comma.domain.rest.model.RestLog;
 import com.comma.domain.rest.model.RestType;
+import com.comma.domain.stats.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,12 +19,20 @@ import java.util.Map;
 public class RestLogService {
 
     private final RestLogMapper restLogMapper;
+    private final BadgeService badgeService;
+    private final StatsService statsService;
 
     @Transactional
     public RestLog createRestLog(String 쉼표번호, RestLog restLog) {
         restLog.set쉼표번호(쉼표번호);
         restLog.setDeleted(false);
         restLogMapper.insertRestLog(restLog);
+
+        // 배지 자동 지급 체크
+        badgeService.checkAndAwardBadges(쉼표번호);
+        // 월간 통계 자동 집계
+        statsService.aggregateMonthlyStats(쉼표번호);
+
         return restLog;
     }
 
@@ -58,12 +68,14 @@ public class RestLogService {
         existing.setEmotionAfter(updated.getEmotionAfter());
         existing.setMoodTagsJson(updated.getMoodTagsJson());
         restLogMapper.updateRestLog(existing);
+        statsService.aggregateMonthlyStats(쉼표번호);
     }
 
     @Transactional
     public void deleteRestLog(Long id, String 쉼표번호) {
         getRestLogDetail(id, 쉼표번호); // 권한 확인
         restLogMapper.softDeleteRestLog(id);
+        statsService.aggregateMonthlyStats(쉼표번호);
     }
 
     public List<RestType> getRestTypes() {

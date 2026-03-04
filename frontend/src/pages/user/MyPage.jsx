@@ -81,7 +81,7 @@ function MyPage() {
   };
 
   const handleNicknameEdit = () => {
-    setNicknameInput(user?.nickname || '');
+    setNicknameInput(profile?.user?.nickname || '');
     setNicknameError(null);
     setNicknameEditing(true);
   };
@@ -93,19 +93,17 @@ function MyPage() {
 
     try {
       setNicknameSaving(true);
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/auth/me/nickname', {
+      const data = await fetchWithAuth('/api/user/nickname', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ nickname: nicknameInput })
+        body: JSON.stringify({ nickname: nicknameInput.trim() }),
       });
-      const data = await res.json();
       if (!data.success) { setNicknameError(data.message); return; }
 
       // 로컬 상태 & localStorage 갱신
-      setProfile(prev => ({ ...prev, user: data.data }));
+      const trimmed = nicknameInput.trim();
+      setProfile(prev => ({ ...prev, user: { ...prev.user, nickname: trimmed } }));
       const stored = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...stored, nickname: data.data.nickname }));
+      localStorage.setItem('user', JSON.stringify({ ...stored, nickname: trimmed }));
       setNicknameEditing(false);
     } catch {
       setNicknameError('저장에 실패했습니다. 다시 시도해주세요.');
@@ -281,7 +279,7 @@ function MyPage() {
               <div className="space-y-2">
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="bg-[#F9F7F2] rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-slate-800">{monthlyStats.logCount || 0}</p>
+                    <p className="text-2xl font-bold text-slate-800">{monthlyStats.recordCount || 0}</p>
                     <p className="text-xs text-slate-400 mt-1">기록 횟수</p>
                   </div>
                   <div className="bg-[#F9F7F2] rounded-xl p-4 text-center">

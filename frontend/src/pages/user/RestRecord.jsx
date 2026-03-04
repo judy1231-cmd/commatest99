@@ -70,7 +70,7 @@ function RestRecord() {
       if (data.success && data.data) {
         const allLogs = data.data.logs || [];
         setLogs(selectedTypeId ? allLogs.filter((l) => l.restTypeId === selectedTypeId) : allLogs);
-        setTotalCount(data.data.totalCount || 0);
+        setTotalCount(data.data.total || 0);
       }
     } catch {
       setToast({ message: '기록을 불러오지 못했어요.', type: 'error' });

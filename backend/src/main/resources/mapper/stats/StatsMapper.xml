@@ -43,18 +43,19 @@
           AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
     </select>
 
-    <!-- 유형별 기록 비율 (백분율) -->
+    <!-- 유형별 기록 비율 (백분율) — rest_types.type_name을 키로 사용 -->
     <select id="getTypeRatio" resultType="map">
-        SELECT rest_type_id AS restTypeId,
+        SELECT rt.type_name AS restTypeId,
                ROUND(COUNT(*) * 100.0 / (
                    SELECT COUNT(*) FROM rest_logs
                    WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
                      AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
                ), 1) AS ratio
-        FROM rest_logs
-        WHERE `쉼표번호` = #{쉼표번호} AND deleted = 0
-          AND DATE_FORMAT(start_time, '%Y-%m') = #{yearMonth}
-        GROUP BY rest_type_id
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` = #{쉼표번호} AND rl.deleted = 0
+          AND DATE_FORMAT(rl.start_time, '%Y-%m') = #{yearMonth}
+        GROUP BY rt.type_name
     </select>
 
     <select id="findExisting" resultType="com.comma.domain.stats.model.MonthlyStats">
