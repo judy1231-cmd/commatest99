@@ -250,6 +250,14 @@ public class AuthService {
         }
     }
 
+    // ==================== 아이디 중복확인 ====================
+
+    public void checkUsernameAvailable(String username) {
+        if (authMapper.countByUsername(username.trim()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+    }
+
     // ==================== 닉네임 변경 ====================
 
     public User updateNickname(String 쉼표번호, String newNickname) {

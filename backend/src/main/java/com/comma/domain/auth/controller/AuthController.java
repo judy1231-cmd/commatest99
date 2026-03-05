@@ -138,6 +138,22 @@ public class AuthController {
         }
     }
 
+    // ==================== 아이디 중복확인 ====================
+    // GET /api/auth/check/username?username=...  [공개]
+    @GetMapping("/check/username")
+    public ResponseEntity<ApiResponse<Void>> checkUsername(@RequestParam String username) {
+        if (username == null || username.isBlank())
+            return ResponseEntity.badRequest().body(ApiResponse.fail("아이디를 입력해주세요."));
+        if (username.length() < 2 || username.length() > 20)
+            return ResponseEntity.badRequest().body(ApiResponse.fail("아이디는 2~20자로 입력해주세요."));
+        try {
+            authService.checkUsernameAvailable(username);
+            return ResponseEntity.ok(ApiResponse.ok("사용 가능한 아이디입니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // ==================== 비밀번호 재설정 ====================
     // POST /api/auth/password/reset-request  [공개]
     @PostMapping("/password/reset-request")

@@ -17,9 +17,35 @@ function Signup() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [usernameCheck, setUsernameCheck] = useState({ status: null, message: '' }); // null | 'ok' | 'error'
+  const [usernameChecking, setUsernameChecking] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'username') {
+      setUsernameCheck({ status: null, message: '' });
+    }
+  };
+
+  const handleCheckUsername = async () => {
+    if (!form.username.trim()) {
+      setUsernameCheck({ status: 'error', message: '아이디를 입력해주세요.' });
+      return;
+    }
+    try {
+      setUsernameChecking(true);
+      const res = await fetch(`/api/auth/check/username?username=${encodeURIComponent(form.username.trim())}`);
+      const data = await res.json();
+      if (data.success) {
+        setUsernameCheck({ status: 'ok', message: '사용 가능한 아이디입니다.' });
+      } else {
+        setUsernameCheck({ status: 'error', message: data.message });
+      }
+    } catch {
+      setUsernameCheck({ status: 'error', message: '확인 중 오류가 발생했습니다.' });
+    } finally {
+      setUsernameChecking(false);
+    }
   };
 
   const handleAgreementChange = (key) => {
@@ -58,10 +84,11 @@ function Signup() {
 
     // 유효성 검사
     if (!form.email.trim()) { setError('이메일을 입력해주세요.'); return; }
-    if (form.password.length < 8) { setError('비밀번호는 8자 이상이어야 합니다.'); return; }
-    if (form.password !== form.passwordConfirm) { setError('비밀번호가 일치하지 않습니다.'); return; }
     if (!form.username.trim()) { setError('아이디를 입력해주세요.'); return; }
     if (form.username.length < 2 || form.username.length > 20) { setError('아이디는 2~20자로 입력해주세요.'); return; }
+    if (usernameCheck.status !== 'ok') { setError('아이디 중복확인을 해주세요.'); return; }
+    if (form.password.length < 8) { setError('비밀번호는 8자 이상이어야 합니다.'); return; }
+    if (form.password !== form.passwordConfirm) { setError('비밀번호가 일치하지 않습니다.'); return; }
     if (!agreements.age || !agreements.terms || !agreements.privacy) {
       setError('필수 약관에 모두 동의해주세요.');
       return;
@@ -140,6 +167,40 @@ function Signup() {
               />
             </div>
             <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">아이디</label>
+              <div className="flex gap-2">
+                <input
+                  className={`flex-1 h-14 px-4 rounded-xl border bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none transition-all ${
+                    usernameCheck.status === 'ok'
+                      ? 'border-primary focus:border-primary'
+                      : usernameCheck.status === 'error'
+                      ? 'border-red-400 focus:border-red-400'
+                      : 'border-gray-200 focus:border-primary'
+                  }`}
+                  placeholder="로그인에 사용할 아이디 (2~20자)"
+                  type="text"
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={handleCheckUsername}
+                  disabled={usernameChecking || loading}
+                  className="shrink-0 px-4 h-14 rounded-xl border border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {usernameChecking ? '확인 중...' : '중복확인'}
+                </button>
+              </div>
+              {usernameCheck.status === 'ok' && (
+                <p className="mt-1 text-xs text-primary">{usernameCheck.message}</p>
+              )}
+              {usernameCheck.status === 'error' && (
+                <p className="mt-1 text-xs text-red-500">{usernameCheck.message}</p>
+              )}
+            </div>
+            <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">비밀번호</label>
               <div className="relative">
                 <input
@@ -177,18 +238,6 @@ function Signup() {
               {form.passwordConfirm && form.password !== form.passwordConfirm && (
                 <p className="mt-1 text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
               )}
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">아이디</label>
-              <input
-                className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                placeholder="로그인에 사용할 아이디 (2~20자)"
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                disabled={loading}
-              />
             </div>
 
             <div className="pt-4 border-t border-gray-100 space-y-4">
