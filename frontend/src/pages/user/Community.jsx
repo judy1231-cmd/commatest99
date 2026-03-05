@@ -24,8 +24,24 @@ const hotPlaces = [
   { name: '오션뷰 카페 루노', info: '리뷰 410+ • 감각적 휴식', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAbk7oYJie4aphcaz39R1zMdV5KAhp-kNDyd0-eR7SmGU5pnaRFi5HGjTqrhn9iMNFB_Ycsb7DcqTDkjvwifJ5oay-mg-8thUJZE81_XW18IEAc0qhpTPHZJklqA6neKs97XTRRsBbVCQ1um13p304YdX4UWsDvv9FyeATmujEeGbq6eZND2786IzfqJVDABUtIIDnwog_q1A5Utlvi2cmcOoR177VoUmp3Yj_0rwhKvxjFrvqDEcbiUtwzMWVkFSRgpQ2z4Tlgrp8' },
 ];
 
+const CATEGORIES = [
+  { icon: 'grid_view',      label: '전체보기',  key: 'all' },
+  { icon: 'fitness_center', label: '신체적 이완', key: '신체적 휴식' },
+  { icon: 'spa',            label: '정신적 고요', key: '정신적 휴식' },
+  { icon: 'visibility_off', label: '감각의 정화', key: '감각적 휴식' },
+  { icon: 'favorite',       label: '정서적 지지', key: '정서적 휴식' },
+  { icon: 'groups',         label: '사회적 휴식', key: '사회적 휴식' },
+  { icon: 'brush',          label: '창조적 몰입', key: '창조적 휴식' },
+  { icon: 'forest',         label: '자연의 연결', key: '자연적 휴식' },
+];
+
 function Community() {
   const [sort, setSort] = useState('latest');
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const filteredPosts = activeCategory === 'all'
+    ? posts
+    : posts.filter(p => p.tag === activeCategory);
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
@@ -35,17 +51,12 @@ function Community() {
         <aside className="col-span-12 md:col-span-3 lg:col-span-2 space-y-8">
           <div className="flex flex-col gap-1.5">
             <p className="px-3 mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-400">카테고리</p>
-            {[
-              { icon: 'grid_view',      label: '전체보기',    active: true },
-              { icon: 'fitness_center', label: '신체적 이완' },
-              { icon: 'spa',            label: '정신적 고요' },
-              { icon: 'visibility_off', label: '감각의 정화' },
-              { icon: 'favorite',       label: '정서적 지지' },
-              { icon: 'groups',         label: '사회적 휴식' },
-              { icon: 'brush',          label: '창조적 몰입' },
-              { icon: 'forest',         label: '자연의 연결' },
-            ].map((item, i) => (
-              <button key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-colors w-full ${item.active ? 'bg-[#4ADE80]/10 text-[#4ADE80]' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+            {CATEGORIES.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setActiveCategory(item.key)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition-colors w-full ${activeCategory === item.key ? 'bg-[#4ADE80]/10 text-[#4ADE80]' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-800'}`}
+              >
                 <span className="material-symbols-outlined text-xl">{item.icon}</span>
                 <span className="text-sm">{item.label}</span>
               </button>
@@ -67,7 +78,13 @@ function Community() {
             </div>
           </div>
           <div className="space-y-8">
-            {posts.map((post, i) => (
+            {filteredPosts.length === 0 && (
+              <div className="text-center py-20 text-slate-400">
+                <span className="material-symbols-outlined text-5xl mb-3 block">inbox</span>
+                <p className="text-sm">해당 유형의 게시글이 없어요.</p>
+              </div>
+            )}
+            {filteredPosts.map((post, i) => (
               <article key={i} className="bg-white border border-[#F0F2F0] rounded-[24px] overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.06)] transition-all group">
                 <div className="p-6 flex items-center gap-3">
                   <div className="w-11 h-11 rounded-full bg-slate-100 overflow-hidden ring-2 ring-slate-50 flex items-center justify-center">
