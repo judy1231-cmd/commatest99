@@ -162,15 +162,15 @@ colors: {
 | 경로 | 파일 | 상태 | MVP |
 |------|------|------|-----|
 | `/` | MainDashboard.jsx | UI완성, API연결필요 | ✅ |
-| `/login` | Login.jsx | UI완성, API연결필요 | ✅ |
-| `/signup` | Signup.jsx | UI완성, API연결필요 | ✅ |
+| `/login` | Login.jsx | ✅ API연결완료 | ✅ |
+| `/signup` | Signup.jsx | ✅ API연결완료 | ✅ |
 | `/signup-complete` | SignupComplete.jsx | 미완성 | ✅ |
 | `/password-reset` | PasswordReset.jsx | 미완성 | ✅ |
 | `/my` | MyPage.jsx | UI있음, API연결필요 | ✅ |
-| `/rest-test` | RestTypeTest.jsx | 하드코딩, API연결필요 | ✅ |
-| `/heartrate` | HeartRateCheck.jsx | 미완성 | ✅ |
+| `/rest-test` | RestTypeTest.jsx | ✅ API연결완료 (12문항, 진단계산) | ✅ |
+| `/heartrate` | HeartRateCheck.jsx | ✅ API연결완료 (동적URL, 복사버튼, QR) | ✅ |
 | `/map` | MapPage.jsx | 하드코딩, 카카오맵미연동 | ✅ |
-| `/rest-record` | RestRecord.jsx | 미완성 | ✅ |
+| `/rest-record` | RestRecord.jsx | ✅ API연결완료 (등록/목록/월간통계) | ✅ |
 | `/community` | Community.jsx | UI있음 | 2차 |
 | `/community/:id` | 없음 (새로 만들기) | 미완성 | 2차 |
 | `/challenge` | Challenge.jsx | 미완성 | 2차 |
@@ -197,11 +197,17 @@ colors: {
 > 📁 ERD 시각자료: `쉼표_ERD.html`
 > 📁 DDL SQL: `쉼표_DDL.sql` (MySQL에서 바로 실행 가능)
 
-### ⚠️ Seed 데이터 먼저 넣어야 함 (없으면 화면 텅 빔!)
+### ⚠️ Seed 데이터 현황 (Google Cloud SQL에 이미 입력 완료 ✅)
 ```sql
--- rest_types 7개, badges 5개 → 쉼표_DDL.sql 하단에 포함되어 있음
--- survey_questions 15~20개 → 직접 입력 필요
--- challenges 3~5개 → 직접 입력 필요
+-- rest_types 7개 ✅
+-- badges 5개 ✅
+-- survey_questions 12개 ✅ (Q1~Q7 유형별 1문항 + Q13~Q17 유형별 2번째 문항)
+--   ※ Q8~Q12는 설계 불량으로 DB에서 완전 삭제됨
+--   ※ 점수 계산: 같은 유형 복수 질문 → 평균값 사용 (DiagnosisService)
+-- survey_choices 48개 ✅ (각 질문당 4개: 20/40/70/100점)
+-- challenges 3개 ✅
+-- rest_activities 21개 ✅
+-- 테스트 계정: test@comma.com, test2@comma.com, admin@comma.com
 ```
 
 ### 핵심 데이터 흐름
@@ -440,23 +446,26 @@ chore: MyBatis 의존성 추가
 - MyBatis 설정, CorsConfig, .env 관리
 - **Postman 컬렉션 세팅**
 
-### Phase 2 — 인증
-- 쉼표번호 자동생성, 회원가입/로그인 API
-- JWT 인증 (HandlerInterceptor 기반, Spring Security 미사용), 카카오/구글 OAuth2
-- 이메일 인증, 비밀번호 재설정
-- 관리자 로그인, Signup.jsx / Login.jsx API 연결
+### Phase 2 — 인증 ✅ 완료
+- 쉼표번호 자동생성, 회원가입/로그인 API ✅
+- JWT 인증 (HandlerInterceptor 기반, Spring Security 미사용) ✅
+- Signup.jsx / Login.jsx API 연결 ✅
+- 카카오/구글 OAuth2, 이메일 인증, 비밀번호 재설정 → 미완
 
-### Phase 3 — 진단
-- **survey_questions Seed 데이터 입력 (먼저!)**
-- 설문 질문/응답 API, 점수 계산 로직
-- 심박수 측정 세션 API, diagnosis_results 저장
-- RestTypeTest.jsx API 연결
+### Phase 3 — 진단 ✅ 완료
+- survey_questions Seed 12문항 입력 ✅
+- 설문 질문/응답 API, 점수 계산 로직 (유형별 평균) ✅
+- 심박수 측정 세션 API, diagnosis_results 저장 ✅
+- RestTypeTest.jsx API 연결 ✅
+- HeartRateCheck.jsx API 연결 + 동적 URL ✅
+- Apple Watch (단축어), Galaxy Watch (Google Fit API) → 다음 세션
 
-### Phase 4 — 장소 / 기록
-- **공공데이터 크롤링 실행 (장소 Seed)**
-- 장소 CRUD, 카카오맵 연동
-- rest_logs CRUD, RestRecord.jsx 완성
-- recommendations 저장 로직, 이미지 업로드 (S3)
+### Phase 4 — 장소 / 기록 (진행 중)
+- rest_logs CRUD, RestRecord.jsx 완성 ✅
+- StatsMapper.xml year_month 버그 수정 ✅
+- **공공데이터 크롤링 실행 (장소 Seed)** → 미완
+- 장소 CRUD, 카카오맵 연동 → 미완
+- recommendations 저장 로직 → 미완
 
 ### Phase 5 — 통계 / 마이페이지 / 알림
 - monthly_stats 집계 로직
