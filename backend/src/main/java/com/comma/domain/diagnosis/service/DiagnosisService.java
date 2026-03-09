@@ -110,10 +110,10 @@ public class DiagnosisService {
             throw new IllegalArgumentException("설문 응답 데이터가 없습니다. 설문을 먼저 완료해주세요.");
         }
 
-        // Step 1: 질문 category → 피로도 점수(20/40/70/100) 직접 매핑
-        Map<String, Integer> typeScores = new HashMap<>();
+        // Step 1: 질문 category → 피로도 점수 합산 (유형당 여러 질문 평균)
+        Map<String, List<Integer>> typeScoresList = new HashMap<>();
         for (String type : REST_TYPES) {
-            typeScores.put(type, 0);
+            typeScoresList.put(type, new ArrayList<>());
         }
 
         int validResponses = 0;
@@ -128,14 +128,26 @@ public class DiagnosisService {
                     .findFirst()
                     .orElse(null);
 
-            if (selected != null && typeScores.containsKey(question.getCategory())) {
-                typeScores.put(question.getCategory(), selected.getScore());
+            if (selected != null && typeScoresList.containsKey(question.getCategory())) {
+                typeScoresList.get(question.getCategory()).add(selected.getScore());
                 validResponses++;
             }
         }
 
         if (validResponses == 0) {
             throw new IllegalArgumentException("유효한 설문 응답이 없습니다.");
+        }
+
+        // 유형별 평균 점수 계산
+        Map<String, Integer> typeScores = new HashMap<>();
+        for (String type : REST_TYPES) {
+            List<Integer> scores = typeScoresList.get(type);
+            if (scores.isEmpty()) {
+                typeScores.put(type, 0);
+            } else {
+                int avg = (int) scores.stream().mapToInt(Integer::intValue).average().orElse(0);
+                typeScores.put(type, avg);
+            }
         }
 
         // Step 3: 심박 데이터로 스트레스 지수 보정
