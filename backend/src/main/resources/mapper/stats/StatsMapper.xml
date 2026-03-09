@@ -5,18 +5,18 @@
 <mapper namespace="com.comma.domain.stats.mapper.StatsMapper">
 
     <select id="findByCommaNoAndMonth" resultType="com.comma.domain.stats.model.MonthlyStats">
-        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+        SELECT id, `쉼표번호`, `year_month`, total_rest_minutes, type_ratio_json,
                avg_emotion_score, record_count
         FROM monthly_stats
-        WHERE `쉼표번호` = #{쉼표번호} AND year_month = #{yearMonth}
+        WHERE `쉼표번호` = #{쉼표번호} AND `year_month` = #{yearMonth}
     </select>
 
     <select id="findByCommaNoAndRange" resultType="com.comma.domain.stats.model.MonthlyStats">
-        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+        SELECT id, `쉼표번호`, `year_month`, total_rest_minutes, type_ratio_json,
                avg_emotion_score, record_count
         FROM monthly_stats
-        WHERE `쉼표번호` = #{쉼표번호} AND year_month BETWEEN #{startMonth} AND #{endMonth}
-        ORDER BY year_month
+        WHERE `쉼표번호` = #{쉼표번호} AND `year_month` BETWEEN #{startMonth} AND #{endMonth}
+        ORDER BY `year_month`
     </select>
 
     <!-- rest_logs에서 해당 월의 총 휴식 시간(분) 합산 -->
@@ -59,15 +59,15 @@
     </select>
 
     <select id="findExisting" resultType="com.comma.domain.stats.model.MonthlyStats">
-        SELECT id, `쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+        SELECT id, `쉼표번호`, `year_month`, total_rest_minutes, type_ratio_json,
                avg_emotion_score, record_count
         FROM monthly_stats
-        WHERE `쉼표번호` = #{쉼표번호} AND year_month = #{yearMonth}
+        WHERE `쉼표번호` = #{쉼표번호} AND `year_month` = #{yearMonth}
     </select>
 
     <insert id="insertMonthlyStats" parameterType="com.comma.domain.stats.model.MonthlyStats"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO monthly_stats (`쉼표번호`, year_month, total_rest_minutes, type_ratio_json,
+        INSERT INTO monthly_stats (`쉼표번호`, `year_month`, total_rest_minutes, type_ratio_json,
                                    avg_emotion_score, record_count)
         VALUES (#{쉼표번호}, #{yearMonth}, #{totalRestMinutes}, #{typeRatioJson},
                 #{avgEmotionScore}, #{recordCount})
