@@ -123,7 +123,7 @@ comma-main/
 | BE | Java 17, Spring Boot 3, MyBatis, JWT, Tomcat |
 | DB | MySQL |
 | 캐시 | Redis (리프레시토큰) |
-| 배포 | AWS (EC2 + RDS + S3) |
+| 배포 | Google Cloud (Cloud Run + Cloud SQL + Cloud Storage) ← 1순위 / AWS (EC2 + RDS + S3) ← 2순위 |
 | 웹서버 | Nginx |
 | 컨테이너 | Docker |
 | AI | Claude API |
@@ -371,7 +371,16 @@ git commit -m "feat: 작업내용"
 git push origin develop
 ```
 
-### AWS EC2 접속
+### Google Cloud 접속 (1순위)
+```bash
+# Cloud Run 배포
+gcloud run deploy comma-backend --source . --region asia-northeast3
+
+# Cloud SQL 접속 (Cloud SQL Auth Proxy)
+./cloud-sql-proxy [PROJECT_ID]:[REGION]:[INSTANCE_NAME]
+```
+
+### AWS EC2 접속 (2순위 — 미사용 시 생략)
 ```bash
 # MobaXterm (윈도우/맥북 둘 다)
 # Session → SSH → EC2 IP 입력 + .pem 키 등록
@@ -460,7 +469,7 @@ chore: MyBatis 의존성 추가
 - 관리자 API 전체, audit_logs
 - Postman 전체 테스트
 - HTTPS (Let's Encrypt), Nginx 설정
-- AWS EC2 + RDS + S3 배포
+- Google Cloud Run + Cloud SQL + Cloud Storage 배포 (1순위)
 - 모바일 반응형, UI 폴리시
 
 ### Phase 7 — 2차 MVP (시간 여유 있을 때)
