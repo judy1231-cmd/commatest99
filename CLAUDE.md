@@ -207,7 +207,10 @@ colors: {
 -- survey_choices 48개 ✅ (각 질문당 4개: 20/40/70/100점)
 -- challenges 3개 ✅
 -- rest_activities 21개 ✅
--- 테스트 계정: test@comma.com, test2@comma.com, admin@comma.com
+-- 테스트 계정 (비밀번호 전부 Test@1234 / 관리자는 Admin@1234)
+--   USER: test@comma.com, test2@comma.com, apitest@comma.com
+--         user4~user8@comma.com (쉼표0004~쉼표0008)
+--   ADMIN: admin@comma.com (쉼표9001), admin2@comma.com (쉼표0009), admin3@comma.com (쉼표0010)
 ```
 
 ### 핵심 데이터 흐름
