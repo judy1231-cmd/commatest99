@@ -4,13 +4,13 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
-  { icon: 'fitness_center', label: '신체적 이완', bg: 'bg-sky-50',     iconColor: 'text-sky-500',     border: 'border-sky-200',     path: '/rest/physical'  },
-  { icon: 'spa',            label: '정신적 고요', bg: 'bg-emerald-50', iconColor: 'text-emerald-500', border: 'border-emerald-200', path: '/rest/mental'    },
-  { icon: 'visibility_off', label: '감각의 정화', bg: 'bg-amber-50',   iconColor: 'text-amber-500',   border: 'border-amber-200',   path: '/rest/sensory'   },
-  { icon: 'favorite',       label: '정서적 지지', bg: 'bg-pink-50',    iconColor: 'text-pink-500',    border: 'border-pink-200',    path: '/rest/emotional' },
-  { icon: 'groups',         label: '사회적 휴식', bg: 'bg-amber-50',   iconColor: 'text-amber-600',   border: 'border-amber-200',   path: '/rest/social'    },
-  { icon: 'brush',          label: '창조적 몰입', bg: 'bg-orange-50',  iconColor: 'text-orange-500',  border: 'border-orange-200',  path: '/rest/creative'  },
-  { icon: 'forest',         label: '자연의 연결', bg: 'bg-green-50',   iconColor: 'text-green-600',   border: 'border-green-200',   path: '/rest/nature'    },
+  { icon: 'fitness_center', label: '신체적 이완', iconHex: '#4CAF82', bgHex: '#F0FAF5', path: '/rest/physical'  },
+  { icon: 'spa',            label: '정신적 고요', iconHex: '#5B8DEF', bgHex: '#F0F5FF', path: '/rest/mental'    },
+  { icon: 'visibility_off', label: '감각의 정화', iconHex: '#9B6DFF', bgHex: '#F5F0FF', path: '/rest/sensory'   },
+  { icon: 'favorite',       label: '정서적 지지', iconHex: '#FF7BAC', bgHex: '#FFF0F5', path: '/rest/emotional' },
+  { icon: 'groups',         label: '사회적 휴식', iconHex: '#FF9A3C', bgHex: '#FFF5EC', path: '/rest/social'    },
+  { icon: 'brush',          label: '창조적 몰입', iconHex: '#FFB830', bgHex: '#FFFBF0', path: '/rest/creative'  },
+  { icon: 'forest',         label: '자연의 연결', iconHex: '#2ECC9A', bgHex: '#F0FBF7', path: '/rest/nature'    },
 ];
 
 const REST_TYPE_TAG_COLORS = {
@@ -37,6 +37,7 @@ function MainDashboard() {
   const [places, setPlaces] = useState([]);
   const [monthlyStats, setMonthlyStats] = useState(null);
   const [placesLoading, setPlacesLoading] = useState(true);
+  const [hoveredCat, setHoveredCat] = useState(null);
 
   useEffect(() => {
     loadPlaces();
@@ -187,15 +188,54 @@ function MainDashboard() {
               <p className="text-xs text-slate-400 mt-1">오늘 당신의 기분에 맞는 휴식을 선택해보세요</p>
             </div>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
+          <div className="hidden md:flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
+            {categories.map((cat, i) => {
+              const isHovered = hoveredCat === i;
+              return (
+                <Link
+                  key={i}
+                  to={cat.path}
+                  onMouseEnter={() => setHoveredCat(i)}
+                  onMouseLeave={() => setHoveredCat(null)}
+                  className="flex-shrink-0 flex flex-col items-center gap-3 p-5 min-w-[110px] rounded-2xl border-2 shadow-sm transition-all duration-200 hover:scale-[1.03] hover:shadow-md"
+                  style={{
+                    backgroundColor: isHovered ? cat.bgHex : '#ffffff',
+                    borderColor: cat.iconHex + '40',
+                  }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: cat.bgHex }}
+                  >
+                    <span className="material-icons" style={{ color: cat.iconHex }}>{cat.icon}</span>
+                  </div>
+                  <span
+                    className="text-xs font-bold text-center leading-tight transition-colors duration-200"
+                    style={{ color: isHovered ? cat.iconHex : '#475569' }}
+                  >
+                    {cat.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+          {/* 모바일 — 기존 레이아웃 유지 */}
+          <div className="flex md:hidden gap-4 overflow-x-auto pb-6 hide-scrollbar">
             {categories.map((cat, i) => (
               <Link
                 key={i}
                 to={cat.path}
-                className={`flex-shrink-0 flex flex-col items-center gap-3 p-5 min-w-[110px] rounded-2xl bg-white border-2 shadow-sm transition-all hover:scale-[1.03] hover:shadow-md ${cat.border}`}
+                className="flex-shrink-0 flex flex-col items-center gap-3 p-5 min-w-[110px] rounded-2xl border-2 shadow-sm transition-all"
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderColor: cat.iconHex + '40',
+                }}
               >
-                <div className={`w-12 h-12 rounded-full ${cat.bg} flex items-center justify-center`}>
-                  <span className={`material-icons ${cat.iconColor}`}>{cat.icon}</span>
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: cat.bgHex }}
+                >
+                  <span className="material-icons" style={{ color: cat.iconHex }}>{cat.icon}</span>
                 </div>
                 <span className="text-xs font-bold text-slate-600 text-center leading-tight">{cat.label}</span>
               </Link>
