@@ -40,6 +40,32 @@ import CommunityManagement from './pages/admin/CommunityManagement';
 import Analytics from './pages/admin/Analytics';
 import SystemSettings from './pages/admin/SystemSettings';
 
+// Admin - Users
+import AdminUserList from './pages/admin/users/AdminUserList';
+import AdminUserDetail from './pages/admin/users/AdminUserDetail';
+import AdminUserStatus from './pages/admin/users/AdminUserStatus';
+import AdminUserLogs from './pages/admin/users/AdminUserLogs';
+
+// Admin - Diagnosis
+import AdminDiagnosisList from './pages/admin/diagnosis/AdminDiagnosisList';
+import AdminDiagnosisNew from './pages/admin/diagnosis/AdminDiagnosisNew';
+
+// Admin - Contents
+import AdminContentsList from './pages/admin/contents/AdminContentsList';
+import AdminContentsNew from './pages/admin/contents/AdminContentsNew';
+import AdminContentsEdit from './pages/admin/contents/AdminContentsEdit';
+import AdminContentsCategory from './pages/admin/contents/AdminContentsCategory';
+
+// Admin - Tags / Recommend / Records / Stats
+import AdminTagList from './pages/admin/tags/AdminTagList';
+import AdminRecommend from './pages/admin/recommend/AdminRecommend';
+import AdminRecords from './pages/admin/records/AdminRecords';
+import AdminStats from './pages/admin/stats/AdminStats';
+
+// Admin - Managers
+import AdminManagerList from './pages/admin/managers/AdminManagerList';
+import AdminManagerLogs from './pages/admin/managers/AdminManagerLogs';
+
 // Diagnosis Pages
 import DiagnosisHome from './pages/user/diagnosis/DiagnosisHome';
 import DiagnosisStart from './pages/user/diagnosis/DiagnosisStart';
@@ -141,6 +167,31 @@ function App() {
       <Route path="/admin/community" element={<AdminRoute><CommunityManagement /></AdminRoute>} />
       <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
       <Route path="/admin/settings" element={<AdminRoute><SystemSettings /></AdminRoute>} />
+
+      {/* 관리자 - 사용자 */}
+      <Route path="/admin/users/:id" element={<AdminRoute><AdminUserDetail /></AdminRoute>} />
+      <Route path="/admin/users/:id/status" element={<AdminRoute><AdminUserStatus /></AdminRoute>} />
+      <Route path="/admin/users/:id/logs" element={<AdminRoute><AdminUserLogs /></AdminRoute>} />
+
+      {/* 관리자 - 진단 */}
+      <Route path="/admin/diagnosis" element={<AdminRoute><AdminDiagnosisList /></AdminRoute>} />
+      <Route path="/admin/diagnosis/new" element={<AdminRoute><AdminDiagnosisNew /></AdminRoute>} />
+
+      {/* 관리자 - 콘텐츠 */}
+      <Route path="/admin/contents" element={<AdminRoute><AdminContentsList /></AdminRoute>} />
+      <Route path="/admin/contents/new" element={<AdminRoute><AdminContentsNew /></AdminRoute>} />
+      <Route path="/admin/contents/:id/edit" element={<AdminRoute><AdminContentsEdit /></AdminRoute>} />
+      <Route path="/admin/contents/category" element={<AdminRoute><AdminContentsCategory /></AdminRoute>} />
+
+      {/* 관리자 - 태그 / 추천 / 기록 / 통계 */}
+      <Route path="/admin/tags" element={<AdminRoute><AdminTagList /></AdminRoute>} />
+      <Route path="/admin/recommend" element={<AdminRoute><AdminRecommend /></AdminRoute>} />
+      <Route path="/admin/records" element={<AdminRoute><AdminRecords /></AdminRoute>} />
+      <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
+
+      {/* 관리자 - 관리자 계정 */}
+      <Route path="/admin/managers" element={<AdminRoute><AdminManagerList /></AdminRoute>} />
+      <Route path="/admin/managers/logs" element={<AdminRoute><AdminManagerLogs /></AdminRoute>} />
 
       {/* 진단 */}
       <Route path="/diagnosis" element={<DiagnosisHome />} />
