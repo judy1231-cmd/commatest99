@@ -157,9 +157,20 @@ function ContentsList() {
       <main className="max-w-6xl mx-auto px-6 pt-8 pb-24">
 
         {/* 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">휴식 콘텐츠</h1>
-          <p className="text-sm text-slate-400 mt-1">나에게 맞는 휴식 방법을 찾아보세요</p>
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">휴식 콘텐츠</h1>
+            <p className="text-sm text-slate-400 mt-1">나에게 맞는 휴식 방법을 찾아보세요</p>
+          </div>
+          {isLoggedIn && (
+            <Link
+              to="/rest-record"
+              className="flex items-center gap-2 bg-white border border-primary text-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/5 transition-all"
+            >
+              <span className="material-icons text-base">event_note</span>
+              내 휴식 기록
+            </Link>
+          )}
         </div>
 
         {/* 카테고리 필터 */}
