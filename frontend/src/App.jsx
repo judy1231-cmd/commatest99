@@ -40,6 +40,45 @@ import CommunityManagement from './pages/admin/CommunityManagement';
 import Analytics from './pages/admin/Analytics';
 import SystemSettings from './pages/admin/SystemSettings';
 
+// Diagnosis Pages
+import DiagnosisHome from './pages/user/diagnosis/DiagnosisHome';
+import DiagnosisStart from './pages/user/diagnosis/DiagnosisStart';
+import DiagnosisQuiz from './pages/user/diagnosis/DiagnosisQuiz';
+import DiagnosisResult from './pages/user/diagnosis/DiagnosisResult';
+
+// Contents Pages
+import ContentsList from './pages/user/contents/ContentsList';
+import ContentsDetail from './pages/user/contents/ContentsDetail';
+
+// Recommend Pages
+import RecommendHome from './pages/user/recommend/RecommendHome';
+import RecommendHistory from './pages/user/recommend/RecommendHistory';
+
+// Records Pages
+import RecordsRest from './pages/user/records/RecordsRest';
+import RecordsEmotion from './pages/user/records/RecordsEmotion';
+import RecordsDiagnosis from './pages/user/records/RecordsDiagnosis';
+
+// Stats Pages
+import StatsEmotion from './pages/user/stats/StatsEmotion';
+import StatsRest from './pages/user/stats/StatsRest';
+import StatsDiagnosis from './pages/user/stats/StatsDiagnosis';
+
+// Mypage Pages
+import MypageHome from './pages/user/mypage/MypageHome';
+import MypagePassword from './pages/user/mypage/MypagePassword';
+import MypageStatus from './pages/user/mypage/MypageStatus';
+import MypageWithdraw from './pages/user/mypage/MypageWithdraw';
+
+// Auth Pages
+import AuthSignup from './pages/user/auth/AuthSignup';
+import AuthLogin from './pages/user/auth/AuthLogin';
+import AuthVerifyEmail from './pages/user/auth/AuthVerifyEmail';
+import AuthFindPassword from './pages/user/auth/AuthFindPassword';
+
+// Support Pages
+import SupportFaq from './pages/user/support/SupportFaq';
+
 // 404
 import NotFound from './pages/NotFound';
 
@@ -102,6 +141,45 @@ function App() {
       <Route path="/admin/community" element={<AdminRoute><CommunityManagement /></AdminRoute>} />
       <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
       <Route path="/admin/settings" element={<AdminRoute><SystemSettings /></AdminRoute>} />
+
+      {/* 진단 */}
+      <Route path="/diagnosis" element={<DiagnosisHome />} />
+      <Route path="/diagnosis/start" element={<PrivateRoute><DiagnosisStart /></PrivateRoute>} />
+      <Route path="/diagnosis/quiz" element={<PrivateRoute><DiagnosisQuiz /></PrivateRoute>} />
+      <Route path="/diagnosis/result" element={<PrivateRoute><DiagnosisResult /></PrivateRoute>} />
+
+      {/* 휴식 콘텐츠 */}
+      <Route path="/contents" element={<ContentsList />} />
+      <Route path="/contents/:id" element={<ContentsDetail />} />
+
+      {/* 맞춤 추천 */}
+      <Route path="/recommend" element={<PrivateRoute><RecommendHome /></PrivateRoute>} />
+      <Route path="/recommend/history" element={<PrivateRoute><RecommendHistory /></PrivateRoute>} />
+
+      {/* 기록 */}
+      <Route path="/records/rest" element={<PrivateRoute><RecordsRest /></PrivateRoute>} />
+      <Route path="/records/emotion" element={<PrivateRoute><RecordsEmotion /></PrivateRoute>} />
+      <Route path="/records/diagnosis" element={<PrivateRoute><RecordsDiagnosis /></PrivateRoute>} />
+
+      {/* 통계 */}
+      <Route path="/stats/emotion" element={<PrivateRoute><StatsEmotion /></PrivateRoute>} />
+      <Route path="/stats/rest" element={<PrivateRoute><StatsRest /></PrivateRoute>} />
+      <Route path="/stats/diagnosis" element={<PrivateRoute><StatsDiagnosis /></PrivateRoute>} />
+
+      {/* 마이페이지 */}
+      <Route path="/mypage" element={<PrivateRoute><MypageHome /></PrivateRoute>} />
+      <Route path="/mypage/password" element={<PrivateRoute><MypagePassword /></PrivateRoute>} />
+      <Route path="/mypage/status" element={<PrivateRoute><MypageStatus /></PrivateRoute>} />
+      <Route path="/mypage/withdraw" element={<PrivateRoute><MypageWithdraw /></PrivateRoute>} />
+
+      {/* 인증 */}
+      <Route path="/auth/signup" element={<AuthSignup />} />
+      <Route path="/auth/login" element={<AuthLogin />} />
+      <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
+      <Route path="/auth/find-password" element={<AuthFindPassword />} />
+
+      {/* 고객지원 */}
+      <Route path="/support/faq" element={<SupportFaq />} />
 
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
