@@ -178,8 +178,8 @@ function UserNavbar() {
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className={`text-sm font-semibold transition-colors ${isActive('/') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>홈</Link>
-            <Link to="/community" className={`text-sm font-medium transition-colors ${isActive('/community') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>커뮤니티</Link>
-            <Link to="/challenge" className={`text-sm font-medium transition-colors ${isActive('/challenge') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>챌린지</Link>
+            <Link to="/rest-test" className={`text-sm font-medium transition-colors ${isActive('/rest-test') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>심리 진단</Link>
+            <Link to="/rest-record" className={`text-sm font-medium transition-colors ${isActive('/rest-record') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 콘텐츠</Link>
             <Link to="/map" className={`text-sm font-medium transition-colors ${isActive('/map') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 지도</Link>
             <Link to="/my" className={`text-sm font-medium transition-colors ${isActive('/my') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>마이페이지</Link>
             {isLoggedIn ? (
