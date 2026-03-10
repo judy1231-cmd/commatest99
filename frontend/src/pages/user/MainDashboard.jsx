@@ -4,13 +4,13 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
-  { icon: 'fitness_center', label: '신체적 이완', bg: 'bg-pale-blue', iconColor: 'text-primary', path: '/rest/physical' },
-  { icon: 'spa', label: '정신적 고요', bg: 'bg-soft-mint', iconColor: 'text-emerald-500', path: '/rest/mental' },
-  { icon: 'visibility_off', label: '감각의 정화', bg: 'bg-warm-beige', iconColor: 'text-amber-500', path: '/rest/sensory' },
-  { icon: 'favorite_border', label: '정서적 지지', bg: 'bg-red-50', iconColor: 'text-rose-400', path: '/rest/emotional' },
-  { icon: 'groups', label: '사회적 휴식', bg: 'bg-purple-50', iconColor: 'text-purple-400', path: '/rest/social' },
-  { icon: 'brush', label: '창조적 몰입', bg: 'bg-orange-50', iconColor: 'text-orange-400', path: '/rest/creative' },
-  { icon: 'forest', label: '자연의 연결', bg: 'bg-slate-50', iconColor: 'text-slate-500', path: '/rest/nature' },
+  { icon: 'fitness_center', label: '신체적 이완', bg: 'bg-red-50',     iconColor: 'text-red-500',     border: 'border-red-200',     path: '/rest/physical'  },
+  { icon: 'spa',            label: '정신적 고요', bg: 'bg-emerald-50', iconColor: 'text-emerald-500', border: 'border-emerald-200', path: '/rest/mental'    },
+  { icon: 'visibility_off', label: '감각의 정화', bg: 'bg-amber-50',   iconColor: 'text-amber-500',   border: 'border-amber-200',   path: '/rest/sensory'   },
+  { icon: 'favorite',       label: '정서적 지지', bg: 'bg-pink-50',    iconColor: 'text-pink-500',    border: 'border-pink-200',    path: '/rest/emotional' },
+  { icon: 'groups',         label: '사회적 휴식', bg: 'bg-purple-50',  iconColor: 'text-purple-500',  border: 'border-purple-200',  path: '/rest/social'    },
+  { icon: 'brush',          label: '창조적 몰입', bg: 'bg-orange-50',  iconColor: 'text-orange-500',  border: 'border-orange-200',  path: '/rest/creative'  },
+  { icon: 'forest',         label: '자연의 연결', bg: 'bg-green-50',   iconColor: 'text-green-600',   border: 'border-green-200',   path: '/rest/nature'    },
 ];
 
 const REST_TYPE_TAG_COLORS = {
@@ -187,17 +187,17 @@ function MainDashboard() {
               <p className="text-xs text-slate-400 mt-1">오늘 당신의 기분에 맞는 휴식을 선택해보세요</p>
             </div>
           </div>
-          <div className="flex gap-5 overflow-x-auto pb-6 hide-scrollbar">
+          <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar">
             {categories.map((cat, i) => (
               <Link
                 key={i}
                 to={cat.path}
-                className={`flex-shrink-0 flex flex-col items-center gap-3 p-5 min-w-[120px] rounded-2xl bg-white border-2 shadow-soft transition-all ${i === 0 ? 'border-primary ring-4 ring-primary/5' : 'border-slate-50 hover:border-primary/20'}`}
+                className={`flex-shrink-0 flex flex-col items-center gap-3 p-5 min-w-[110px] rounded-2xl bg-white border-2 shadow-sm transition-all hover:scale-[1.03] hover:shadow-md ${cat.border}`}
               >
                 <div className={`w-12 h-12 rounded-full ${cat.bg} flex items-center justify-center`}>
                   <span className={`material-icons ${cat.iconColor}`}>{cat.icon}</span>
                 </div>
-                <span className={`text-xs font-bold ${i === 0 ? 'text-slate-700' : 'text-slate-500'}`}>{cat.label}</span>
+                <span className="text-xs font-bold text-slate-600 text-center leading-tight">{cat.label}</span>
               </Link>
             ))}
           </div>

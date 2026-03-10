@@ -89,15 +89,15 @@ function SettingsProfile() {
           <h1 className="text-xl font-bold text-slate-800">개인정보 관리</h1>
         </div>
 
-        {/* 닉네임 (= 쉼표번호) */}
+        {/* 쉼표번호 (닉네임) 변경 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <h2 className="font-bold text-slate-700 mb-1 flex items-center gap-2">
-            <span className="material-icons text-primary text-base">badge</span>닉네임 변경
+            <span className="material-icons text-primary text-base">badge</span>쉼표번호 (닉네임) 변경
           </h2>
           <p className="text-xs text-slate-400 mb-4">
-            닉네임은 가입 시 쉼표번호(<span className="font-mono">{profile?.쉼표번호 || '-'}</span>)로 자동 설정됩니다. 원하는 이름으로 변경할 수 있어요.
+            쉼표번호는 서비스에서 사용하는 닉네임이에요. 가입 시 자동 생성되며 원하는 이름으로 변경할 수 있어요.
           </p>
-          <label className="block text-xs font-semibold text-slate-500 mb-1.5">현재 닉네임</label>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">현재 쉼표번호 (닉네임)</label>
           <input
             value={nickname}
             onChange={e => { setNickname(e.target.value); setNicknameError(''); }}
@@ -111,7 +111,7 @@ function SettingsProfile() {
             disabled={saving}
             className="mt-3 w-full h-11 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 disabled:opacity-50"
           >
-            {saving ? '저장 중...' : '닉네임 변경'}
+            {saving ? '저장 중...' : '변경하기'}
           </button>
         </div>
 
@@ -122,12 +122,14 @@ function SettingsProfile() {
           </h2>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-semibold text-slate-400 mb-1">이메일</p>
-              <p className="text-sm text-slate-700 bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">{profile?.email || '-'}</p>
+              <p className="text-xs font-semibold text-slate-400 mb-1">아이디</p>
+              <p className="text-sm text-slate-700 font-mono bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                {profile?.username || profile?.쉼표번호 || '-'}
+              </p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-400 mb-1">쉼표번호 (계정 고유 ID · 변경 불가)</p>
-              <p className="text-sm text-slate-700 font-mono bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">{profile?.쉼표번호 || profile?.id || '-'}</p>
+              <p className="text-xs font-semibold text-slate-400 mb-1">이메일</p>
+              <p className="text-sm text-slate-700 bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">{profile?.email || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-semibold text-slate-400 mb-1">가입일</p>
