@@ -5,7 +5,7 @@
 <mapper namespace="com.comma.domain.user.mapper.UserMapper">
 
     <select id="findBy쉼표번호" resultType="com.comma.domain.user.model.User">
-        SELECT `쉼표번호`, email, password, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE `쉼표번호` = #{쉼표번호}
     </select>
