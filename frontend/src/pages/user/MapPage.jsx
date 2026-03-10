@@ -5,8 +5,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import UserNavbar from '../../components/user/UserNavbar';
 
-const VWORLD_KEY = process.env.REACT_APP_VWORLD_KEY || '';
-
 // Leaflet 기본 마커 아이콘 경로 수정 (React 빌드 환경 이슈)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
