@@ -48,4 +48,16 @@ public interface PlaceMapper {
     List<Place> findNearbyPlaces(@Param("lat") double lat,
                                  @Param("lng") double lng,
                                  @Param("radius") double radius);
+
+    // ==================== Seed (관리자) ====================
+
+    boolean existsByNameAndAddress(@Param("name") String name, @Param("address") String address);
+
+    void insertPlace(Place place);
+
+    void insertPlaceTag(PlaceTag tag);
+
+    void deleteAllPlaces();
+
+    void deleteAllPlaceTags();
 }

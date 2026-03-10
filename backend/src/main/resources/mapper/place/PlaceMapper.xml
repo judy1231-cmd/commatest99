@@ -95,6 +95,31 @@
         ORDER BY pb.created_at DESC
     </select>
 
+    <!-- ==================== Seed (관리자) ==================== -->
+
+    <select id="existsByNameAndAddress" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM places WHERE name = #{name} AND address = #{address}
+    </select>
+
+    <insert id="insertPlace" parameterType="com.comma.domain.place.model.Place"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO places (name, address, latitude, longitude, ai_score, status, created_at)
+        VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{aiScore}, #{status}, #{createdAt})
+    </insert>
+
+    <insert id="insertPlaceTag" parameterType="com.comma.domain.place.model.PlaceTag">
+        INSERT INTO place_tags (place_id, tag_name, rest_type)
+        VALUES (#{placeId}, #{tagName}, #{restType})
+    </insert>
+
+    <delete id="deleteAllPlaceTags">
+        DELETE FROM place_tags
+    </delete>
+
+    <delete id="deleteAllPlaces">
+        DELETE FROM places
+    </delete>
+
     <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
     <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
         SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,
