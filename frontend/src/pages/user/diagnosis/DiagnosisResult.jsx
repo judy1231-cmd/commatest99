@@ -101,6 +101,19 @@ function DiagnosisResult() {
       .map(([type, score]) => ({ type, score }))
       .sort((a, b) => b.score - a.score);
     setTypeScores(sorted);
+
+    // 진단 결과가 서버에 저장된 경우(id 존재) recommendations 자동 생성
+    const token = localStorage.getItem('accessToken');
+    if (parsed.id && token) {
+      fetch('/api/recommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ diagnosisResultId: parsed.id }),
+      }).catch(() => { /* 추천 저장 실패 시 무시 */ });
+    }
   }, [navigate]);
 
   const handleRetry = () => {
