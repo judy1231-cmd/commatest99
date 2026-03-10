@@ -14,14 +14,14 @@ L.Icon.Default.mergeOptions({
 });
 
 const REST_TYPES = [
-  { key: '',         label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
-  { key: 'physical', label: '신체적 이완', icon: 'fitness_center', color: '#0EA5E9', bg: '#F0F9FF', path: '/rest/physical'  },
-  { key: 'mental',   label: '정신적 고요', icon: 'spa',            color: '#10B981', bg: '#ECFDF5', path: '/rest/mental'    },
-  { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: '#FFFBEB', path: '/rest/sensory'   },
-  { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: '#FDF2F8', path: '/rest/emotional' },
-  { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#C4A35A', bg: '#FFFBEE', path: '/rest/social'    },
-  { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316', bg: '#FFF7ED', path: '/rest/creative'  },
-  { key: 'nature',   label: '자연의 연결', icon: 'forest',         color: '#059669', bg: '#ECFDF5', path: '/rest/nature'    },
+  { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
+  { key: 'physical',  label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5', path: '/rest/physical'  },
+  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF', path: '/rest/mental'    },
+  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF', path: '/rest/sensory'   },
+  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5', path: '/rest/emotional' },
+  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF5EC', path: '/rest/social'    },
+  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBF0', path: '/rest/creative'  },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', path: '/rest/nature'    },
 ];
 
 // 유형별 색상 마커 생성
