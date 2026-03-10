@@ -84,7 +84,6 @@ function ContentCard({ content, onBookmark, isLoggedIn }) {
 }
 
 function ContentsList() {
-  const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('accessToken');
 
   const [activeCategory, setActiveCategory] = useState('all');
