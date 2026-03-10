@@ -41,7 +41,6 @@ import Analytics from './pages/admin/Analytics';
 import SystemSettings from './pages/admin/SystemSettings';
 
 // Admin - Users
-import AdminUserList from './pages/admin/users/AdminUserList';
 import AdminUserDetail from './pages/admin/users/AdminUserDetail';
 import AdminUserStatus from './pages/admin/users/AdminUserStatus';
 import AdminUserLogs from './pages/admin/users/AdminUserLogs';
