@@ -385,7 +385,7 @@ function MainDashboard() {
           <div className="flex gap-10 text-sm font-semibold text-slate-500">
             <button className="hover:text-primary transition-colors">이용약관</button>
             <button className="hover:text-primary transition-colors">개인정보처리방침</button>
-            <Link to="/support/faq" className="hover:text-primary transition-colors">도움말</Link>
+            <Link to="/support/faq" className="hover:text-primary transition-colors">고객센터</Link>
           </div>
         </div>
       </footer>

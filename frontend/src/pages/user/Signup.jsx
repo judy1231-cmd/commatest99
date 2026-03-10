@@ -362,7 +362,7 @@ function Signup() {
         <div className="flex justify-center gap-6 mt-3 text-xs text-gray-400">
           <span className="hover:text-primary cursor-pointer transition-colors">이용약관</span>
           <span className="hover:text-primary cursor-pointer transition-colors">개인정보처리방침</span>
-          <Link to="/support/faq" className="hover:text-primary transition-colors">도움말</Link>
+          <Link to="/support/faq" className="hover:text-primary transition-colors">고객센터</Link>
         </div>
       </footer>
 
