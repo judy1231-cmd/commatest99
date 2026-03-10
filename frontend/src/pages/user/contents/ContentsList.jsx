@@ -93,7 +93,11 @@ function ContentsList() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadContents();
+    if (activeCategory === 'recommend') {
+      loadRecommend();
+    } else {
+      loadContents();
+    }
   }, [activeCategory]);
 
   const loadContents = async () => {
@@ -115,6 +119,26 @@ function ContentsList() {
     }
   };
 
+  const loadRecommend = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/contents/recommend', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setContents(data.data.contents || data.data || []);
+      } else {
+        setError(data.message || '맞춤 추천을 불러오지 못했어요.');
+      }
+    } catch {
+      setError('서버에 연결할 수 없습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBookmark = async (id) => {
     try {
       await fetch(`/api/contents/${id}/bookmark`, {
@@ -127,11 +151,6 @@ function ContentsList() {
     } catch { /* 무시 */ }
   };
 
-  const handleRecommendClick = () => {
-    if (!isLoggedIn) { navigate('/login'); return; }
-    navigate('/diagnosis/quiz');
-  };
-
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       <UserNavbar />
@@ -139,23 +158,27 @@ function ContentsList() {
       <main className="max-w-6xl mx-auto px-6 pt-8 pb-24">
 
         {/* 헤더 */}
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">휴식 콘텐츠</h1>
-            <p className="text-sm text-slate-400 mt-1">나에게 맞는 휴식 방법을 찾아보세요</p>
-          </div>
-          <button
-            onClick={handleRecommendClick}
-            className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90 transition-all"
-          >
-            <span className="material-icons text-base">psychology</span>
-            맞춤 추천 받기
-            {!isLoggedIn && <span className="material-icons text-sm opacity-70">lock</span>}
-          </button>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-800">휴식 콘텐츠</h1>
+          <p className="text-sm text-slate-400 mt-1">나에게 맞는 휴식 방법을 찾아보세요</p>
         </div>
 
         {/* 카테고리 필터 */}
         <div className="flex gap-2 mb-8 flex-wrap">
+          {/* 맞춤 탭 — 로그인 사용자만 */}
+          {isLoggedIn && (
+            <button
+              onClick={() => setActiveCategory('recommend')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                activeCategory === 'recommend'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-white border border-primary text-primary hover:bg-primary/5'
+              }`}
+            >
+              <span className="material-icons text-sm">auto_awesome</span>
+              맞춤 추천
+            </button>
+          )}
           {CATEGORIES.map((cat) => (
             <button
               key={cat.key}
@@ -171,19 +194,6 @@ function ContentsList() {
             </button>
           ))}
         </div>
-
-        {/* 비회원 안내 배너 */}
-        {!isLoggedIn && (
-          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-6 flex items-center gap-3">
-            <span className="material-icons text-primary">info</span>
-            <p className="text-sm text-slate-600">
-              콘텐츠는 자유롭게 볼 수 있어요.
-              <button onClick={() => navigate('/login')} className="text-primary font-bold ml-1 hover:underline">
-                로그인
-              </button>하면 북마크·맞춤 추천 기능을 이용할 수 있어요.
-            </p>
-          </div>
-        )}
 
         {/* 로딩 */}
         {loading && (
