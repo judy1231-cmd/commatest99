@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { fetchWithAuth } from '../../../api/fetchWithAuth';
 import UserNavbar from '../../../components/user/UserNavbar';
