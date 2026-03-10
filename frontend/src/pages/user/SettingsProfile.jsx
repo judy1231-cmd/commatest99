@@ -89,15 +89,15 @@ function SettingsProfile() {
           <h1 className="text-xl font-bold text-slate-800">개인정보 관리</h1>
         </div>
 
-        {/* 쉼표번호 (닉네임) 변경 */}
+        {/* 닉네임 변경 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <h2 className="font-bold text-slate-700 mb-1 flex items-center gap-2">
-            <span className="material-icons text-primary text-base">badge</span>쉼표번호 (닉네임) 변경
+            <span className="material-icons text-primary text-base">badge</span>닉네임 변경
           </h2>
           <p className="text-xs text-slate-400 mb-4">
-            쉼표번호는 서비스에서 사용하는 닉네임이에요. 가입 시 자동 생성되며 원하는 이름으로 변경할 수 있어요.
+            가입 시 쉼표번호(예: 쉼표0001)로 자동 설정되며, 원하는 이름으로 변경할 수 있어요.
           </p>
-          <label className="block text-xs font-semibold text-slate-500 mb-1.5">현재 쉼표번호 (닉네임)</label>
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">현재 닉네임</label>
           <input
             value={nickname}
             onChange={e => { setNickname(e.target.value); setNicknameError(''); }}
@@ -122,9 +122,9 @@ function SettingsProfile() {
           </h2>
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-semibold text-slate-400 mb-1">아이디</p>
+              <p className="text-xs font-semibold text-slate-400 mb-1">아이디 <span className="font-normal text-slate-300">(로그인 시 사용)</span></p>
               <p className="text-sm text-slate-700 font-mono bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
-                {profile?.username || profile?.쉼표번호 || '-'}
+                {profile?.username || '-'}
               </p>
             </div>
             <div>
