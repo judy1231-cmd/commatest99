@@ -293,10 +293,10 @@ function MapPage() {
             style={{ width: '100%', height: '100%' }}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.vworld.kr" target="_blank" rel="noreferrer">국토지리정보원</a>'
-              url={`https://api.vworld.kr/req/wmts/1.0.0/${VWORLD_KEY}/Base/{z}/{y}/{x}.png`}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               minZoom={6}
-              maxZoom={18}
+              maxZoom={19}
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}
