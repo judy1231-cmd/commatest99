@@ -4,7 +4,7 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
-  { icon: 'fitness_center', label: '신체적 이완', bg: 'bg-red-50',     iconColor: 'text-red-500',     border: 'border-red-200',     path: '/rest/physical'  },
+  { icon: 'fitness_center', label: '신체적 이완', bg: 'bg-sky-50',     iconColor: 'text-sky-500',     border: 'border-sky-200',     path: '/rest/physical'  },
   { icon: 'spa',            label: '정신적 고요', bg: 'bg-emerald-50', iconColor: 'text-emerald-500', border: 'border-emerald-200', path: '/rest/mental'    },
   { icon: 'visibility_off', label: '감각의 정화', bg: 'bg-amber-50',   iconColor: 'text-amber-500',   border: 'border-amber-200',   path: '/rest/sensory'   },
   { icon: 'favorite',       label: '정서적 지지', bg: 'bg-pink-50',    iconColor: 'text-pink-500',    border: 'border-pink-200',    path: '/rest/emotional' },

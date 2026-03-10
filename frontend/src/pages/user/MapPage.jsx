@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 
 const REST_TYPES = [
   { key: '',         label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
-  { key: 'physical', label: '신체적 이완', icon: 'fitness_center', color: '#EF4444', bg: '#FEF2F2', path: '/rest/physical'  },
+  { key: 'physical', label: '신체적 이완', icon: 'fitness_center', color: '#0EA5E9', bg: '#F0F9FF', path: '/rest/physical'  },
   { key: 'mental',   label: '정신적 고요', icon: 'spa',            color: '#10B981', bg: '#ECFDF5', path: '/rest/mental'    },
   { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: '#FFFBEB', path: '/rest/sensory'   },
   { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: '#FDF2F8', path: '/rest/emotional' },
