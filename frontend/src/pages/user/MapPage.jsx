@@ -19,7 +19,7 @@ const REST_TYPES = [
   { key: 'mental',   label: '정신적 고요', icon: 'spa',            color: '#10B981', bg: '#ECFDF5', path: '/rest/mental'    },
   { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: '#FFFBEB', path: '/rest/sensory'   },
   { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: '#FDF2F8', path: '/rest/emotional' },
-  { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', bg: '#F5F3FF', path: '/rest/social'    },
+  { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#C4A35A', bg: '#FFFBEE', path: '/rest/social'    },
   { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316', bg: '#FFF7ED', path: '/rest/creative'  },
   { key: 'nature',   label: '자연의 연결', icon: 'forest',         color: '#059669', bg: '#ECFDF5', path: '/rest/nature'    },
 ];

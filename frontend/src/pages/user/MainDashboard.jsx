@@ -8,7 +8,7 @@ const categories = [
   { icon: 'spa',            label: '정신적 고요', bg: 'bg-emerald-50', iconColor: 'text-emerald-500', border: 'border-emerald-200', path: '/rest/mental'    },
   { icon: 'visibility_off', label: '감각의 정화', bg: 'bg-amber-50',   iconColor: 'text-amber-500',   border: 'border-amber-200',   path: '/rest/sensory'   },
   { icon: 'favorite',       label: '정서적 지지', bg: 'bg-pink-50',    iconColor: 'text-pink-500',    border: 'border-pink-200',    path: '/rest/emotional' },
-  { icon: 'groups',         label: '사회적 휴식', bg: 'bg-purple-50',  iconColor: 'text-purple-500',  border: 'border-purple-200',  path: '/rest/social'    },
+  { icon: 'groups',         label: '사회적 휴식', bg: 'bg-amber-50',   iconColor: 'text-amber-600',   border: 'border-amber-200',   path: '/rest/social'    },
   { icon: 'brush',          label: '창조적 몰입', bg: 'bg-orange-50',  iconColor: 'text-orange-500',  border: 'border-orange-200',  path: '/rest/creative'  },
   { icon: 'forest',         label: '자연의 연결', bg: 'bg-green-50',   iconColor: 'text-green-600',   border: 'border-green-200',   path: '/rest/nature'    },
 ];
