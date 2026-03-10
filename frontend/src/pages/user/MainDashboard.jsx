@@ -380,12 +380,12 @@ function MainDashboard() {
               </div>
               <h1 className="text-xl font-bold tracking-tight text-slate-800">쉼표</h1>
             </div>
-            <p className="text-slate-400 text-xs">© 2024 Comma Inc. All rights reserved. 완벽한 휴식을 선사합니다.</p>
+            <p className="text-slate-400 text-xs">© 2026 Comma Inc. All rights reserved. 완벽한 휴식을 선사합니다.</p>
           </div>
           <div className="flex gap-10 text-sm font-semibold text-slate-500">
             <button className="hover:text-primary transition-colors">이용약관</button>
             <button className="hover:text-primary transition-colors">개인정보처리방침</button>
-            <button className="hover:text-primary transition-colors">고객센터</button>
+            <Link to="/support/faq" className="hover:text-primary transition-colors">도움말</Link>
           </div>
         </div>
       </footer>

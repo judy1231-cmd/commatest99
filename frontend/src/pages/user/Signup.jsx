@@ -137,7 +137,7 @@ function Signup() {
             </div>
             <span className="text-2xl font-bold tracking-tight text-slate-900">쉼표</span>
           </Link>
-          <Link to="/support/faq" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">도움말</Link>
+          <Link to="/login" className="text-sm font-semibold text-gray-600 hover:text-primary transition-colors">로그인하기</Link>
         </div>
       </nav>
 
@@ -358,7 +358,12 @@ function Signup() {
       </main>
 
       <footer className="w-full py-8 text-center bg-gray-50 border-t border-gray-100">
-        <p className="text-xs text-gray-400">&copy; 2024 쉼표. All rights reserved.</p>
+        <p className="text-xs text-gray-400">&copy; 2026 쉼표. All rights reserved.</p>
+        <div className="flex justify-center gap-6 mt-3 text-xs text-gray-400">
+          <span className="hover:text-primary cursor-pointer transition-colors">이용약관</span>
+          <span className="hover:text-primary cursor-pointer transition-colors">개인정보처리방침</span>
+          <Link to="/support/faq" className="hover:text-primary transition-colors">도움말</Link>
+        </div>
       </footer>
 
       {toast && (
