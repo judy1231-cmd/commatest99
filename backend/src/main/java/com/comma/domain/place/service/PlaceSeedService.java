@@ -69,6 +69,12 @@ public class PlaceSeedService {
 
                         if (name == null || lat == null || lng == null) continue;
 
+                        // 부적절한 장소 필터링 (화장실, 주차장 등)
+                        if (name.contains("화장실") || name.contains("주차장") || name.contains("주차") || name.contains("화장")) {
+                            totalSkipped++;
+                            continue;
+                        }
+
                         // 이미 같은 이름+주소가 있으면 스킵
                         if (placeMapper.existsByNameAndAddress(name, address != null ? address : "")) {
                             totalSkipped++;
@@ -116,6 +122,14 @@ public class PlaceSeedService {
         placeMapper.deleteAllPlaceTags();
         placeMapper.deleteAllPlaces();
         log.info("[PlaceSeed] 장소 데이터 전체 삭제 완료");
+    }
+
+    @Transactional
+    public int removeInappropriatePlaces() {
+        placeMapper.deleteTagsByPlaceNameFilter();
+        int removed = placeMapper.deleteInappropriatePlaces();
+        log.info("[PlaceSeed] 부적절한 장소 {}개 삭제 완료", removed);
+        return removed;
     }
 
     /**

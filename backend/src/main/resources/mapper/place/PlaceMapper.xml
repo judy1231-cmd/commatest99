@@ -120,6 +120,17 @@
         DELETE FROM places
     </delete>
 
+    <!-- 부적절한 장소명 삭제 (화장실, 주차장 등) -->
+    <delete id="deleteInappropriatePlaces">
+        DELETE FROM places WHERE name LIKE '%화장실%' OR name LIKE '%주차장%' OR name LIKE '%주차%'
+    </delete>
+
+    <delete id="deleteTagsByPlaceNameFilter">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name LIKE '%화장실%' OR p.name LIKE '%주차장%' OR p.name LIKE '%주차%'
+    </delete>
+
     <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
     <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
         SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,

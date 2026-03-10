@@ -60,4 +60,8 @@ public interface PlaceMapper {
     void deleteAllPlaces();
 
     void deleteAllPlaceTags();
+
+    void deleteTagsByPlaceNameFilter();
+
+    int deleteInappropriatePlaces();
 }

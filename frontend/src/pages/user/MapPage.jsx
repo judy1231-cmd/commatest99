@@ -20,8 +20,8 @@ const REST_TYPES = [
   { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', path: '/rest/sensory'   },
   { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899', path: '/rest/emotional' },
   { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', path: '/rest/social'    },
-  { key: 'nature',   label: '자연과의 연결',icon: 'forest',        color: '#059669', path: '/rest/nature'    },
   { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316', path: '/rest/creative'  },
+  { key: 'nature',   label: '자연의 연결', icon: 'forest',         color: '#059669', path: '/rest/nature'    },
 ];
 
 // 유형별 색상 마커 생성
@@ -161,18 +161,18 @@ function MapPage() {
 
           {/* 휴식유형 필터 */}
           <div className="p-3 border-b border-slate-100">
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid grid-cols-4 gap-1.5">
               {REST_TYPES.map(type => (
                 <button
                   key={type.key}
                   onClick={() => setSelectedType(type.key)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl text-[10px] font-bold transition-all leading-tight ${
                     selectedType === type.key ? 'text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                   style={selectedType === type.key ? { backgroundColor: type.color } : {}}
                 >
-                  <span className="material-icons" style={{ fontSize: '13px' }}>{type.icon}</span>
-                  {type.label}
+                  <span className="material-icons" style={{ fontSize: '16px' }}>{type.icon}</span>
+                  <span className="text-center whitespace-pre-line">{type.label.replace(' ', '\n')}</span>
                 </button>
               ))}
             </div>

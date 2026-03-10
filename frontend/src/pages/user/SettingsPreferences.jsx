@@ -10,7 +10,7 @@ const REST_TYPES = [
   { key: 'sensory', label: '감각의 정화', icon: 'visibility_off', color: 'text-amber-500' },
   { key: 'emotional', label: '정서적 지지', icon: 'favorite', color: 'text-pink-500' },
   { key: 'social', label: '사회적 휴식', icon: 'groups', color: 'text-purple-500' },
-  { key: 'nature', label: '자연과의 연결', icon: 'forest', color: 'text-green-600' },
+  { key: 'nature', label: '자연의 연결', icon: 'forest', color: 'text-green-600' },
   { key: 'creative', label: '창조적 몰입', icon: 'brush', color: 'text-orange-500' },
 ];
 
@@ -30,14 +30,17 @@ function SettingsPreferences() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 다크모드 실제 적용
+  // 다크모드 즉시 적용 (html + body 모두)
   useEffect(() => {
-    const root = document.documentElement;
     if (settings.theme === 'dark') {
-      root.classList.add('dark');
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
     } else {
-      root.classList.remove('dark');
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
     }
+    // localStorage에 저장해서 다른 페이지에서도 유지
+    localStorage.setItem('theme', settings.theme || 'light');
   }, [settings.theme]);
 
   const notifSettings = (() => {

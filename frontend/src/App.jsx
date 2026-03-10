@@ -111,6 +111,15 @@ import SupportFaq from './pages/user/support/SupportFaq';
 import NotFound from './pages/NotFound';
 
 function App() {
+  // 앱 초기화 시 저장된 테마 복원
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    }
+  }, []);
+
   // 앱 초기화 시 토큰 유효성 검증
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
