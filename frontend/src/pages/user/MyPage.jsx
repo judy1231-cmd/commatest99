@@ -370,9 +370,9 @@ function MyPage() {
           <section className="col-span-12 mt-2">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { icon: 'person_outline', label: '개인정보 관리', action: () => navigate('/settings') },
-                { icon: 'security', label: '보안 및 로그인', action: () => navigate('/settings') },
-                { icon: 'tune', label: '맞춤 추천 설정', action: () => navigate('/settings') },
+                { icon: 'person_outline', label: '개인정보 관리', action: () => navigate('/settings/profile') },
+                { icon: 'security', label: '보안 및 로그인', action: () => navigate('/settings/security') },
+                { icon: 'tune', label: '맞춤 추천 설정', action: () => navigate('/settings/preferences') },
                 { icon: 'logout', label: '로그아웃', action: handleLogout, red: true },
               ].map((item, i) => (
                 <button

@@ -1,0 +1,168 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchWithAuth } from '../../api/fetchWithAuth';
+import UserNavbar from '../../components/user/UserNavbar';
+import Toast from '../../components/common/Toast';
+
+function SettingsSecurity() {
+  const navigate = useNavigate();
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwErrors, setPwErrors] = useState({});
+  const [pwSaving, setPwSaving] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'success' });
+
+  const validatePassword = (pw) => {
+    if (pw.length < 8) return '8자 이상 입력해주세요.';
+    if (!/[A-Z]/.test(pw)) return '대문자를 포함해주세요.';
+    if (!/[0-9]/.test(pw)) return '숫자를 포함해주세요.';
+    if (!/[!@#$%^&*]/.test(pw)) return '특수문자(!@#$%^&*)를 포함해주세요.';
+    return '';
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    const errors = {};
+    if (!pwForm.currentPassword) errors.currentPassword = '현재 비밀번호를 입력해주세요.';
+    const newPwError = validatePassword(pwForm.newPassword);
+    if (newPwError) errors.newPassword = newPwError;
+    if (pwForm.newPassword !== pwForm.confirmPassword) errors.confirmPassword = '새 비밀번호가 일치하지 않습니다.';
+    if (Object.keys(errors).length > 0) { setPwErrors(errors); return; }
+
+    setPwSaving(true);
+    setPwErrors({});
+    try {
+      const data = await fetchWithAuth('/api/user/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
+      });
+      if (data.success) {
+        setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setToast({ message: '비밀번호가 변경되었습니다.', type: 'success' });
+      } else {
+        setPwErrors({ currentPassword: data.message || '비밀번호 변경에 실패했습니다.' });
+      }
+    } catch {
+      setToast({ message: '요청에 실패했습니다. 다시 시도해주세요.', type: 'error' });
+    } finally { setPwSaving(false); }
+  };
+
+  const handleWithdraw = () => {
+    if (!window.confirm('정말 탈퇴하시겠어요?\n탈퇴 후 모든 데이터가 삭제되며 복구할 수 없습니다.')) return;
+    fetchWithAuth('/api/user/account', { method: 'DELETE' })
+      .then(() => { localStorage.clear(); navigate('/'); })
+      .catch(() => setToast({ message: '탈퇴 처리에 실패했습니다.', type: 'error' }));
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F9F7F2] pb-24">
+      <UserNavbar />
+      <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => navigate('/my')} className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-green-50">
+            <span className="material-icons text-xl">arrow_back</span>
+          </button>
+          <h1 className="text-xl font-bold text-slate-800">보안 및 로그인</h1>
+        </div>
+
+        {/* 비밀번호 변경 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <span className="material-icons text-primary text-base">lock</span>비밀번호 변경
+          </h2>
+          <form onSubmit={handlePasswordChange} className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">현재 비밀번호</label>
+              <input
+                type="password"
+                value={pwForm.currentPassword}
+                onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))}
+                placeholder="현재 비밀번호"
+                className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              />
+              {pwErrors.currentPassword && <p className="text-xs text-red-500 mt-1">{pwErrors.currentPassword}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">새 비밀번호</label>
+              <input
+                type="password"
+                value={pwForm.newPassword}
+                onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
+                placeholder="8자 이상, 대문자·숫자·특수문자 포함"
+                className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              />
+              {pwErrors.newPassword && <p className="text-xs text-red-500 mt-1">{pwErrors.newPassword}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5">새 비밀번호 확인</label>
+              <input
+                type="password"
+                value={pwForm.confirmPassword}
+                onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                placeholder="새 비밀번호 다시 입력"
+                className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              />
+              {pwErrors.confirmPassword && <p className="text-xs text-red-500 mt-1">{pwErrors.confirmPassword}</p>}
+            </div>
+            <button
+              type="submit"
+              disabled={pwSaving}
+              className="w-full h-11 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary/90 disabled:opacity-50 mt-2"
+            >
+              {pwSaving ? '변경 중...' : '비밀번호 변경'}
+            </button>
+          </form>
+        </div>
+
+        {/* 소셜 로그인 연동 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <span className="material-icons text-primary text-base">link</span>소셜 로그인 연동
+          </h2>
+          <div className="space-y-3">
+            {[
+              { name: 'Google', color: 'border-gray-200', icon: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              )},
+              { name: 'Kakao', color: 'border-gray-200', icon: (
+                <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="#3C1E1E" d="M12 3C6.477 3 2 6.477 2 10.5c0 2.5 1.5 4.7 3.8 6L4.5 20l5-2.7C10.3 17.4 11.1 17.5 12 17.5c5.523 0 10-3.134 10-7S17.523 3 12 3z"/></svg>
+              )},
+            ].map(social => (
+              <div key={social.name} className={`flex items-center justify-between p-3 rounded-xl border ${social.color}`}>
+                <div className="flex items-center gap-3">
+                  {social.icon}
+                  <span className="text-sm font-medium text-slate-700">{social.name}</span>
+                </div>
+                <span className="text-xs text-slate-400 bg-gray-100 px-2.5 py-1 rounded-full">준비 중</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 로그아웃 / 회원탈퇴 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <span className="material-icons text-slate-400 text-base">manage_accounts</span>계정 관리
+          </h2>
+          <div className="space-y-2">
+            <button
+              onClick={() => { localStorage.clear(); navigate('/login'); }}
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-slate-600 text-sm font-medium border border-gray-100"
+            >
+              <span className="material-icons text-slate-400 text-base">logout</span>로그아웃
+            </button>
+            <button
+              onClick={handleWithdraw}
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-400 text-sm font-medium border border-gray-100 hover:border-red-100"
+            >
+              <span className="material-icons text-red-300 text-base">person_remove</span>회원 탈퇴
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
+    </div>
+  );
+}
+
+export default SettingsSecurity;

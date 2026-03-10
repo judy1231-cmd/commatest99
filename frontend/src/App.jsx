@@ -19,6 +19,9 @@ import RestRecord from './pages/user/RestRecord';
 import MapPage from './pages/user/MapPage';
 import PlaceDetail from './pages/user/PlaceDetail';
 import Settings from './pages/user/Settings';
+import SettingsProfile from './pages/user/SettingsProfile';
+import SettingsSecurity from './pages/user/SettingsSecurity';
+import SettingsPreferences from './pages/user/SettingsPreferences';
 import Notifications from './pages/user/Notifications';
 
 // Rest Category Pages
@@ -153,6 +156,9 @@ function App() {
       <Route path="/rest-record" element={<PrivateRoute><RestRecord /></PrivateRoute>} />
       <Route path="/challenge" element={<PrivateRoute><Challenge /></PrivateRoute>} />
       <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/settings/profile" element={<PrivateRoute><SettingsProfile /></PrivateRoute>} />
+      <Route path="/settings/security" element={<PrivateRoute><SettingsSecurity /></PrivateRoute>} />
+      <Route path="/settings/preferences" element={<PrivateRoute><SettingsPreferences /></PrivateRoute>} />
       <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
 
       {/* 관리자 로그인 (공개) */}

@@ -182,6 +182,9 @@ function UserNavbar() {
             <Link to="/contents" className={`text-sm font-medium transition-colors ${isActive('/contents') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 콘텐츠</Link>
             <Link to="/map" className={`text-sm font-medium transition-colors ${isActive('/map') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 지도</Link>
             <Link to="/my" className={`text-sm font-medium transition-colors ${isActive('/my') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>마이페이지</Link>
+            {isLoggedIn && JSON.parse(localStorage.getItem('user') || '{}').role === 'ADMIN' && (
+              <Link to="/admin" className="text-sm font-medium px-3 py-1 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors">관리자</Link>
+            )}
             {isLoggedIn ? (
               <button onClick={handleLogout} className="text-sm font-medium text-text-muted hover:text-red-500 transition-colors">로그아웃</button>
             ) : (

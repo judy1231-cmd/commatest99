@@ -161,12 +161,12 @@ function MapPage() {
 
           {/* 휴식유형 필터 */}
           <div className="p-3 border-b border-slate-100">
-            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex flex-wrap gap-1.5">
               {REST_TYPES.map(type => (
                 <button
                   key={type.key}
                   onClick={() => setSelectedType(type.key)}
-                  className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${
                     selectedType === type.key ? 'text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                   style={selectedType === type.key ? { backgroundColor: type.color } : {}}
