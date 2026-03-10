@@ -1,27 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
 
-const activities = [
-  {
-    icon: 'self_improvement',
-    title: '마음챙김 명상',
-    desc: '5분간 호흡에만 집중하며 떠오르는 생각을 흘려보냅니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo',
-  },
-  {
-    icon: 'edit_note',
-    title: '저널링',
-    desc: '머릿속 생각들을 종이에 꺼내놓고 마음의 공간을 만듭니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlkWXkQeEdsN3rMbEq-HJoAWXbm_heXj0lDotkOIIjTSe-pZt2eul98AjGvgtnd732G4g2aBUabGuHOpsjpJT10IoeI8RGLYbWM0geVdd4naFyqxM9kVql1oNkrql7qKYSSH_KCqP8-icc4I9yK6T0U8Io5aUiPGh4sNJvozK_JK4x2_jfHanVCm0G2WBY5GyFeIPwEzhRIvTsY9ikPHrD72ariDFiVnLPaJW_EfoD8EmXI6v-SUMNPfGTBj0P48ISouBCD68cVcQ',
-  },
-  {
-    icon: 'cloud_off',
-    title: '브레인덤프',
-    desc: '10분 동안 아무 생각이나 적어내려가며 뇌의 과부하를 해소합니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4',
-  },
-];
+const TYPE_COLOR = '#5B8DEF';
 
 const places = [
   { name: '종로 도서관', location: '서울 종로구', tag: '도서관', rating: '4.8', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlkWXkQeEdsN3rMbEq-HJoAWXbm_heXj0lDotkOIIjTSe-pZt2eul98AjGvgtnd732G4g2aBUabGuHOpsjpJT10IoeI8RGLYbWM0geVdd4naFyqxM9kVql1oNkrql7qKYSSH_KCqP8-icc4I9yK6T0U8Io5aUiPGh4sNJvozK_JK4x2_jfHanVCm0G2WBY5GyFeIPwEzhRIvTsY9ikPHrD72ariDFiVnLPaJW_EfoD8EmXI6v-SUMNPfGTBj0P48ISouBCD68cVcQ' },
@@ -64,6 +46,7 @@ function RestMental() {
   const [timeOpt, setTimeOpt] = useState('short');
   const [withOpt, setWithOpt] = useState('alone');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('mental');
   const filteredPlaces = MENTAL_PLACES.filter(
     p => p.time.includes(timeOpt) && p.with.includes(withOpt)
   );
@@ -135,27 +118,36 @@ function RestMental() {
             <h3 className="text-2xl font-bold text-slate-900">추천 휴식 활동</h3>
             <p className="text-slate-500 mt-2">지금 당신에게 가장 필요한 활동들을 골라보았습니다.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {activities.map((act, i) => (
-              <div key={i} className="group cursor-pointer" onClick={() => navigate('/rest-record')}>
-                <div className="relative aspect-video rounded-2xl overflow-hidden mb-4">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={act.img} alt={act.title} />
-                  <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow">
-                    <span className="material-symbols-outlined text-teal-600">{act.icon}</span>
+          {activitiesLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: TYPE_COLOR }} />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+              <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {activities.map((act) => (
+                <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE_COLOR + '20' }}>
+                      <span className="material-icons" style={{ color: TYPE_COLOR }}>spa</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                      <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
+                  <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                  {act.durationMinutes && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2" style={{ backgroundColor: TYPE_COLOR + '15', color: TYPE_COLOR }}>{act.durationMinutes}분</span>
+                  )}
+                  <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
                 </div>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-teal-600 transition-colors">{act.title}</h4>
-                    <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
-                  </div>
-                  <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-1 p-1 shrink-0">
-                    <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ===== 지금 어떻게 쉬고 싶어요? ===== */}

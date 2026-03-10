@@ -1,27 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
 
-const activities = [
-  {
-    icon: 'hot_tub',
-    title: '온천 & 목욕',
-    desc: '따뜻한 물에 몸을 담가 근육을 이완시키고 혈액순환을 촉진합니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlkWXkQeEdsN3rMbEq-HJoAWXbm_heXj0lDotkOIIjTSe-pZt2eul98AjGvgtnd732G4g2aBUabGuHOpsjpJT10IoeI8RGLYbWM0geVdd4naFyqxM9kVql1oNkrql7qKYSSH_KCqP8-icc4I9yK6T0U8Io5aUiPGh4sNJvozK_JK4x2_jfHanVCm0G2WBY5GyFeIPwEzhRIvTsY9ikPHrD72ariDFiVnLPaJW_EfoD8EmXI6v-SUMNPfGTBj0P48ISouBCD68cVcQ',
-  },
-  {
-    icon: 'self_improvement',
-    title: '스트레칭',
-    desc: '10분간 전신 스트레칭으로 굳어있는 근육을 풀어줍니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4',
-  },
-  {
-    icon: 'bedtime',
-    title: '수면 최적화',
-    desc: '완벽한 수면 환경을 만들어 깊은 잠으로 신체를 완전히 회복시킵니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo',
-  },
-];
+const TYPE_COLOR = '#4CAF82';
 
 const places = [
   { name: '해운대 스파랜드', location: '부산 해운대구', tag: '온천/스파', rating: '4.9', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo' },
@@ -67,6 +49,7 @@ function RestPhysical() {
   const [intensity, setIntensity] = useState('light');
   const [placeType, setPlaceType] = useState('indoor');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('physical');
   const filteredPlaces = EXERCISE_PLACES.filter(
     p => p.intensity.includes(intensity) && p.type.includes(placeType)
   );
@@ -129,27 +112,36 @@ function RestPhysical() {
             <h3 className="text-2xl font-bold text-slate-900">추천 휴식 활동</h3>
             <p className="text-slate-500 mt-2">지금 당신에게 가장 필요한 활동들을 골라보았습니다.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {activities.map((act, i) => (
-              <div key={i} className="group cursor-pointer" onClick={() => navigate('/rest-record')}>
-                <div className="relative aspect-video rounded-2xl overflow-hidden mb-4">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={act.img} alt={act.title} />
-                  <div className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow">
-                    <span className="material-symbols-outlined text-emerald-600">{act.icon}</span>
+          {activitiesLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: TYPE_COLOR }} />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+              <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {activities.map((act) => (
+                <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE_COLOR + '20' }}>
+                      <span className="material-icons" style={{ color: TYPE_COLOR }}>fitness_center</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                      <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
+                  <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                  {act.durationMinutes && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2" style={{ backgroundColor: TYPE_COLOR + '15', color: TYPE_COLOR }}>{act.durationMinutes}분</span>
+                  )}
+                  <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
                 </div>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">{act.title}</h4>
-                    <p className="text-slate-500 text-sm mt-1">{act.desc}</p>
-                  </div>
-                  <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-1 p-1 shrink-0">
-                    <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ===== 오늘 어떤 운동을 할까요? ===== */}

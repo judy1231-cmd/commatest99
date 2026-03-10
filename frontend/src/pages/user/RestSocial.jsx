@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
+
+const TYPE_COLOR = '#FF9A3C';
 
 const SCALE_OPTIONS = [
   { key: 'solo',   label: '나홀로', emoji: '🧍', desc: '혼자지만 사회적인 공간에서' },
@@ -24,26 +27,6 @@ const SOCIAL_PLACES = [
   { name: '혼자 가기 좋은 재즈바', location: '이태원·홍대', desc: '바 카운터에 앉아 라이브 재즈 감상. 혼자지만 외롭지 않은 밤', scale: ['solo'], vibe: ['active'], tags: ['재즈바', '라이브', '분위기'], icon: 'music_note', color: '#f97316' },
 ];
 
-const activities = [
-  {
-    icon: 'smartphone',
-    title: '디지털 디톡스',
-    desc: '2시간 동안 모든 SNS와 메신저 알림을 끕니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBoTnL799Pv0hFOwoNRv_Ap-KNcaLvZGpLi2sAk-g1yscJM9HAyUA5IlnI_FPfoCp_s4qaQJjJ2yvE10djldE40BSNrSR1vPrLldyp-p9l-V9cLvLc2aVh6cm99IRgQYJMBcl8ga_e6RVYQdGgPQFzXon_TVKqkqzjKfS-OfiiHruSByBqG2P1WpJa6Myi6YuCU1no88zObH4Er0FMTksJy5Ys_cmdffHVxWqBvBFAS_Jgyyyx4Ug-i2JPgMhZKhJtfseNO045liHM',
-  },
-  {
-    icon: 'group',
-    title: '안전한 관계 맺기',
-    desc: '에너지를 뺏지 않는 편안한 친구와 짧은 산책을 합니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA1pjQhcRF9En98G4AN0jXreiDTc1SEIRy1YvbcEWaLmFLORcICgz_RHOYYVf0KNS9BQXhIWAqVo3ajSJOmUWFVyW-dwyNdKr5s7OmcEZvlVw89NaGl2KxHqcNxIv-ZjVIoXt1RsOaqjPrBfQkX4UuRqvuONAbYGLA59NIvyqlj5Ly1L7oSyCl-RL7ok1COYXFwbkk4nR7b-tLTE7ALu3de8-gjJrk2KsPYrEr7KUa0pJqzo4_iMG3EdfqnGuRL1yVGXbei_ZBcYTk',
-  },
-  {
-    icon: 'hiking',
-    title: '나홀로 로컬 여행',
-    desc: '익숙하지 않은 동네에서 타인이 되어 걸어봅니다.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTESxurgZnUwQRAiKRNmldoPAHbQlathM-LYLRBtG0qH7ymTp0zH3irKA4oYtL-qO74PtRw4Ivl9EWiCnTOWyfqER0e4PPSLPqAFCVW66gY2ey8grV2_awQ5BMVTg76Ef43QPmc-kTsdxFMYHdqk2hVHLrnuTyRthiHoRc7RmWPGMPpUVrmw6rR384fVrR4MWMdu4ApsePeH8w2P5-ITWiuOmu-5SZNLJGBtLY2IJTajy0efAGJ1t7VGE-IZT94b3GsEAuhMcb4w8',
-  },
-];
 
 const places = [
   { name: "북스테이 '침묵의 시간'", location: '경기 가평군', tags: ['혼자 가기 좋음', '와이파이 없음'], rating: '4.9', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBYhrJAGkOuzu7zFWSiaMCUFsIPfoAPrw3PDFtRoKp7nJuzeYbt5lCiw4tVNmCEjN0_RLWE7RTkssYt7j7GFXY9gaqTaeRX37B837oJtrfrGyawwm5Y9CmlhqmI2VQL2SvrzQg6AGgJ-cDxYkHM_bAjBECsmiZOav-jORa__0QUGWpnsvzvQZ_mCtoReYnD0NVaN8_TUv5hQtq-q_TgUt5P3ZpT3UWW1sJJWfUb4CxzgQRDbWwzT47wBJcecyLQey8oI_yQoOZXGlE' },
@@ -63,6 +46,7 @@ function RestSocial() {
   const [scale, setScale] = useState('solo');
   const [vibe, setVibe] = useState('quiet');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('social');
   const filteredPlaces = SOCIAL_PLACES.filter(
     p => p.scale.includes(scale) && p.vibe.includes(vibe)
   );

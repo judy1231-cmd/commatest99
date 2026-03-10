@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
+
+const TYPE_COLOR = '#9B6DFF';
 
 const SENSE_OPTIONS = [
   { key: 'sound',   label: '청각',  emoji: '👂', desc: '소리로 감각을 쉬게 하기' },
@@ -26,11 +29,6 @@ const SENSORY_PLACES = [
   { name: '마사지샵 (발마사지)', location: '동네 마사지샵', desc: '발바닥 반사구 자극 30분. 피로 집중 해소', sense: ['touch'], time: ['evening','night'], tags: ['마사지', '발관리', '피로회복'], icon: 'airline_seat_flat', color: '#14b8a6' },
 ];
 
-const activities = [
-  { icon: 'dark_mode', title: '어둠 테라피', desc: '조명을 낮추거나 끄고 30분간 시각 자극 없이 지냅니다.' },
-  { icon: 'hearing', title: 'ASMR 감각 이완', desc: '빗소리, 숲소리, 파도소리로 청각을 부드럽게 자극합니다.' },
-  { icon: 'spa', title: '아로마 테라피', desc: '라벤더, 유칼립투스 등 향기로 후각을 통해 신경을 안정시킵니다.' },
-];
 
 const checklist = [
   '스마트폰 화면을 보면 눈이 쉽게 피로해진다.',
@@ -46,6 +44,7 @@ function RestSensory() {
   const [sense, setSense] = useState('sound');
   const [timeOfDay, setTimeOfDay] = useState('day');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('sensory');
   const filteredPlaces = SENSORY_PLACES.filter(
     p => p.sense.includes(sense) && p.time.includes(timeOfDay)
   );
@@ -174,22 +173,36 @@ function RestSensory() {
             {/* Activities */}
             <div>
               <h3 className="text-2xl font-bold mb-6">추천 휴식 활동</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {activities.map((act, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-6 border border-amber-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/rest-record')}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <span className="material-symbols-outlined">{act.icon}</span>
+              {activitiesLoading ? (
+                <div className="flex justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: TYPE_COLOR }} />
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+                  <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+                  <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {activities.map((act) => (
+                    <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE_COLOR + '20' }}>
+                          <span className="material-icons" style={{ color: TYPE_COLOR }}>visibility_off</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                          <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                        </button>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="p-1">
-                        <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                      </button>
+                      <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                      {act.durationMinutes && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2" style={{ backgroundColor: TYPE_COLOR + '15', color: TYPE_COLOR }}>{act.durationMinutes}분</span>
+                      )}
+                      <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
                     </div>
-                    <h4 className="font-bold text-slate-900 mb-2">{act.title}</h4>
-                    <p className="text-slate-500 text-sm leading-relaxed">{act.desc}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Checklist */}
