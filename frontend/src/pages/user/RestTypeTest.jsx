@@ -208,7 +208,7 @@ function RestTypeTest() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-8 text-left">
             <div className="flex items-center gap-3 mb-3">
               <span className="material-icons text-primary">timer</span>
-              <span className="text-sm font-semibold text-slate-700">약 2분 소요</span>
+              <span className="text-sm font-semibold text-slate-700">약 3분 소요</span>
             </div>
             <div className="flex items-center gap-3 mb-3">
               <span className="material-icons text-primary">quiz</span>
