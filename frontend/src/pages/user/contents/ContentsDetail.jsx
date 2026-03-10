@@ -54,9 +54,15 @@ const RELATED_CONTENTS = {
 function ContentsDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('accessToken');
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handleRecordClick = () => {
+    if (!isLoggedIn) { navigate('/login'); return; }
+    navigate('/records/rest');
+  };
 
   useEffect(() => {
     loadContent();
@@ -225,16 +231,18 @@ function ContentsDetail() {
         <div className="flex gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex-1 py-3.5 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+            className="py-3.5 px-6 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
           >
             뒤로가기
           </button>
-          <Link
-            to="/contents"
-            className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-center"
+          <button
+            onClick={handleRecordClick}
+            className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
           >
-            콘텐츠 목록
-          </Link>
+            <span className="material-icons text-base">edit_note</span>
+            휴식 기록하기
+            {!isLoggedIn && <span className="material-icons text-sm opacity-70">lock</span>}
+          </button>
         </div>
       </main>
     </div>
