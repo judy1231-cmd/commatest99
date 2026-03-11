@@ -11,7 +11,7 @@ const TYPE = {
   desc: '감정을 억누르지 않고 있는 그대로 받아들이며 회복하는 시간',
   color: '#FF7BAC',
   chipBg: '#FFF0F5',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo',
+  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCfTSkvtGQouW9OmWDcQeZ_f4we5oZVK8BUy4gVeMzBGCr_nkZOoGGNZ6aYlAY71mC2zJaleMtfFsrByui_Rj_y6CiUxhZqCCKcIa1jUINPw1TLkY8apXngujgqpIsq_TxCyatM72aD7ozeJ37UIRUsM5a265BRYsrNSAx2NVNM7Rak2CpITrohCdknW9vhQ9VI0IQn-m6ekEry6wEVX62Fdn1wbonpjt8vdu8N-prD2bg6UesywRaGZ67lzQSa8mEfLs-QgVm6geQ',
 };
 
 const COMPANION_OPTIONS = [

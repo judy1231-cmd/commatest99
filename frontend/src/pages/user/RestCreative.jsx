@@ -11,7 +11,7 @@ const TYPE = {
   desc: '만들고 표현하는 행위 자체로 에너지를 회복하는 시간',
   color: '#FFB830',
   chipBg: '#FFFBEB',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAS6DTNYuClfzjtJ3_KH8Jh9OKgqLbQc_6aILj9Vwi2NgaPG6WdMhQcm_pXTDGs5psilRvRu8gdWMPoeWaJpRk2YxbQaT8GH4VrYvjrQBNh0cbhGAkqJxbvMdUEMnJRkFVt5Gfvb0J7pqgXFDaxr-SVoEOLEfx8WKy3xLHGqiGv_lVrFxz_xEMPbKH0dPaJ-JCR7U38wnNFQcxBXrplIlkDJfuMcq7H8bqBVhKgjzv8qAeZE2x1lzC_pA4GjvkzA3FNq6k73eC8E',
+  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBUTpqDR5c82O_ETRkCkEZnONo1I_8NlxQImaVwRW2vGQn9a_zDeC1M0BvqsWxrOtC2m7Qa6X9pAV7jJAgOSRBHfB0d2phiYrkIXtydr_DiRzcgX5EIKKrInQQ67PaROHqdrYBFjQAi0JXz4wgYcsMIwQ8nxhzJYeiLwRzsl_Dn9s1WVS_ciP-uIst_PjZ753WCXL7LQ_paTHfhki2ZPeS3bt9VBEc1ks2nutTjkqCwpYOiA9-eO_KCaUMCvuxnFQEebn8PX73rONE',
 };
 
 const FIELD_OPTIONS = [
