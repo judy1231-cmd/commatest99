@@ -36,12 +36,16 @@ function MainDashboard() {
   const isLoggedIn = !!localStorage.getItem('accessToken');
   const [places, setPlaces] = useState([]);
   const [monthlyStats, setMonthlyStats] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
 
   useEffect(() => {
     loadPlaces();
-    if (isLoggedIn) loadMonthlyStats();
+    if (isLoggedIn) {
+      loadMonthlyStats();
+      loadRecommendations();
+    }
   }, [isLoggedIn]);
 
   const loadPlaces = async () => {
@@ -62,6 +66,17 @@ function MainDashboard() {
     try {
       const data = await fetchWithAuth('/api/stats/monthly');
       if (data.success && data.data) setMonthlyStats(data.data);
+    } catch {
+      // 무시
+    }
+  };
+
+  const loadRecommendations = async () => {
+    try {
+      const data = await fetchWithAuth('/api/recommendations');
+      if (data.success && Array.isArray(data.data)) {
+        setRecommendations(data.data.filter(r => r.placeName));
+      }
     } catch {
       // 무시
     }
@@ -242,6 +257,45 @@ function MainDashboard() {
             ))}
           </div>
         </section>
+
+        {/* 맞춤 추천 — 로그인 + 진단 이력 있을 때만 */}
+        {isLoggedIn && recommendations.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                <h3 className="text-xl font-bold text-slate-800">나를 위한 맞춤 추천</h3>
+                <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">진단 기반</span>
+              </div>
+              <Link to="/map" className="text-primary text-sm font-bold flex items-center hover:underline">
+                지도에서 보기 <span className="material-icons text-sm ml-1">map</span>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recommendations.slice(0, 3).map((rec) => (
+                <Link
+                  key={rec.id}
+                  to={`/places/${rec.placeId}`}
+                  onClick={async () => {
+                    try { await fetchWithAuth(`/api/recommendations/${rec.id}/click`, { method: 'PUT' }); } catch { /* 무시 */ }
+                  }}
+                  className="group rounded-2xl bg-white border border-primary/20 shadow-soft hover:shadow-hover hover:-translate-y-1 transition-all duration-300 p-6"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="material-icons text-primary text-base">location_on</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-slate-800 truncate">{rec.placeName}</h4>
+                      <p className="text-xs text-slate-400 truncate">{rec.placeAddress}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-primary/80 bg-primary/5 rounded-lg px-3 py-2 leading-relaxed">{rec.criteria}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Recommended Places */}
         <section>

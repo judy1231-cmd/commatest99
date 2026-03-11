@@ -19,4 +19,10 @@ public class Recommendation {
     private Boolean clicked;
     private Boolean saved;
     private LocalDateTime recommendedAt;
+
+    // JOIN — places 테이블에서 채워짐
+    private String placeName;
+    private String placeAddress;
+    private Double placeLatitude;
+    private Double placeLongitude;
 }

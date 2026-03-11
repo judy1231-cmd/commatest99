@@ -143,6 +143,13 @@ function RestTypeTest() {
           .sort((a, b) => b.score - a.score);
         setTypeScores(sorted);
         setStep('result');
+        // 진단 결과 기반 추천 자동 생성 (백그라운드 — 실패해도 진단 결과는 유지)
+        if (diagRes.data.id) {
+          fetchWithAuth('/api/recommendations', {
+            method: 'POST',
+            body: JSON.stringify({ diagnosisResultId: diagRes.data.id }),
+          }).catch(() => {});
+        }
       } else {
         setToast({ message: '서버 오류 — 로컬 결과를 보여드려요.', type: 'error' });
         showOfflineResult(answersAtSubmit);
