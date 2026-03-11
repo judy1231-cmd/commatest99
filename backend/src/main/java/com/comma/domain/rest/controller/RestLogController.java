@@ -119,7 +119,12 @@ public class RestLogController {
         String 쉼표번호 = (String) request.getAttribute("쉼표번호");
         int score = body.get("score") != null ? ((Number) body.get("score")).intValue() : 5;
         Object tagsObj = body.get("tags");
-        String tagsJson = tagsObj != null ? tagsObj.toString() : "[]";
+        String tagsJson = "[]";
+        if (tagsObj instanceof java.util.List) {
+            try {
+                tagsJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(tagsObj);
+            } catch (Exception ignored) { }
+        }
         String memo = body.get("memo") != null ? (String) body.get("memo") : null;
         restLogService.createEmotionLog(쉼표번호, score, tagsJson, memo);
         return ResponseEntity.ok(ApiResponse.ok("감정 기록이 저장되었습니다."));

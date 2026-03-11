@@ -89,7 +89,7 @@
     <select id="findEmotionLogs" resultType="map">
         SELECT id,
                emotion_after AS score,
-               mood_tags_json AS tagsJson,
+               mood_tags_json AS moodTagsJson,
                memo,
                created_at AS recordedAt
         FROM rest_logs
