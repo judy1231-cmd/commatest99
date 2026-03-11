@@ -4,14 +4,26 @@ import UserNavbar from '../../../components/user/UserNavbar';
 import { fetchWithAuth } from '../../../api/fetchWithAuth';
 
 const CATEGORY_ICON = {
-  physical: 'fitness_center',
-  mental: 'spa',
-  sensory: 'visibility_off',
+  physical:  'fitness_center',
+  mental:    'spa',
+  sensory:   'visibility_off',
   emotional: 'favorite',
-  social: 'groups',
-  nature: 'forest',
-  creative: 'brush',
+  social:    'groups',
+  nature:    'forest',
+  creative:  'brush',
 };
+
+const CATEGORY_COLOR = {
+  physical:  '#4CAF82',
+  mental:    '#5B8DEF',
+  sensory:   '#9B6DFF',
+  emotional: '#FF7BAC',
+  social:    '#FF9A3C',
+  nature:    '#2ECC9A',
+  creative:  '#FFB830',
+};
+
+const CHOICE_LABELS = ['A', 'B', 'C', 'D'];
 
 function DiagnosisQuiz() {
   const navigate = useNavigate();
@@ -123,29 +135,31 @@ function DiagnosisQuiz() {
     };
   };
 
-  // ── 로딩 중 ──
+  // ── 로딩 중 ──────────────────────────────────────────────────────────────────
   if (loadingQuestions) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="min-h-screen bg-white">
         <UserNavbar />
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <div className="w-10 h-10 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
+          <p className="text-[13px] text-slate-400 font-medium">문항을 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
-  // ── 에러 ──
+  // ── 에러 ─────────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="min-h-screen bg-white">
         <UserNavbar />
-        <main className="max-w-lg mx-auto px-4 pt-12 text-center">
-          <span className="material-icons text-5xl text-slate-300 mb-4 block">error_outline</span>
-          <p className="text-slate-500 mb-6">{error}</p>
+        <main className="max-w-[520px] mx-auto px-6 pt-16 text-center">
+          <span className="material-icons text-[48px] text-slate-300 mb-4 block">error_outline</span>
+          <p className="text-[15px] font-semibold text-slate-600 mb-2">문항을 불러오지 못했어요</p>
+          <p className="text-[13px] text-slate-400 mb-8">{error}</p>
           <button
             onClick={loadQuestions}
-            className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all"
+            className="px-8 py-3 bg-primary text-white font-bold rounded-2xl hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-100"
           >
             다시 시도
           </button>
@@ -155,100 +169,144 @@ function DiagnosisQuiz() {
   }
 
   const current = questions[currentIndex];
+  const category = current.question?.category;
+  const accentColor = CATEGORY_COLOR[category] || '#10b981';
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const allAnswered = Object.keys(answers).length === questions.length;
   const isLastQuestion = currentIndex === questions.length - 1;
+  const selectedChoiceId = answers[current.question?.id]?.choiceId;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-white flex flex-col">
       <UserNavbar />
 
-      <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
+      {/* ── 상단 진행바 ─────────────────────────────────────────────────────── */}
+      <div className="sticky top-16 z-40 bg-white border-b border-slate-100">
+        {/* 문항 번호 */}
+        <div className="max-w-[520px] mx-auto px-6 pt-4 pb-3 flex items-center justify-between">
+          <span className="text-[13px] font-bold text-slate-400">
+            질문 <span className="text-slate-900">{currentIndex + 1}</span>
+            <span className="text-slate-300"> / {questions.length}</span>
+          </span>
+          <span className="text-[13px] font-bold" style={{ color: accentColor }}>
+            {Math.round(progress)}%
+          </span>
+        </div>
+        {/* 진행바 — 카테고리 색상 */}
+        <div className="h-1 bg-slate-100">
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%`, backgroundColor: accentColor }}
+          />
+        </div>
+      </div>
 
-        {/* 진행률 */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center text-sm text-slate-400 mb-2">
-            <span className="font-medium text-slate-600">
-              질문 <span className="text-primary font-bold">{currentIndex + 1}</span> / {questions.length}
-            </span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+      <main className="flex-1 max-w-[520px] mx-auto w-full px-6 pt-10 pb-36">
+
+        {/* 카테고리 아이콘 */}
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6"
+          style={{ backgroundColor: accentColor + '18' }}
+        >
+          <span className="material-icons text-[24px]" style={{ color: accentColor }}>
+            {CATEGORY_ICON[category] || 'help_outline'}
+          </span>
         </div>
 
-        {/* 질문 카드 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-            <span className="material-icons text-primary">
-              {CATEGORY_ICON[current.question?.category] || 'help_outline'}
-            </span>
-          </div>
+        {/* 질문 텍스트 */}
+        <h2 className="text-[22px] font-extrabold text-slate-900 leading-relaxed mb-10 tracking-tight">
+          {current.question?.questionContent}
+        </h2>
 
-          <h2 className="text-lg font-bold text-slate-800 mb-6 leading-relaxed">
-            {current.question?.questionContent}
-          </h2>
-
-          {/* 선택지 카드 */}
-          <div className="space-y-3">
-            {current.choices?.map((choice) => {
-              const isSelected = answers[current.question.id]?.choiceId === choice.id;
-              return (
-                <button
-                  key={choice.id}
-                  onClick={() => handleSelect(
-                    current.question.id,
-                    choice.id,
-                    choice.score,
-                    current.question.category
-                  )}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium flex items-center gap-3 ${
-                    isSelected
-                      ? 'border-primary bg-soft-mint text-primary'
-                      : 'border-slate-200 text-slate-700 hover:border-primary/40 hover:bg-primary/5'
-                  }`}
+        {/* 선택지 카드 */}
+        <div className="space-y-3">
+          {current.choices?.map((choice, idx) => {
+            const isSelected = selectedChoiceId === choice.id;
+            return (
+              <button
+                key={choice.id}
+                onClick={() => handleSelect(
+                  current.question.id,
+                  choice.id,
+                  choice.score,
+                  current.question.category
+                )}
+                className="w-full text-left p-4 rounded-2xl border-2 transition-all duration-150 flex items-center gap-4 group"
+                style={{
+                  borderColor: isSelected ? accentColor : '#E2E8F0',
+                  backgroundColor: isSelected ? accentColor + '10' : '#ffffff',
+                }}
+              >
+                {/* 레이블 원 */}
+                <span
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-extrabold flex-shrink-0 transition-all"
+                  style={{
+                    backgroundColor: isSelected ? accentColor : '#F1F5F9',
+                    color: isSelected ? '#ffffff' : '#94A3B8',
+                  }}
                 >
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all ${
-                    isSelected ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {choice.displayOrder}
-                  </span>
+                  {CHOICE_LABELS[idx] ?? idx + 1}
+                </span>
+                <span
+                  className="text-[15px] font-semibold leading-relaxed transition-colors"
+                  style={{ color: isSelected ? accentColor : '#334155' }}
+                >
                   {choice.choiceContent}
-                </button>
-              );
-            })}
-          </div>
+                </span>
+                {isSelected && (
+                  <span className="material-icons ml-auto flex-shrink-0 text-[20px]" style={{ color: accentColor }}>
+                    check_circle
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 이전 / 다음 버튼 */}
-        <div className="flex gap-3">
+        {/* 미답변 / 비로그인 안내 */}
+        {isLastQuestion && !allAnswered && (
+          <p className="text-[12px] text-slate-400 text-center mt-6">
+            모든 질문에 답해야 결과를 볼 수 있어요
+          </p>
+        )}
+        {!isLoggedIn && (
+          <p className="text-[12px] text-slate-400 text-center mt-4">
+            로그인하면 진단 결과가 저장되고 맞춤 추천을 받을 수 있어요
+          </p>
+        )}
+      </main>
+
+      {/* ── 하단 고정 버튼 ─────────────────────────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-4">
+        <div className="max-w-[520px] mx-auto flex gap-3">
+          {/* 이전 */}
           {currentIndex > 0 && (
             <button
               onClick={() => setCurrentIndex((i) => i - 1)}
               disabled={submitting}
-              className="flex-1 py-3.5 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+              className="flex-1 py-4 border-2 border-slate-200 text-slate-600 text-[15px] font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-1"
             >
+              <span className="material-icons text-[18px]">arrow_back</span>
               이전
             </button>
           )}
 
+          {/* 다음 or 결과 보기 */}
           {!isLastQuestion ? (
             <button
               onClick={() => setCurrentIndex((i) => i + 1)}
-              disabled={!answers[current.question.id]?.choiceId}
-              className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-40"
+              disabled={!selectedChoiceId}
+              className="flex-1 py-4 text-white text-[15px] font-bold rounded-2xl transition-all disabled:opacity-40 flex items-center justify-center gap-1 shadow-lg"
+              style={{ backgroundColor: selectedChoiceId ? accentColor : '#94A3B8', boxShadow: selectedChoiceId ? `0 8px 24px ${accentColor}30` : 'none' }}
             >
               다음
+              <span className="material-icons text-[18px]">arrow_forward</span>
             </button>
           ) : (
             <button
               onClick={handleSubmit}
               disabled={!allAnswered || submitting}
-              className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-primary hover:bg-emerald-500 text-white text-[15px] font-bold rounded-2xl transition-all disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-100"
             >
               {submitting ? (
                 <>
@@ -256,25 +314,15 @@ function DiagnosisQuiz() {
                   분석 중...
                 </>
               ) : (
-                '결과 보기'
+                <>
+                  <span className="material-icons text-[18px]">auto_awesome</span>
+                  결과 보기
+                </>
               )}
             </button>
           )}
         </div>
-
-        {/* 미답변 안내 */}
-        {isLastQuestion && !allAnswered && (
-          <p className="text-xs text-slate-400 text-center mt-3">
-            아직 답하지 않은 질문이 있어요. 모든 질문에 답해주세요.
-          </p>
-        )}
-
-        {!isLoggedIn && (
-          <p className="text-xs text-slate-400 text-center mt-4">
-            로그인하면 진단 결과가 저장되고 맞춤 추천을 받을 수 있어요
-          </p>
-        )}
-      </main>
+      </div>
     </div>
   );
 }
