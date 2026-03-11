@@ -25,6 +25,16 @@ const REST_TYPE_TAG_COLORS = {
 
 const STAT_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400'];
 
+const REST_TYPE_LABELS = {
+  physical:  '신체적 이완',
+  mental:    '정신적 고요',
+  sensory:   '감각의 정화',
+  emotional: '정서적 지지',
+  social:    '사회적 휴식',
+  creative:  '창조적 몰입',
+  nature:    '자연의 연결',
+};
+
 function formatMinutes(minutes) {
   if (!minutes) return '0시간';
   if (minutes < 60) return `${minutes}분`;
@@ -409,7 +419,7 @@ function MainDashboard() {
                         <div className="flex justify-between items-center text-sm">
                           <span className="font-bold text-slate-700 flex items-center gap-2">
                             <span className={`w-3 h-3 rounded-full ${STAT_COLORS[i]}`}></span>
-                            {s.type}
+                            {REST_TYPE_LABELS[s.type] || s.type}
                           </span>
                           <span className="text-slate-500 font-medium">{s.pct}%</span>
                         </div>
