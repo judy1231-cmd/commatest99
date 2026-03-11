@@ -3,38 +3,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
 
-const TYPE_COLOR = '#5B8DEF';
-
-const places = [
-  { name: '종로 도서관', location: '서울 종로구', tag: '도서관', rating: '4.8', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBlkWXkQeEdsN3rMbEq-HJoAWXbm_heXj0lDotkOIIjTSe-pZt2eul98AjGvgtnd732G4g2aBUabGuHOpsjpJT10IoeI8RGLYbWM0geVdd4naFyqxM9kVql1oNkrql7qKYSSH_KCqP8-icc4I9yK6T0U8Io5aUiPGh4sNJvozK_JK4x2_jfHanVCm0G2WBY5GyFeIPwEzhRIvTsY9ikPHrD72ariDFiVnLPaJW_EfoD8EmXI6v-SUMNPfGTBj0P48ISouBCD68cVcQ' },
-  { name: '명상 스테이 고요', location: '강원 평창군', tag: '명상/숙박', rating: '4.9', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo' },
-  { name: '서울 식물원', location: '서울 강서구', tag: '공원/식물원', rating: '4.7', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4' },
-];
+const TYPE = {
+  key: 'mental',
+  name: '정신적 고요',
+  engName: 'Mental Calm',
+  icon: 'spa',
+  desc: '생각의 소음을 잠재우고 내면의 평정심을 되찾는 시간',
+  color: '#5B8DEF',
+  chipBg: '#F0F5FF',
+  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo',
+};
 
 const TIME_OPTIONS = [
-  { key: 'short',  label: '10분',   emoji: '⚡', desc: '짬짬이 가능한 초단기 루틴' },
-  { key: 'medium', label: '30분',   emoji: '🌙', desc: '퇴근 후 잠깐 집중 회복' },
-  { key: 'long',   label: '1시간+', emoji: '🌟', desc: '반나절 온전히 나를 위한 시간' },
+  { key: 'short',  label: '10분',   icon: 'bolt' },
+  { key: 'medium', label: '30분',   icon: 'nightlight' },
+  { key: 'long',   label: '1시간+', icon: 'star' },
 ];
 
 const WITH_OPTIONS = [
-  { key: 'alone',  label: '혼자',    emoji: '🧍' },
-  { key: 'space',  label: '조용한 공간', emoji: '🏛️' },
-  { key: 'guided', label: '안내 받기', emoji: '🎧' },
+  { key: 'alone',  label: '혼자',       icon: 'person' },
+  { key: 'space',  label: '조용한 공간', icon: 'domain' },
+  { key: 'guided', label: '안내 받기',   icon: 'headphones' },
 ];
 
 const MENTAL_PLACES = [
-  { name: '마음챙김 호흡 (5분)', location: '어디서든', desc: '4-7-8 호흡법. 들숨 4초, 멈춤 7초, 날숨 8초 × 4회', time: ['short'], with: ['alone'], tags: ['즉시가능', '호흡', '무료'], icon: 'air', color: '#10B981' },
-  { name: '저널링 (10분)', location: '집·카페 어디서든', desc: '지금 머릿속에 있는 것 모두 종이에 쓰기. 판단 없이', time: ['short', 'medium'], with: ['alone'], tags: ['글쓰기', '감정정리', '무료'], icon: 'edit_note', color: '#059669' },
-  { name: '국립중앙도서관', location: '서울 서초구', desc: '완벽한 고요함. 책을 읽지 않아도 앉아있는 것만으로도 회복', time: ['medium', 'long'], with: ['space'], tags: ['도서관', '무료', '고요함'], icon: 'local_library', color: '#0891b2' },
-  { name: '교보문고 광화문', location: '서울 종로구', desc: '책향기 가득한 공간에서 어슬렁거리기. 사야 한다는 부담 없이', time: ['medium'], with: ['space', 'alone'], tags: ['서점', '책', '자유로움'], icon: 'menu_book', color: '#7c3aed' },
-  { name: '명상 앱 (코끼리·마보)', location: '집·어디서든', desc: '가이드 명상 10~20분. 초보도 바로 시작 가능', time: ['short', 'medium'], with: ['guided'], tags: ['앱', '가이드명상', '무료체험'], icon: 'self_improvement', color: '#10B981' },
-  { name: '사찰 템플스테이', location: '전국 사찰', desc: '1박 2일 당일형 선택 가능. 예불·참선·공양 체험', time: ['long'], with: ['guided', 'space'], tags: ['템플스테이', '사찰', '1박2일'], icon: 'temple_buddhist', color: '#b45309' },
-  { name: '조용한 전통찻집', location: '인사동·북촌', desc: '차 한 잔 마시며 아무것도 안 하는 시간. 스마트폰은 내려두기', time: ['medium'], with: ['alone', 'space'], tags: ['전통차', '고요함', '인사동'], icon: 'local_cafe', color: '#92400e' },
-  { name: '명상 스튜디오', location: '강남·마포·홍대', desc: '전문 명상 지도사가 이끄는 50분 집중 프로그램', time: ['long'], with: ['guided'], tags: ['전문명상', '예약', '프리미엄'], icon: 'spa', color: '#6366f1' },
+  { name: '마음챙김 호흡 (5분)', location: '어디서든', desc: '4-7-8 호흡법. 들숨 4초, 멈춤 7초, 날숨 8초 × 4회', time: ['short'], with: ['alone'], tags: ['즉시가능', '호흡', '무료'], icon: 'air', gradient: 'from-teal-400 to-cyan-500' },
+  { name: '저널링 (10분)', location: '집·카페 어디서든', desc: '지금 머릿속에 있는 것 모두 종이에 쓰기. 판단 없이', time: ['short', 'medium'], with: ['alone'], tags: ['글쓰기', '감정정리', '무료'], icon: 'edit_note', gradient: 'from-emerald-400 to-teal-500' },
+  { name: '국립중앙도서관', location: '서울 서초구', desc: '완벽한 고요함. 책을 읽지 않아도 앉아있는 것만으로도 회복', time: ['medium', 'long'], with: ['space'], tags: ['도서관', '무료', '고요함'], icon: 'local_library', gradient: 'from-sky-400 to-blue-500' },
+  { name: '교보문고 광화문', location: '서울 종로구', desc: '책향기 가득한 공간에서 어슬렁거리기. 사야 한다는 부담 없이', time: ['medium'], with: ['space', 'alone'], tags: ['서점', '책', '자유로움'], icon: 'menu_book', gradient: 'from-violet-400 to-purple-500' },
+  { name: '명상 앱 (코끼리·마보)', location: '집·어디서든', desc: '가이드 명상 10~20분. 초보도 바로 시작 가능', time: ['short', 'medium'], with: ['guided'], tags: ['앱', '가이드명상', '무료체험'], icon: 'self_improvement', gradient: 'from-indigo-400 to-blue-500' },
+  { name: '사찰 템플스테이', location: '전국 사찰', desc: '1박 2일 또는 당일형. 예불·참선·공양 체험', time: ['long'], with: ['guided', 'space'], tags: ['템플스테이', '사찰', '1박2일'], icon: 'temple_buddhist', gradient: 'from-amber-500 to-orange-600' },
+  { name: '조용한 전통찻집', location: '인사동·북촌', desc: '차 한 잔 마시며 아무것도 안 하는 시간. 스마트폰은 내려두기', time: ['medium'], with: ['alone', 'space'], tags: ['전통차', '고요함', '인사동'], icon: 'local_cafe', gradient: 'from-stone-400 to-amber-500' },
+  { name: '명상 스튜디오', location: '강남·마포·홍대', desc: '전문 명상 지도사가 이끄는 50분 집중 프로그램', time: ['long'], with: ['guided'], tags: ['전문명상', '예약', '프리미엄'], icon: 'spa', gradient: 'from-blue-400 to-indigo-600' },
 ];
 
-const checklist = [
+const CHECKLIST = [
   '생각이 너무 많아 멈출 수가 없다.',
   '한 가지 일에 집중하기 어렵다.',
   '아무것도 아닌 일에 결정을 내리기 힘들다.',
@@ -45,266 +48,191 @@ function RestMental() {
   const navigate = useNavigate();
   const [timeOpt, setTimeOpt] = useState('short');
   const [withOpt, setWithOpt] = useState('alone');
-  const [liked, setLiked] = useState({});
   const { activities, loading: activitiesLoading } = useRestActivities('mental');
+
   const filteredPlaces = MENTAL_PLACES.filter(
     p => p.time.includes(timeOpt) && p.with.includes(withOpt)
   );
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
-      <main className="max-w-7xl mx-auto px-6 py-10 space-y-20 pb-24 md:pb-10">
 
-        {/* Back */}
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
-          <span className="material-symbols-outlined text-base">arrow_back</span>
-          홈으로
-        </Link>
+      {/* 히어로 */}
+      <div className="relative">
+        <div className="relative h-60 overflow-hidden">
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          {/* 블루 계열 브랜드 오버레이 */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(30,58,138,0.72) 0%, rgba(59,130,246,0.22) 60%, rgba(0,0,0,0.05) 100%)' }} />
+          <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">
+            <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 bg-white/20 backdrop-blur-sm text-white/90">
+              {TYPE.engName}
+            </span>
+            <h1 className="text-[28px] font-extrabold text-white tracking-tight">{TYPE.name}</h1>
+            <p className="text-white/70 text-[13px] mt-0.5">{TYPE.desc}</p>
+          </div>
+        </div>
 
-        {/* Hero */}
-        <section className="relative h-[480px] rounded-3xl overflow-hidden">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9YA02Qrhlax2MQpT-TtboYEbRVzpBreEWwUv_olaFb18WQsTQPjT7kTAkLv7wvJGHeXlEPeNeFygpmARx53NctmzGrdgiF8S8CR5e0_5TcQliztEbyZThYnZnykqbdL_Y6upUpqPX1W6BaNYpkKnMSkNirIHeoh_Ccma3VE6a7RW5jI7dYyNvuqlr1RnWJSBolH8DnTAzsHHPeKQsmTMO3tND0d4ZB0kCshXfouqe-5fwc3f9EoBqRPU3waNU5_H6yS4emYQcdVo"
-            alt="정신적 고요"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-teal-900/80 via-teal-800/40 to-teal-600/10 flex flex-col justify-center px-12">
-            <span className="inline-block px-4 py-1.5 bg-teal-400/90 text-white rounded-full text-sm font-bold mb-6 w-fit uppercase tracking-wider">Mental Calm</span>
-            <h2 className="text-5xl font-bold text-white leading-tight mb-4">정신적 고요</h2>
-            <p className="text-white/80 text-lg max-w-md leading-relaxed">생각을 멈추고, 내면의 소음을 잠재우며<br />깊은 평정심을 되찾는 시간입니다.</p>
-            <div className="flex gap-4 mt-8">
-              <button className="px-8 py-3 bg-teal-500 text-white rounded-xl font-bold hover:bg-teal-600 transition-colors shadow-lg">휴식 시작하기</button>
-              <button className="px-8 py-3 bg-white/20 backdrop-blur text-white border border-white/30 rounded-xl font-bold hover:bg-white/30 transition-colors">자세히 알아보기</button>
+        {/* 브릿지 */}
+        <div className="relative -mt-5 bg-[#F7F7F8] rounded-t-3xl pt-6 px-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.chipBg }}>
+              <span className="material-icons text-[18px]" style={{ color: TYPE.color }}>{TYPE.icon}</span>
+            </div>
+            <div>
+              <p className="text-[13px] font-extrabold" style={{ color: TYPE.color }}>{TYPE.name}</p>
+              <p className="text-[11px] text-slate-400">집중력 향상 · 감정 안정 · 창의성 회복</p>
             </div>
           </div>
-        </section>
 
-        {/* Why section */}
-        <section className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 text-teal-700 bg-teal-50 px-4 py-2 rounded-lg font-semibold mb-4">
-              <span className="material-symbols-outlined">health_and_safety</span>
-              <span>정신적 피로의 원인</span>
-            </div>
-            <h3 className="text-3xl font-bold leading-tight mb-4">정신적 피로란 무엇인가요?</h3>
-            <p className="text-gray-600 leading-relaxed text-lg">
-              지속적인 의사결정, 정보 과부하, 과도한 멀티태스킹으로 인해 뇌가 지치는 상태입니다. 몸은 멀쩡해 보여도 생각의 질이 떨어지고 감정 조절이 어려워집니다.
-            </p>
-          </div>
-          <div className="bg-teal-50 rounded-3xl p-8">
-            <h4 className="text-xl font-bold mb-6 text-teal-800">정신적 이완의 효과</h4>
-            <ul className="space-y-4">
-              {[
-                { title: '집중력 향상', desc: '생각의 정리로 업무 효율이 최대 40% 향상됩니다.' },
-                { title: '감정 안정', desc: '과활성화된 편도체가 안정되어 감정 기복이 줄어듭니다.' },
-                { title: '창의성 회복', desc: '비워진 뇌에 새로운 아이디어가 자연스럽게 채워집니다.' },
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-teal-500">check_circle</span>
-                  <div>
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="text-sm text-gray-600">{item.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+          <main className="max-w-4xl mx-auto">
 
-        {/* Recommended Activities */}
-        <section>
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold text-slate-900">추천 휴식 활동</h3>
-            <p className="text-slate-500 mt-2">지금 당신에게 가장 필요한 활동들을 골라보았습니다.</p>
-          </div>
-          {activitiesLoading ? (
-            <div className="flex justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: TYPE_COLOR }} />
-            </div>
-          ) : activities.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
-              <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
-              <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {activities.map((act) => (
-                <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE_COLOR + '20' }}>
-                      <span className="material-icons" style={{ color: TYPE_COLOR }}>spa</span>
-                    </div>
-                    <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
-                      <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                    </button>
-                  </div>
-                  <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
-                  {act.durationMinutes && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2" style={{ backgroundColor: TYPE_COLOR + '15', color: TYPE_COLOR }}>{act.durationMinutes}분</span>
-                  )}
-                  <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
+            {/* 추천 활동 */}
+            <section className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[17px] font-extrabold text-slate-800">추천 활동</h2>
+                <span className="text-xs text-slate-400">탭하면 기록할 수 있어요</span>
+              </div>
+              {activitiesLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1,2,3].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-28" />)}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ===== 지금 어떻게 쉬고 싶어요? ===== */}
-        <section>
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold text-gray-800">지금 어떻게 쉬고 싶어요?</h3>
-            <p className="text-gray-500 mt-2">시간과 방식을 선택하면 딱 맞는 공간을 추천해줄게요</p>
-          </div>
-
-          <div className="mb-6">
-            <p className="text-sm font-bold text-slate-600 mb-3">가능한 시간</p>
-            <div className="grid grid-cols-3 gap-3">
-              {TIME_OPTIONS.map(opt => (
-                <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
-                  className={`p-4 rounded-2xl border-2 text-left transition-all ${timeOpt === opt.key ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
-                  <div className="text-2xl mb-2">{opt.emoji}</div>
-                  <p className="font-bold text-sm">{opt.label}</p>
-                  <p className={`text-xs mt-1 ${timeOpt === opt.key ? 'text-white/80' : 'opacity-70'}`}>{opt.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <p className="text-sm font-bold text-slate-600 mb-3">휴식 방식</p>
-            <div className="flex gap-3 flex-wrap">
-              {WITH_OPTIONS.map(opt => (
-                <button key={opt.key} onClick={() => setWithOpt(opt.key)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border-2 font-bold text-sm transition-all ${withOpt === opt.key ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300'}`}>
-                  <span>{opt.emoji}</span>{opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filteredPlaces.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
-              <span className="text-4xl mb-3 block">🧘</span>
-              <p className="text-slate-500 font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPlaces.map((place, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${place.color}20` }}>
-                      <span className="material-icons text-base" style={{ color: place.color }}>{place.icon}</span>
+              ) : activities.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
+                  <span className="material-icons text-3xl text-slate-200 block mb-2">pending</span>
+                  <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {activities.map((act) => (
+                    <div key={act.id} onClick={() => navigate('/rest-record')}
+                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: TYPE.color + '18' }}>
+                        <span className="material-icons text-lg" style={{ color: TYPE.color }}>{TYPE.icon}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h4 className="font-bold text-slate-800 text-sm">{act.activityName}</h4>
+                        {act.durationMinutes && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{act.durationMinutes}분</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{act.guideContent}</p>
+                      <div className="mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: TYPE.color }}>
+                        <span className="material-icons text-sm">edit_note</span>
+                        <span className="text-xs font-bold">기록하기</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
-                      <p className="text-xs text-slate-400">{place.location}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed mb-3">{place.desc}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {place.tags.map((tag, j) => (
-                      <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${place.color}15`, color: place.color }}>#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* 필터 + 장소 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 어떻게 쉬고 싶어요?</h2>
+
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">가능한 시간</p>
+                  <div className="flex gap-2">
+                    {TIME_OPTIONS.map(opt => (
+                      <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
+                        style={timeOpt === opt.key
+                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
+                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
+                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
+                      </button>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-6 text-center">
-            <a href="/map?restType=mental" className="inline-flex items-center gap-2 bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-emerald-600 transition-colors">
-              <span className="material-icons text-base">map</span>
-              지도에서 내 주변 명상 공간 찾기
-            </a>
-          </div>
-        </section>
-
-        {/* Checklist + Places */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="bg-teal-50 rounded-2xl p-8 border border-teal-100">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="material-symbols-outlined text-teal-600 text-3xl">psychology</span>
-              <h3 className="text-xl font-bold text-slate-900">정신적 고요가 필요한 신호</h3>
-            </div>
-            <div className="space-y-3">
-              {checklist.map((item, i) => (
-                <label key={i} className="flex items-center p-3 bg-white rounded-xl cursor-pointer border border-transparent hover:border-teal-200 transition-all shadow-sm">
-                  <input type="checkbox" className="w-5 h-5 rounded text-teal-600 focus:ring-teal-500 border-gray-300" />
-                  <span className="ml-3 text-slate-700 text-sm font-medium">{item}</span>
-                </label>
-              ))}
-            </div>
-            <div className="mt-6 p-4 bg-teal-100 rounded-xl">
-              <p className="text-sm text-teal-800 font-medium">※ 2개 이상 해당된다면, 오늘은 정신적 고요에 집중하세요.</p>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 mb-6">추천 장소</h3>
-            <div className="space-y-4">
-              {places.map((place, i) => (
-                <div key={i} onClick={() => navigate('/map')} className="flex gap-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src={place.img} alt={place.name} className="w-full h-full object-cover" />
+                <div className="w-px bg-slate-100 self-stretch" />
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">휴식 방식</p>
+                  <div className="flex gap-2">
+                    {WITH_OPTIONS.map(opt => (
+                      <button key={opt.key} onClick={() => setWithOpt(opt.key)}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
+                        style={withOpt === opt.key
+                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
+                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
+                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
+                      </button>
+                    ))}
                   </div>
-                  <div className="flex-1">
-                    <span className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">{place.tag}</span>
-                    <h4 className="font-bold text-slate-900">{place.name}</h4>
-                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">location_on</span>
-                      {place.location}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1 text-xs text-amber-500">
-                      <span className="material-symbols-outlined text-sm">star</span>
-                      <span className="font-bold">{place.rating}</span>
+                </div>
+              </div>
+
+              {filteredPlaces.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+                  <span className="material-icons text-4xl text-slate-200 block mb-2">search_off</span>
+                  <p className="text-slate-400 text-sm font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredPlaces.map((place, i) => (
+                    <div key={i} onClick={() => navigate('/rest-record')}
+                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
+                      <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
+                        <span className="material-icons text-2xl text-white/90">{place.icon}</span>
+                      </div>
+                      <div className="flex-1 min-w-0 p-4">
+                        <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                        <div className="flex items-center gap-1 mt-0.5 mb-2">
+                          <span className="material-icons text-[11px] text-slate-300">location_on</span>
+                          <p className="text-[11px] text-slate-400">{place.location}</p>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{place.desc}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {place.tags.map((tag, j) => (
+                            <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="material-icons text-slate-300">chevron_right</span>
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [i]: !prev[i] })); }}
-                    className="self-start mt-1 p-1"
-                  >
-                    <span className={`material-icons text-xl transition-colors ${liked[i] ? 'text-red-500' : 'text-slate-200 hover:text-red-300'}`}>favorite</span>
-                  </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              )}
 
-        {/* AI Pick */}
-        <section className="bg-slate-900 rounded-3xl p-10 text-white">
-          <div className="flex flex-col lg:flex-row gap-10">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-teal-400 font-bold mb-4 text-sm uppercase tracking-widest">
-                <span className="material-symbols-outlined">auto_awesome</span> AI Rest Pick
-              </div>
-              <h3 className="text-3xl font-bold mb-4">오늘 당신을 위한 AI 큐레이션</h3>
-              <div className="bg-white/10 rounded-2xl p-6 mb-6">
-                <p className="text-lg italic leading-relaxed">"생각이 없는 고요함이 아니라, 생각에 끌려다니지 않는 자유로움을 찾으세요."</p>
-              </div>
-            </div>
-            <div className="flex-1 space-y-4">
-              {[
-                { icon: 'library_music', title: '바이노럴 비트 명상 음악', desc: '집중력 향상 주파수 • 30분' },
-                { icon: 'video_library', title: '10분 마음챙김 명상 가이드', desc: '초보자를 위한 명상 입문' },
-                { icon: 'menu_book', title: '생각을 비우는 저널링 방법', desc: '에디터의 추천 아티클 • 5분' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center p-4 bg-white/10 rounded-2xl group cursor-pointer hover:bg-white/20 transition-colors">
-                  <div className="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center text-teal-400 mr-4">
-                    <span className="material-symbols-outlined">{item.icon}</span>
+              <Link to="/map?restType=mental"
+                className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-all">
+                <span className="material-icons text-base">map</span>
+                지도에서 내 주변 명상 공간 찾기
+              </Link>
+            </section>
+
+            {/* 체크리스트 */}
+            <section className="mb-10">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                    <span className="material-icons text-sm" style={{ color: TYPE.color }}>checklist</span>
                   </div>
-                  <div className="flex-1">
-                    <h5 className="font-bold">{item.title}</h5>
-                    <p className="text-xs text-white/60">{item.desc}</p>
+                  <div>
+                    <h3 className="font-extrabold text-slate-800 text-sm">정신적 고요가 필요한 신호</h3>
+                    <p className="text-xs text-slate-400">해당하는 항목을 체크해보세요</p>
                   </div>
-                  <span className="material-symbols-outlined text-white/40 group-hover:text-teal-400">play_circle</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
+                <div className="space-y-2">
+                  {CHECKLIST.map((item, i) => (
+                    <label key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all">
+                      <input type="checkbox" className="w-4 h-4 rounded shrink-0" style={{ accentColor: TYPE.color }} />
+                      <span className="text-sm text-slate-600 font-medium">{item}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 정신적 고요에 집중하세요.</p>
+                </div>
+              </div>
+            </section>
+
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
