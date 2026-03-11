@@ -111,6 +111,36 @@ public class AdminService {
         adminMapper.deleteKeyword(id);
     }
 
+    // ==================== 활동 콘텐츠 관리 ====================
+
+    public List<Map<String, Object>> getAllActivities() {
+        return adminMapper.findAllActivities();
+    }
+
+    public Map<String, Object> getActivityById(Long id) {
+        return adminMapper.findActivityById(id);
+    }
+
+    @Transactional
+    public Long createActivity(String restType, String activityName, String guideContent, Integer durationMinutes) {
+        Long restTypeId = adminMapper.findRestTypeIdByName(restType);
+        if (restTypeId == null) throw new IllegalArgumentException("존재하지 않는 휴식 유형: " + restType);
+        adminMapper.insertActivity(restTypeId, activityName, guideContent, durationMinutes);
+        return adminMapper.lastInsertId();
+    }
+
+    @Transactional
+    public void updateActivity(Long id, String restType, String activityName, String guideContent, Integer durationMinutes) {
+        Long restTypeId = adminMapper.findRestTypeIdByName(restType);
+        if (restTypeId == null) throw new IllegalArgumentException("존재하지 않는 휴식 유형: " + restType);
+        adminMapper.updateActivity(id, restTypeId, activityName, guideContent, durationMinutes);
+    }
+
+    @Transactional
+    public void deleteActivity(Long id) {
+        adminMapper.deleteActivity(id);
+    }
+
     private void logAudit(String admin쉼표번호, String action, String targetType, String targetId) {
         AuditLog log = new AuditLog();
         log.setAdmin쉼표번호(admin쉼표번호);

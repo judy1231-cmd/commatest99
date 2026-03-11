@@ -149,4 +149,48 @@
         DELETE FROM blocked_keywords WHERE id = #{id}
     </delete>
 
+    <!-- ==================== 활동 콘텐츠 관리 ==================== -->
+
+    <select id="findAllActivities" resultType="map">
+        SELECT ra.id, ra.activity_name AS activityName, ra.guide_content AS guideContent,
+               ra.duration_minutes AS durationMinutes, rt.type_name AS restType
+        FROM rest_activities ra
+        JOIN rest_types rt ON ra.rest_type_id = rt.id
+        ORDER BY rt.type_name, ra.id
+    </select>
+
+    <select id="findActivityById" resultType="map">
+        SELECT ra.id, ra.activity_name AS activityName, ra.guide_content AS guideContent,
+               ra.duration_minutes AS durationMinutes, rt.type_name AS restType
+        FROM rest_activities ra
+        JOIN rest_types rt ON ra.rest_type_id = rt.id
+        WHERE ra.id = #{id}
+    </select>
+
+    <select id="findRestTypeIdByName" resultType="java.lang.Long">
+        SELECT id FROM rest_types WHERE type_name = #{typeName}
+    </select>
+
+    <insert id="insertActivity">
+        INSERT INTO rest_activities (rest_type_id, activity_name, guide_content, duration_minutes)
+        VALUES (#{restTypeId}, #{activityName}, #{guideContent}, #{durationMinutes})
+    </insert>
+
+    <select id="lastInsertId" resultType="java.lang.Long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <update id="updateActivity">
+        UPDATE rest_activities
+        SET rest_type_id = #{restTypeId},
+            activity_name = #{activityName},
+            guide_content = #{guideContent},
+            duration_minutes = #{durationMinutes}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteActivity">
+        DELETE FROM rest_activities WHERE id = #{id}
+    </delete>
+
 </mapper>

@@ -104,4 +104,56 @@ public class AdminController {
         adminService.deleteBlockedKeyword(id);
         return ResponseEntity.ok(ApiResponse.ok("차단 키워드가 삭제되었습니다."));
     }
+
+    // ==================== 활동 콘텐츠 관리 ====================
+
+    // GET /api/admin/activities  [ADMIN 전용]
+    @GetMapping("/activities")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getActivities() {
+        List<Map<String, Object>> activities = adminService.getAllActivities();
+        return ResponseEntity.ok(ApiResponse.ok(activities, "활동 목록 조회 성공"));
+    }
+
+    // GET /api/admin/activities/{id}  [ADMIN 전용]
+    @GetMapping("/activities/{id}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getActivity(@PathVariable Long id) {
+        Map<String, Object> activity = adminService.getActivityById(id);
+        if (activity == null) return ResponseEntity.ok(ApiResponse.fail("활동을 찾을 수 없습니다."));
+        return ResponseEntity.ok(ApiResponse.ok(activity, "활동 조회 성공"));
+    }
+
+    // POST /api/admin/activities  [ADMIN 전용]
+    @PostMapping("/activities")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createActivity(@RequestBody Map<String, Object> body) {
+        String restType = (String) body.get("restType");
+        String activityName = (String) body.get("activityName");
+        String guideContent = (String) body.get("guideContent");
+        Integer durationMinutes = body.get("durationMinutes") != null
+                ? ((Number) body.get("durationMinutes")).intValue() : null;
+        Long newId = adminService.createActivity(restType, activityName, guideContent, durationMinutes);
+        Map<String, Object> result = adminService.getActivityById(newId);
+        return ResponseEntity.ok(ApiResponse.ok(result, "활동이 등록되었습니다."));
+    }
+
+    // PUT /api/admin/activities/{id}  [ADMIN 전용]
+    @PutMapping("/activities/{id}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateActivity(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        String restType = (String) body.get("restType");
+        String activityName = (String) body.get("activityName");
+        String guideContent = (String) body.get("guideContent");
+        Integer durationMinutes = body.get("durationMinutes") != null
+                ? ((Number) body.get("durationMinutes")).intValue() : null;
+        adminService.updateActivity(id, restType, activityName, guideContent, durationMinutes);
+        Map<String, Object> result = adminService.getActivityById(id);
+        return ResponseEntity.ok(ApiResponse.ok(result, "활동이 수정되었습니다."));
+    }
+
+    // DELETE /api/admin/activities/{id}  [ADMIN 전용]
+    @DeleteMapping("/activities/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteActivity(@PathVariable Long id) {
+        adminService.deleteActivity(id);
+        return ResponseEntity.ok(ApiResponse.ok("활동이 삭제되었습니다."));
+    }
 }
