@@ -10,7 +10,7 @@
   ];
   # Sets environment variables in the workspace
   env = {};
-  idx = {
+1  idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
       # "vscodevim.vim"

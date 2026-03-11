@@ -9,7 +9,7 @@ const CATEGORY_INFO = {
   sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: 'from-amber-400 to-orange-500' },
   emotional: { name: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: 'from-pink-400 to-rose-500' },
   social:    { name: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', bg: 'from-violet-400 to-purple-500' },
-  nature:    { name: '자연과의 연결', icon: 'forest',       color: '#059669', bg: 'from-green-400 to-emerald-600' },
+  nature:    { name: '자연의 연결', icon: 'forest',       color: '#059669', bg: 'from-green-400 to-emerald-600' },
   creative:  { name: '창조적 몰입', icon: 'brush',          color: '#F97316', bg: 'from-orange-400 to-amber-500' },
 };
 

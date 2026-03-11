@@ -8,7 +8,7 @@ const CATEGORY_INFO = {
   sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#F59E0B' },
   emotional: { name: '정서적 지지', icon: 'favorite',       color: '#EC4899' },
   social:    { name: '사회적 휴식', icon: 'groups',         color: '#8B5CF6' },
-  nature:    { name: '자연과의 연결', icon: 'forest',       color: '#059669' },
+  nature:    { name: '자연의 연결', icon: 'forest',       color: '#059669' },
   creative:  { name: '창조적 몰입', icon: 'brush',          color: '#F97316' },
 };
 

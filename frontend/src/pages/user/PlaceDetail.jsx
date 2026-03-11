@@ -20,7 +20,7 @@ const REST_TYPE_INFO = {
   sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', path: '/rest/sensory'  },
   emotional: { label: '정서적 지지', icon: 'favorite',       color: '#EC4899', path: '/rest/emotional'},
   social:    { label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', path: '/rest/social'   },
-  nature:    { label: '자연과의 연결',icon: 'forest',        color: '#059669', path: '/rest/nature'   },
+  nature:    { label: '자연의 연결',icon: 'forest',        color: '#059669', path: '/rest/nature'   },
   creative:  { label: '창조적 몰입', icon: 'brush',          color: '#F97316', path: '/rest/creative' },
 };
 

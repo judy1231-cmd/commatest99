@@ -11,7 +11,7 @@ const REST_TYPE_INFO = {
   sensory:   { name: '감각의 정화', shortName: '감각', icon: 'visibility_off', color: '#F59E0B' },
   emotional: { name: '정서적 지지', shortName: '정서', icon: 'favorite',       color: '#EC4899' },
   social:    { name: '사회적 휴식', shortName: '사회', icon: 'groups',         color: '#8B5CF6' },
-  nature:    { name: '자연과의 연결', shortName: '자연', icon: 'forest',         color: '#059669' },
+  nature:    { name: '자연의 연결', shortName: '자연', icon: 'forest',         color: '#059669' },
   creative:  { name: '창조적 몰입', shortName: '창조', icon: 'brush',          color: '#F97316' },
 };
 

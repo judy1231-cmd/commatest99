@@ -9,7 +9,7 @@ const CATEGORIES = [
   { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B' },
   { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899' },
   { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6' },
-  { key: 'nature',   label: '자연과의 연결',icon: 'forest',        color: '#059669' },
+  { key: 'nature',   label: '자연의 연결',icon: 'forest',        color: '#059669' },
   { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316' },
 ];
 

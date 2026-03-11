@@ -9,7 +9,7 @@ const REST_TYPE_NAMES = {
   sensory:   { label: '감각의 정화', icon: 'visibility_off', color: 'text-amber-500' },
   emotional: { label: '정서적 지지', icon: 'favorite', color: 'text-pink-500' },
   social:    { label: '사회적 휴식', icon: 'groups', color: 'text-purple-500' },
-  nature:    { label: '자연과의 연결', icon: 'forest', color: 'text-green-600' },
+  nature:    { label: '자연의 연결', icon: 'forest', color: 'text-green-600' },
   creative:  { label: '창조적 몰입', icon: 'brush', color: 'text-orange-500' },
 };
 

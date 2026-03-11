@@ -46,7 +46,7 @@ const REST_TYPE_INFO = {
     activities: ['친구와 수다', '혼자 카페 가기', '소모임'],
   },
   nature: {
-    name: '자연과의 연결',
+    name: '자연의 연결',
     icon: 'forest',
     color: '#2ECC9A',
     chipBg: '#ECFDF5',

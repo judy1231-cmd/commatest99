@@ -7,7 +7,7 @@ const REST_TYPES = [
   { key: 'sensory',   label: '감각의 정화',   icon: 'visibility_off', color: '#F59E0B', desc: '디지털 디톡스, 조용한 환경 등 감각 자극 최소화' },
   { key: 'emotional', label: '정서적 지지',   icon: 'favorite',       color: '#EC4899', desc: '일기 쓰기, 감사 나누기 등 감정 표현과 돌봄' },
   { key: 'social',    label: '사회적 휴식',   icon: 'groups',         color: '#8B5CF6', desc: '친구/가족과 가벼운 대화, 혼자만의 시간' },
-  { key: 'nature',    label: '자연과의 연결', icon: 'forest',         color: '#059669', desc: '공원, 산책로, 자연 공간에서 보내는 시간' },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#059669', desc: '공원, 산책로, 자연 공간에서 보내는 시간' },
   { key: 'creative',  label: '창조적 몰입',  icon: 'brush',          color: '#F97316', desc: '그림, 음악, 글쓰기 등 창작 활동에 집중' },
 ];
 

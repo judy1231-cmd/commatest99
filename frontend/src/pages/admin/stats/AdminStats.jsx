@@ -5,7 +5,7 @@ import AdminHeader from '../../../components/admin/AdminHeader';
 
 const REST_TYPE_KR = {
   physical: '신체적 이완', mental: '정신적 고요', sensory: '감각의 정화',
-  emotional: '정서적 지지', social: '사회적 휴식', nature: '자연과의 연결', creative: '창조적 몰입',
+  emotional: '정서적 지지', social: '사회적 휴식', nature: '자연의 연결', creative: '창조적 몰입',
 };
 const TYPE_COLORS = ['bg-emerald-400','bg-blue-400','bg-amber-400','bg-rose-400','bg-purple-400','bg-orange-400','bg-teal-400'];
 

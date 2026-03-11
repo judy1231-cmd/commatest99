@@ -64,7 +64,7 @@ const REST_TYPE_INFO = {
     ],
   },
   nature: {
-    name: '자연과의 연결',
+    name: '자연의 연결',
     icon: 'forest',
     color: '#059669',
     bgColor: '#F0FDF4',

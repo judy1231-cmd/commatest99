@@ -9,7 +9,7 @@ const TYPE_INFO = {
   sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: 'bg-amber-50 text-amber-600' },
   emotional: { label: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: 'bg-pink-50 text-pink-600' },
   social:    { label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', bg: 'bg-purple-50 text-purple-600' },
-  nature:    { label: '자연과의 연결', icon: 'forest',       color: '#059669', bg: 'bg-green-50 text-green-600' },
+  nature:    { label: '자연의 연결', icon: 'forest',       color: '#059669', bg: 'bg-green-50 text-green-600' },
   creative:  { label: '창조적 몰입', icon: 'brush',          color: '#F97316', bg: 'bg-orange-50 text-orange-600' },
 };
 

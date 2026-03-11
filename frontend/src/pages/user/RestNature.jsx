@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
 
 const TYPE = {
   key: 'nature',
-  name: '자연과의 연결',
+  name: '자연의 연결',
   engName: 'Nature Rest',
   icon: 'forest',
   desc: '자연 속에서 몸과 마음의 리듬을 되찾고 살아있음을 느끼는 시간',
@@ -66,26 +66,6 @@ function RestNature() {
   const [weather, setWeather] = useState('sunny');
   const { activities, loading: activitiesLoading } = useRestActivities('nature');
 
-  const [apiPlaces, setApiPlaces] = useState([]);
-  const [apiLoading, setApiLoading] = useState(false);
-
-  useEffect(() => {
-    const loadApiPlaces = async () => {
-      setApiLoading(true);
-      try {
-        const res = await fetch('/api/places?restType=nature&page=1&size=20');
-        const data = await res.json();
-        if (data.success && data.data) {
-          setApiPlaces(data.data.places || []);
-        }
-      } catch {
-        // 서버 미연결 시 조용히 무시
-      } finally {
-        setApiLoading(false);
-      }
-    };
-    loadApiPlaces();
-  }, []);
 
   const filteredPlaces = WALK_PLACES.filter(p => {
     if (p.category !== mainTab) return false;
@@ -298,7 +278,7 @@ function RestNature() {
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 자연과의 연결이 필요합니다.</p>
+                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 자연의 연결이 필요합니다.</p>
                 </div>
               </div>
             </section>
