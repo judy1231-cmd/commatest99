@@ -65,4 +65,33 @@
         ORDER BY id
     </select>
 
+    <!-- ==================== 콘텐츠 (공개) ==================== -->
+
+    <select id="findAllContents" resultType="map">
+        SELECT ra.id,
+               ra.activity_name AS title,
+               rt.type_name AS category,
+               ra.duration_minutes AS duration,
+               ra.guide_content AS guideContent
+        FROM rest_activities ra
+        JOIN rest_types rt ON ra.rest_type_id = rt.id
+        <where>
+            <if test="category != null and category != ''">
+                rt.type_name = #{category}
+            </if>
+        </where>
+        ORDER BY rt.id, ra.id
+    </select>
+
+    <select id="findContentById" resultType="map">
+        SELECT ra.id,
+               ra.activity_name AS title,
+               rt.type_name AS category,
+               ra.duration_minutes AS duration,
+               ra.guide_content AS guideContent
+        FROM rest_activities ra
+        JOIN rest_types rt ON ra.rest_type_id = rt.id
+        WHERE ra.id = #{id}
+    </select>
+
 </mapper>

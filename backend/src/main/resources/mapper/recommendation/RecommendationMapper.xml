@@ -35,4 +35,14 @@
         UPDATE recommendations SET saved = #{saved} WHERE id = #{id}
     </update>
 
+    <select id="findHistoryBy쉼표번호" resultType="com.comma.domain.recommendation.model.Recommendation">
+        SELECT r.id, r.`쉼표번호`, r.diagnosis_result_id, r.place_id, r.criteria, r.clicked, r.saved, r.recommended_at,
+               p.name AS place_name, p.address AS place_address,
+               p.latitude AS place_latitude, p.longitude AS place_longitude
+        FROM recommendations r
+        LEFT JOIN places p ON r.place_id = p.id
+        WHERE r.`쉼표번호` = #{쉼표번호}
+        ORDER BY r.recommended_at DESC
+    </select>
+
 </mapper>

@@ -67,6 +67,10 @@ public class RecommendationService {
         return recommendationMapper.findBy쉼표번호(쉼표번호);
     }
 
+    public List<Recommendation> getHistory(String 쉼표번호) {
+        return recommendationMapper.findHistoryBy쉼표번호(쉼표번호);
+    }
+
     @Transactional
     public void markClicked(Long id, String 쉼표번호) {
         Recommendation rec = recommendationMapper.findById(id);

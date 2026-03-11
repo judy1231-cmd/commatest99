@@ -85,4 +85,12 @@ public class RestLogService {
     public List<RestActivity> getActivities(Long restTypeId) {
         return restLogMapper.findActivitiesByRestTypeId(restTypeId);
     }
+
+    public List<Map<String, Object>> getContents(String category) {
+        return restLogMapper.findAllContents(category);
+    }
+
+    public Map<String, Object> getContentById(Long id) {
+        return restLogMapper.findContentById(id);
+    }
 }

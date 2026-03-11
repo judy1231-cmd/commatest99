@@ -30,7 +30,9 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/places/*/reviews",
             "/api/rest-types",
             "/api/rest-types/*/activities",
-            "/api/survey/questions"
+            "/api/survey/questions",
+            "/api/contents",
+            "/api/contents/*"
     };
 
     @Override

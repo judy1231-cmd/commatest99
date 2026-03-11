@@ -55,6 +55,14 @@ public class RecommendationController {
         }
     }
 
+    // GET /api/recommendations/history  [JWT 필요]
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<List<Recommendation>>> getHistory(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        List<Recommendation> recs = recommendationService.getHistory(쉼표번호);
+        return ResponseEntity.ok(ApiResponse.ok(recs, "추천 기록 조회 성공"));
+    }
+
     // PUT /api/recommendations/{id}/save  [JWT 필요]
     @PutMapping("/{id}/save")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> toggleSaved(

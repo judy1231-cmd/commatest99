@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface RestLogMapper {
@@ -33,4 +34,10 @@ public interface RestLogMapper {
     List<RestType> findAllRestTypes();
 
     List<RestActivity> findActivitiesByRestTypeId(@Param("restTypeId") Long restTypeId);
+
+    // ==================== 콘텐츠 (공개 — rest_activities 기반) ====================
+
+    List<Map<String, Object>> findAllContents(@Param("category") String category);
+
+    Map<String, Object> findContentById(@Param("id") Long id);
 }

@@ -18,4 +18,6 @@ public interface RecommendationMapper {
     void updateClicked(@Param("id") Long id);
 
     void updateSaved(@Param("id") Long id, @Param("saved") boolean saved);
+
+    List<Recommendation> findHistoryBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
 }
