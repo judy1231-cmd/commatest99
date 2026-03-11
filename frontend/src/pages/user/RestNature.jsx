@@ -1,25 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
 
-const activities = [
-  {
-    title: '숲캉스 (Forest Bathing)',
-    desc: '피톤치드 가득한 숲에서 오감을 열고 걷기',
-    badge: '인기',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAoyd2BqutepbQSm-ZvCXv80NyR-OI5EbeIVMoND5sl4d_kUc4AaE3HBHCHSGKHMj1Ye6LeCX1eZ4Z7zTljklHlrH7c6RVrEu1ynQcud7tViQ6uLyB036rzY1K_KDhmKX3e4mJW1B7LAvFXJrMxQ0oYQZdtjwk_aORVYfRxkvrwLnsdnKM2GGV0L3iiyHWcQaO_qji21UeMVvhjv4xRxXVCziCYCxolI0220pyywIqad9K5TSmJDywi_stIxSDNuKau_LjTzRXKWOQ',
-  },
-  {
-    title: '맨발 걷기 (Earthing)',
-    desc: '대지의 감촉을 느끼며 땅과 직접 연결되기',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNPsmlUwtdOQQb3Edv4p44oYGvADOd7oYDE9TZ5LcZbHRk68f1o-RJ4Mu5GEEvoZihpQc7GfQTczkF9Z-6-vpIAEAU3PsXtRP33ucWGyIZ5rzsPx1nPKLonxbK-QFVpMHrWaXqc-OFkfJ1XiO96y9p7C_OEfChdNlSnGZwKVfs5FaUg6XPNwCwi-CWgBRBdT_fdvWwWAgSQncSqRx3rjR5sJAI57B5xDeRG4c_CCJFneKC3DqfNH_PbsbB_peZ4v_1c9WRNScLOYI',
-  },
-  {
-    title: '별 헤는 밤 (Stargazing)',
-    desc: '우주의 경이로움을 느끼며 잡념 비워내기',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCN_Eo6CdOKvVoYL2J59RmertCKufAZNVP9xSdpGKE8bEtxmLRaLDkUH__aZngnnpcHGAByCtENAUSHBz6s7o5y_rHKD1cHHa_WqcbFK908zevSp_5wEVz3DeGFy1O-g17lUZ1Cw74mtZw_oo3iY1yOwOk1DM7zOWro6JgT9yHi1OoXRb4QiOgXXKlPOJN83Gpntexz62ihSP6e_ZPbN611bBq89d8xrw1hG8Th1LyNUeazOrC06KfS92bynQ58DMWi_xNAZtg6XjA',
-  },
-];
 
 const places = [
   { type: 'Arboretum', name: '고요한 수목원', location: '경기도 가평군', rating: '4.8', color: '#16a34a', lat: 37.7956, lng: 127.4538, img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXzxs2h0HKB3GCbgt1N7mJrlSCMVAzFcJVSMzZwA9bnYLLKN86Fw3KNB-n2XgcaC0FsYG0muTIsjvYpbDXG0Aqam7JO22V46BuLcOjlcIkbmzoEddBAGRKnHB_yc6e5VdO8rsnxm_7SzMAKRTjDAgYF02_hxnjEBqYVDXGEPk11e5x7XVzdZNMx4FBO1b3kSKXk-umF8cZN1_PKsxI97OPEC8PS5hOeeoW8_JcB2XyqR1MjQUC6Gt_5ydjIfwuGXY5fpqoccV8F1c' },
@@ -210,6 +193,7 @@ function RestNature() {
   const [walkLevel, setWalkLevel] = useState('light');
   const [weather, setWeather] = useState('sunny');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('nature');
 
   // API 장소
   const [apiPlaces, setApiPlaces] = useState([]);
@@ -327,30 +311,36 @@ function RestNature() {
               <p className="text-gray-500 mt-2">지금 바로 시작할 수 있는 작은 자연과의 교감</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {activities.map((act, i) => (
-              <div key={i} className="group cursor-pointer" onClick={() => navigate('/rest-record')}>
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden mb-4 shadow-md">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                    style={{ backgroundImage: `url('${act.img}')` }}
-                  />
-                  {act.badge && (
-                    <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold">{act.badge}</div>
-                  )}
-                </div>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 className="text-lg font-bold group-hover:text-green-500 transition-colors">{act.title}</h4>
-                    <p className="text-gray-500 text-sm mt-1">{act.desc}</p>
+          {activitiesLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+              <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {activities.map((act) => (
+                <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-green-50">
+                      <span className="material-icons text-green-600">forest</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                      <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                    </button>
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-1 p-1 shrink-0">
-                    <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                  </button>
+                  <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                  {act.durationMinutes && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2 bg-green-50 text-green-600">{act.durationMinutes}분</span>
+                  )}
+                  <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ===== 장소 추천 섹션 ===== */}

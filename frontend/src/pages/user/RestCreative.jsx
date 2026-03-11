@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
 
 const FIELD_OPTIONS = [
   { key: 'art',    label: '미술·드로잉', emoji: '🎨', desc: '손으로 그리고 만들기' },
@@ -29,23 +30,6 @@ const CREATIVE_PLACES = [
   { name: '뜨개질·자수 입문', location: '집에서·공방', desc: '바늘 잡는 법부터 유튜브로. 반복 동작이 명상처럼 작용', field: ['craft'], time: ['medium','long'], tags: ['뜨개질', '자수', '집중'], icon: 'texture', color: '#8b5cf6' },
 ];
 
-const activities = [
-  {
-    title: '미술 전시회 관람',
-    desc: '말 없는 대화, 작가의 시선을 따라가보세요.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAodHKFi8pl6dpNOEfqfChRCsltjZH-oeoO0DYq-tUYyMEEmU5uPw5rFPdHxhWWbY2SZjpSh0dKPKfZASNu1EhENkSHS0_pe3Ae0yTS0Nmgd-4gcSweT3TgGYV-2A7L8GCq51P1PsBdyNEQ65vtpLWikF9BREkMWytua6K93_bcWGYFbqk8c5q3Sf38F9IpUxhgb_seknk_TegT1rmHx8zRFbBU3j9-7M1gXpMUujDcGSY-Ea9Qcwr4yKUkEZCuNyc2hIHzd7JoSZw',
-  },
-  {
-    title: '단순한 창작 활동',
-    desc: '결과물보다 과정에 집중하는 손놀림의 즐거움.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuAgKbF4JkaMjOCVIEkHJgwUZYZcxs52ZLxRgjgP8B2H2ITwepY9gpcZXr2n4hbJRMFw_em7ToZPVILRnpZKMd4GNkbep7K8-j4V7ZIcMbpmN9sfxxGYM78DKTAFQDmlL9G91BTiCwNT6SuHBPB4ViOHo4NCQJDix9wO12wsNWtL2ApZ-vgVndI5ub9KVf4CVnv2VJBQDSTFH7KHgSDw1kU-wqu0iFZLrtdUSl-kc5C1FX-IMHf3jzSH7IM0QQJtnz6TZ1iZQqpsk',
-  },
-  {
-    title: '자연의 미학 관찰',
-    desc: '나뭇잎의 결과 하늘의 색채를 가만히 바라보기.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBs4ReVCuJDGwZdH4bGhDXHWWxJCUNmfNB8tHev0wNaLMwYBqZ4Rdj-SKJNECdojh0WNqXtx8g3LByhxWqMXXmo-dicCLrWATUDH0_TuZBr1NGbRqglA5ZjtrNUgzO_5Pp8cxe8SV4an_oDR1d0Yqr8p0g4noFYAiodMRFrXDe6yc0gkOUVTYieAGDjVnVzLpZ4-tsXuX4b-2u0rm4jiGQbouaW4B9aghqw4GCulo30gWKSZ0RV9odA-Q0y5kiZo1OLxAKvweSIdK0',
-  },
-];
 
 const places = [
   { name: '국립현대미술관 (MMCA)', location: '서울특별시 종로구 삼청로 30', tags: ['미술', '산책'], img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAS6DTNYuClfzjtJ3_KH8Jh9OKgqLbQc_6aILj9Vwi2NgaPG6WdMhQcm_pXTDGs5psilRvRu8gdWMPoeWaJpRk2YxbQaT8GH4VrYvjrQBNh0cbhGAkqJxbvMdUEMnJRkFVt5Gfvb0J7pqgXFDaxr-SVoEOLEfx8WKy3xLHGqiGv_lVrFxz_xEMPbKH0dPaJ-JCR7U38wnNFQcxBXrplIlkDJfuMcq7H8bqBVhKgjzv8qAeZE2x1lzC_pA4GjvkzA3FNq6k73eC8E' },
@@ -64,6 +48,7 @@ function RestCreative() {
   const [field, setField] = useState('art');
   const [timeOpt, setTimeOpt] = useState('short');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('creative');
   const filteredPlaces = CREATIVE_PLACES.filter(
     p => p.field.includes(field) && p.time.includes(timeOpt)
   );
@@ -136,24 +121,36 @@ function RestCreative() {
                 <h3 className="text-2xl font-bold mb-2">추천 활동</h3>
                 <p className="text-gray-500">오늘 당신의 영감을 깨울 작은 움직임들</p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {activities.map((act, i) => (
-                  <div key={i} className="flex flex-col gap-3 cursor-pointer" onClick={() => navigate('/rest-record')}>
-                    <div className="aspect-square w-full overflow-hidden rounded-2xl bg-gray-100">
-                      <img alt={act.title} className="h-full w-full object-cover hover:scale-110 transition-transform" src={act.img} />
-                    </div>
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-bold">{act.title}</p>
-                        <p className="text-sm text-gray-500 leading-snug">{act.desc}</p>
+              {activitiesLoading ? (
+                <div className="flex justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-400" />
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+                  <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+                  <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {activities.map((act) => (
+                    <div key={act.id} className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-orange-50">
+                          <span className="material-icons text-orange-400">palette</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                          <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                        </button>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [`act-${i}`]: !prev[`act-${i}`] })); }} className="mt-0.5 p-1 shrink-0">
-                        <span className={`material-icons text-xl transition-colors ${liked[`act-${i}`] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
-                      </button>
+                      <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                      {act.durationMinutes && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2 bg-orange-50 text-orange-500">{act.durationMinutes}분</span>
+                      )}
+                      <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section>

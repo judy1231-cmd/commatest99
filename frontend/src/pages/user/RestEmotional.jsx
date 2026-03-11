@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import { useRestActivities } from '../../api/useRestActivities';
 
 const COMPANION_OPTIONS = [
   { key: 'alone',    label: '혼자',    emoji: '🧍', desc: '나 혼자 조용히 회복하고 싶어' },
@@ -49,6 +50,7 @@ function RestEmotional() {
   const [companion, setCompanion] = useState('alone');
   const [method, setMethod] = useState('activity');
   const [liked, setLiked] = useState({});
+  const { activities, loading: activitiesLoading } = useRestActivities('emotional');
   const filteredEmotional = EMOTIONAL_PLACES.filter(
     p => p.companion.includes(companion) && p.method.includes(method)
   );
@@ -197,6 +199,44 @@ function RestEmotional() {
             </div>
             <p className="text-center mt-4 text-slate-500 text-sm">이번 주에는 명상을 3번 실천하셨네요! 잘하고 있어요.</p>
           </div>
+        </section>
+
+        {/* 추천 활동 */}
+        <section>
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-slate-900">추천 활동</h3>
+            <p className="text-slate-500 mt-2">감정적 피로를 회복하는 데 도움이 되는 활동들이에요</p>
+          </div>
+          {activitiesLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+              <span className="material-icons text-4xl text-slate-300 block mb-2">pending</span>
+              <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {activities.map((act) => (
+                <div key={act.id} className="group bg-white rounded-2xl border border-teal-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer" onClick={() => navigate('/rest-record')}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-teal-50">
+                      <span className="material-icons text-teal-600">self_improvement</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setLiked(prev => ({ ...prev, [act.id]: !prev[act.id] })); }} className="p-1">
+                      <span className={`material-icons text-xl transition-colors ${liked[act.id] ? 'text-red-500' : 'text-slate-300 hover:text-red-300'}`}>favorite</span>
+                    </button>
+                  </div>
+                  <h4 className="font-bold text-slate-900 mb-1">{act.activityName}</h4>
+                  {act.durationMinutes && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mb-2 bg-teal-50 text-teal-600">{act.durationMinutes}분</span>
+                  )}
+                  <p className="text-slate-500 text-sm leading-relaxed">{act.guideContent}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ===== 지금 어떤 방식으로 위로받고 싶어요? ===== */}
