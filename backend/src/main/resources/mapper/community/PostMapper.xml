@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.community.mapper.PostMapper">
+
+    <!-- ==================== 게시글 목록 ==================== -->
+    <!-- 파라미터 commaNo : OGNL이 한글 파라미터명을 지원하지 않아 영문 alias 사용 -->
+
+    <select id="findAll" resultType="com.comma.domain.community.model.Post">
+        SELECT
+            p.id,
+            p.`쉼표번호`,
+            p.category,
+            p.title,
+            p.content,
+            p.is_anonymous AS anonymous,
+            p.status,
+            p.created_at,
+            CASE WHEN p.is_anonymous = 1 THEN '익명' ELSE u.nickname END AS nickname,
+            (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id AND c.status = 'visible') AS comment_count,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT COUNT(*) FROM post_likes pl2 WHERE pl2.post_id = p.id AND pl2.`쉼표번호` = #{commaNo}) > 0
+                </when>
+                <otherwise>
+                    0
+                </otherwise>
+            </choose>
+            AS liked_by_me
+        FROM posts p
+        JOIN users u ON p.`쉼표번호` = u.`쉼표번호`
+        WHERE p.status = 'visible'
+        <if test="category != null and category != ''">
+            AND p.category = #{category}
+        </if>
+        <choose>
+            <when test="sort == 'popular'">
+                ORDER BY like_count DESC, p.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY p.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM posts
+        WHERE status = 'visible'
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+    </select>
+
+    <!-- ==================== 게시글 단건 ==================== -->
+
+    <select id="findById" resultType="com.comma.domain.community.model.Post">
+        SELECT
+            p.id,
+            p.`쉼표번호`,
+            p.category,
+            p.title,
+            p.content,
+            p.is_anonymous AS anonymous,
+            p.status,
+            p.created_at,
+            CASE WHEN p.is_anonymous = 1 THEN '익명' ELSE u.nickname END AS nickname,
+            (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id AND c.status = 'visible') AS comment_count,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT COUNT(*) FROM post_likes pl2 WHERE pl2.post_id = p.id AND pl2.`쉼표번호` = #{commaNo}) > 0
+                </when>
+                <otherwise>
+                    0
+                </otherwise>
+            </choose>
+            AS liked_by_me
+        FROM posts p
+        JOIN users u ON p.`쉼표번호` = u.`쉼표번호`
+        WHERE p.id = #{id} AND p.status != 'deleted'
+    </select>
+
+    <!-- ==================== 게시글 작성 ==================== -->
+
+    <insert id="insertPost" parameterType="com.comma.domain.community.model.Post"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO posts (`쉼표번호`, category, title, content, is_anonymous, status)
+        VALUES (#{쉼표번호}, #{category}, #{title}, #{content}, #{anonymous}, #{status})
+    </insert>
+
+    <!-- ==================== Soft Delete ==================== -->
+
+    <update id="softDeletePost">
+        UPDATE posts SET status = 'deleted'
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo}
+    </update>
+
+    <!-- ==================== 좋아요 ==================== -->
+
+    <select id="countLike" resultType="int">
+        SELECT COUNT(*) FROM post_likes
+        WHERE post_id = #{postId} AND `쉼표번호` = #{commaNo}
+    </select>
+
+    <insert id="insertLike">
+        INSERT IGNORE INTO post_likes (post_id, `쉼표번호`)
+        VALUES (#{postId}, #{commaNo})
+    </insert>
+
+    <delete id="deleteLike">
+        DELETE FROM post_likes
+        WHERE post_id = #{postId} AND `쉼표번호` = #{commaNo}
+    </delete>
+
+    <!-- ==================== 관리자 ==================== -->
+
+    <select id="findAllForAdmin" resultType="com.comma.domain.community.model.Post">
+        SELECT
+            p.id,
+            p.`쉼표번호`,
+            p.category,
+            p.title,
+            p.content,
+            p.is_anonymous AS anonymous,
+            p.status,
+            p.created_at,
+            u.nickname,
+            (SELECT COUNT(*) FROM post_likes pl WHERE pl.post_id = p.id) AS like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comment_count,
+            0 AS liked_by_me
+        FROM posts p
+        JOIN users u ON p.`쉼표번호` = u.`쉼표번호`
+        ORDER BY p.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countAllForAdmin" resultType="int">
+        SELECT COUNT(*) FROM posts
+    </select>
+
+</mapper>
