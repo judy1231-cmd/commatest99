@@ -93,4 +93,26 @@ public class RestLogService {
     public Map<String, Object> getContentById(Long id) {
         return restLogMapper.findContentById(id);
     }
+
+    // ==================== 감정 기록 ====================
+
+    public List<Map<String, Object>> getEmotionLogs(String 쉼표번호) {
+        return restLogMapper.findEmotionLogs(쉼표번호);
+    }
+
+    @Transactional
+    public void createEmotionLog(String 쉼표번호, int score, String tagsJson, String memo) {
+        RestLog log = new RestLog();
+        log.set쉼표번호(쉼표번호);
+        log.setRestTypeId(1L); // 기본값: 신체적 이완 (NOT NULL 제약 처리)
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        log.setStartTime(now);
+        log.setEndTime(now);
+        log.setEmotionBefore(score);
+        log.setEmotionAfter(score);
+        log.setMoodTagsJson(tagsJson);
+        log.setMemo(memo);
+        log.setDeleted(false);
+        restLogMapper.insertRestLog(log);
+    }
 }

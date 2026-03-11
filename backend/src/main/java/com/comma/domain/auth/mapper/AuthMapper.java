@@ -60,4 +60,6 @@ public interface AuthMapper {
     void updatePassword(@Param("쉼표번호") String 쉼표번호, @Param("password") String password);
 
     void updateNickname(@Param("쉼표번호") String 쉼표번호, @Param("nickname") String nickname);
+
+    void updateStatus(@Param("쉼표번호") String 쉼표번호, @Param("status") String status);
 }

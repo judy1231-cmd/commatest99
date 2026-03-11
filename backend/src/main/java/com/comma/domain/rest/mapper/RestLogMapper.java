@@ -40,4 +40,8 @@ public interface RestLogMapper {
     List<Map<String, Object>> findAllContents(@Param("category") String category);
 
     Map<String, Object> findContentById(@Param("id") Long id);
+
+    // ==================== 감정 기록 (emotion_logs = rest_logs 재활용) ====================
+
+    List<Map<String, Object>> findEmotionLogs(@Param("쉼표번호") String 쉼표번호);
 }

@@ -1,14 +1,10 @@
-import UserNavbar from '../../../components/user/UserNavbar';
+import { useNavigate } from 'react-router-dom';
 
 function MypageHome() {
-  return (
-    <>
-      <UserNavbar />
-      <main className="min-h-screen bg-[#F9F7F2] flex items-center justify-center">
-        <p className="text-text-muted">내 정보 페이지 준비 중입니다.</p>
-      </main>
-    </>
-  );
+  const navigate = useNavigate();
+  // /my 로 리다이렉트
+  navigate('/my', { replace: true });
+  return null;
 }
 
 export default MypageHome;

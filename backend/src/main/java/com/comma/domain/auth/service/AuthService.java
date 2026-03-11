@@ -273,6 +273,28 @@ public class AuthService {
         return user;
     }
 
+    // ==================== 비밀번호 변경 ====================
+
+    public void changePassword(String 쉼표번호, String currentPassword, String newPassword) {
+        if (currentPassword == null || currentPassword.isBlank())
+            throw new IllegalArgumentException("현재 비밀번호를 입력해주세요.");
+        if (newPassword == null || newPassword.length() < 8)
+            throw new IllegalArgumentException("새 비밀번호는 8자 이상이어야 합니다.");
+
+        User user = authMapper.findBy쉼표번호(쉼표번호);
+        if (user == null) throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        if (!BCrypt.checkpw(currentPassword, user.getPassword()))
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+
+        authMapper.updatePassword(쉼표번호, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+    }
+
+    // ==================== 회원 탈퇴 ====================
+
+    public void withdraw(String 쉼표번호) {
+        authMapper.updateStatus(쉼표번호, "dormant");
+    }
+
     // ==================== 내부 유틸 ====================
 
     private String generate쉼표번호() {

@@ -173,4 +173,28 @@ public class AuthController {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }
     }
+
+    // ==================== 비밀번호 변경 (로그인 상태) ====================
+    // POST /api/auth/password/change  [JWT 필요]
+    @PostMapping("/password/change")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            HttpServletRequest request,
+            @RequestBody Map<String, String> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        try {
+            authService.changePassword(쉼표번호, body.get("currentPassword"), body.get("newPassword"));
+            return ResponseEntity.ok(ApiResponse.ok("비밀번호가 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    // ==================== 회원 탈퇴 ====================
+    // DELETE /api/auth/withdraw  [JWT 필요]
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdraw(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        authService.withdraw(쉼표번호);
+        return ResponseEntity.ok(ApiResponse.ok("회원 탈퇴가 처리되었습니다."));
+    }
 }

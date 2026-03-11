@@ -101,6 +101,30 @@ public class RestLogController {
         }
     }
 
+    // ==================== 감정 기록 [JWT 필요] ====================
+
+    // GET /api/emotion-logs
+    @GetMapping("/api/emotion-logs")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getEmotionLogs(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        List<Map<String, Object>> logs = restLogService.getEmotionLogs(쉼표번호);
+        return ResponseEntity.ok(ApiResponse.ok(logs, "감정 기록 조회 성공"));
+    }
+
+    // POST /api/emotion-logs
+    @PostMapping("/api/emotion-logs")
+    public ResponseEntity<ApiResponse<Void>> createEmotionLog(
+            HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        int score = body.get("score") != null ? ((Number) body.get("score")).intValue() : 5;
+        Object tagsObj = body.get("tags");
+        String tagsJson = tagsObj != null ? tagsObj.toString() : "[]";
+        String memo = body.get("memo") != null ? (String) body.get("memo") : null;
+        restLogService.createEmotionLog(쉼표번호, score, tagsJson, memo);
+        return ResponseEntity.ok(ApiResponse.ok("감정 기록이 저장되었습니다."));
+    }
+
     // ==================== 콘텐츠 (공개 — rest_activities 기반) ====================
 
     // GET /api/contents?category=physical

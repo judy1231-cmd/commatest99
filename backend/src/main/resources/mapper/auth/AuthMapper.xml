@@ -96,4 +96,8 @@
         UPDATE users SET nickname = #{nickname} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
+    <update id="updateStatus">
+        UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
 </mapper>

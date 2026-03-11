@@ -83,6 +83,23 @@
         ORDER BY rt.id, ra.id
     </select>
 
+    <!-- ==================== 감정 기록 ==================== -->
+
+    <!-- rest_logs 중 emotion_after 가 있는 항목을 감정 기록으로 반환 -->
+    <select id="findEmotionLogs" resultType="map">
+        SELECT id,
+               emotion_after AS score,
+               mood_tags_json AS tagsJson,
+               memo,
+               created_at AS recordedAt
+        FROM rest_logs
+        WHERE `쉼표번호` = #{쉼표번호}
+          AND emotion_after IS NOT NULL
+          AND deleted = 0
+        ORDER BY created_at DESC
+        LIMIT 200
+    </select>
+
     <select id="findContentById" resultType="map">
         SELECT ra.id,
                ra.activity_name AS title,
