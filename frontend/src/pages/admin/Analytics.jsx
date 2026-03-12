@@ -237,7 +237,7 @@ function Analytics() {
                     const pct = Math.round((rt.count / maxCount) * 100);
                     const sharePct = Math.round((rt.count / totalRestCount) * 100);
                     const color = REST_TYPE_COLORS[i % REST_TYPE_COLORS.length];
-                    const label = REST_TYPE_LABELS[(rt.restType || '').toLowerCase()] || rt.restType || rt.typeName || '—';
+                    const label = REST_TYPE_LABELS[(rt.restType || rt.typeName || '').toLowerCase()] || '—';
                     return (
                       <div key={rt.restType || i}>
                         <div className="flex items-center justify-between mb-1.5">

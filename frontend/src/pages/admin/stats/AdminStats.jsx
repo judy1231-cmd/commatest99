@@ -226,7 +226,7 @@ function AdminStats() {
                     const pct      = Math.round((item.count / maxCount) * 100);
                     const sharePct = Math.round((item.count / totalPopCount) * 100);
                     const color    = TYPE_COLORS[i % TYPE_COLORS.length];
-                    const label    = REST_TYPE_KR[(item.restType || '').toLowerCase()] || item.restType || '—';
+                    const label    = REST_TYPE_KR[(item.restType || item.typeName || '').toLowerCase()] || '—';
                     return (
                       <div key={item.restType || i}>
                         <div className="flex items-center justify-between mb-1.5">
