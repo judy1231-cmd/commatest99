@@ -253,7 +253,11 @@ function MapPage() {
               places.map(place => (
                 <div
                   key={place.id}
-                  onClick={() => navigate(`/places/${place.id}`)}
+                  onClick={() => {
+                    if (place.latitude && place.longitude) {
+                      setFlyTarget([place.latitude, place.longitude]);
+                    }
+                  }}
                   className="p-4 cursor-pointer transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
