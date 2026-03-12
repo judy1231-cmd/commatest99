@@ -31,6 +31,44 @@ function formatDate(dateStr) {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
+function MenuRow({ icon, iconBg, iconColor, label, sublabel, onClick, red }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors text-left"
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: red ? '#FEF2F2' : iconBg }}
+      >
+        <span className="material-icons text-[18px]" style={{ color: red ? '#EF4444' : iconColor }}>
+          {icon}
+        </span>
+      </div>
+      <div className="flex-1">
+        <p className={`text-sm font-semibold ${red ? 'text-red-500' : 'text-slate-700'}`}>{label}</p>
+        {sublabel && <p className="text-xs text-slate-400 mt-0.5">{sublabel}</p>}
+      </div>
+      {!red && <span className="material-icons text-slate-300 text-xl">chevron_right</span>}
+    </button>
+  );
+}
+
+function MenuGroup({ title, children }) {
+  return (
+    <div className="px-4">
+      {title && (
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-2">
+          {title}
+        </p>
+      )}
+      <div className="bg-white rounded-2xl overflow-hidden divide-y divide-slate-50">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function MyPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -99,7 +137,6 @@ function MyPage() {
       });
       if (!data.success) { setNicknameError(data.message); return; }
 
-      // 로컬 상태 & localStorage 갱신
       const trimmed = nicknameInput.trim();
       setProfile(prev => ({ ...prev, user: { ...prev.user, nickname: trimmed } }));
       const stored = JSON.parse(localStorage.getItem('user') || '{}');
@@ -143,167 +180,186 @@ function MyPage() {
 
   const user = profile?.user;
   const stats = profile?.stats || {};
+  const avatarLetter = (user?.nickname || '?')[0];
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
-      <main className="max-w-7xl mx-auto px-6 py-10 pb-24 md:pb-10">
-        <div className="grid grid-cols-12 gap-6">
 
-          {/* Profile Section */}
-          <section className="col-span-12 lg:col-span-8 p-8 rounded-2xl bg-white border border-slate-200 flex flex-col md:flex-row items-center gap-8 shadow-sm">
-            <div className="relative group">
-              <div className="w-32 h-32 rounded-full bg-slate-200 border-4 border-white ring-1 ring-slate-100 shadow-md overflow-hidden flex items-center justify-center">
-                <span className="material-icons text-slate-400 text-5xl">person</span>
-              </div>
+      <main className="max-w-lg mx-auto pb-28">
+
+        {/* ── 프로필 헤더 ── */}
+        <div className="bg-white px-6 pt-8 pb-6">
+          <div className="flex items-center gap-4">
+            {/* 아바타 */}
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0 shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
+            >
+              {avatarLetter}
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                {nicknameEditing ? (
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <input
-                        className="text-2xl font-bold border-b-2 border-primary bg-transparent outline-none text-slate-900 w-48"
-                        value={nicknameInput}
-                        onChange={e => setNicknameInput(e.target.value)}
-                        maxLength={20}
-                        autoFocus
-                        onKeyDown={e => { if (e.key === 'Enter') handleNicknameSave(); if (e.key === 'Escape') setNicknameEditing(false); }}
-                      />
-                      <button
-                        onClick={handleNicknameSave}
-                        disabled={nicknameSaving}
-                        className="px-3 py-1 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 disabled:opacity-50"
-                      >
-                        {nicknameSaving ? '저장 중' : '저장'}
-                      </button>
-                      <button
-                        onClick={() => setNicknameEditing(false)}
-                        className="px-3 py-1 bg-slate-100 text-slate-500 text-sm font-bold rounded-lg hover:bg-slate-200"
-                      >
-                        취소
-                      </button>
-                    </div>
-                    {nicknameError && <p className="text-xs text-red-500">{nicknameError}</p>}
-                  </div>
-                ) : (
+
+            {/* 닉네임 + 이메일 */}
+            <div className="flex-1 min-w-0">
+              {nicknameEditing ? (
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-bold text-slate-900">
-                      {user?.nickname || '사용자'} <span className="text-lg font-normal text-slate-400 ml-1">님</span>
-                    </h1>
+                    <input
+                      className="text-lg font-bold border-b-2 border-primary bg-transparent outline-none text-slate-900 w-36"
+                      value={nicknameInput}
+                      onChange={e => setNicknameInput(e.target.value)}
+                      maxLength={20}
+                      autoFocus
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleNicknameSave();
+                        if (e.key === 'Escape') setNicknameEditing(false);
+                      }}
+                    />
                     <button
-                      onClick={handleNicknameEdit}
-                      className="p-1 rounded-lg text-slate-400 hover:text-primary hover:bg-green-50 transition-colors"
-                      title="닉네임 변경"
+                      onClick={handleNicknameSave}
+                      disabled={nicknameSaving}
+                      className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg disabled:opacity-50"
                     >
-                      <span className="material-icons text-lg">edit</span>
+                      {nicknameSaving ? '저장 중' : '저장'}
+                    </button>
+                    <button
+                      onClick={() => setNicknameEditing(false)}
+                      className="px-3 py-1 bg-slate-100 text-slate-500 text-xs font-bold rounded-lg"
+                    >
+                      취소
                     </button>
                   </div>
-                )}
-                {profile?.badgeCount > 0 && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-bold">
-                    <span className="material-icons text-sm mr-1">emoji_events</span>
-                    배지 {profile.badgeCount}개 보유
-                  </span>
-                )}
-              </div>
-              <p className="text-slate-500 mb-6 font-medium">
-                {user?.email}
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                <div className="bg-[#F9F7F2] px-5 py-3 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-400 block font-semibold mb-1">총 휴식 시간</span>
-                  <span className="text-xl font-bold text-slate-800">{formatMinutes(stats.totalRestMinutes)}</span>
+                  {nicknameError && (
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <span className="material-icons text-sm">error_outline</span>
+                      {nicknameError}
+                    </p>
+                  )}
                 </div>
-                <div className="bg-[#F9F7F2] px-5 py-3 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-400 block font-semibold mb-1">총 기록 수</span>
-                  <span className="text-xl font-bold text-slate-800">{stats.totalLogs || 0}개</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Rest Type Card */}
-          <section className="col-span-12 lg:col-span-4 p-8 rounded-2xl bg-gradient-to-br from-primary to-[#10b981] text-white flex flex-col justify-between shadow-lg">
-            <div>
-              <h3 className="text-white/80 font-semibold mb-1">나의 휴식 성향</h3>
-              {primaryType ? (
-                <>
-                  <h2 className="text-3xl font-extrabold mb-4 leading-tight">{primaryType.label}</h2>
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="material-icons text-white/80 text-2xl">{primaryType.icon}</span>
-                    {latestDiagnosis?.stressIndex != null && (
-                      <span className="text-sm font-semibold text-white/80">
-                        스트레스 지수 {latestDiagnosis.stressIndex}점
-                      </span>
-                    )}
-                  </div>
-                </>
               ) : (
-                <>
-                  <h2 className="text-2xl font-extrabold mb-4">아직 진단 전이에요</h2>
-                  <p className="text-sm text-white/80 mb-4">진단을 받으면 나의 휴식 유형을 알 수 있어요</p>
-                </>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h2 className="text-xl font-bold text-slate-900 truncate">{user?.nickname || '사용자'}</h2>
+                  <button
+                    onClick={handleNicknameEdit}
+                    className="p-1 rounded-lg text-slate-300 hover:text-primary hover:bg-green-50 transition-colors shrink-0"
+                  >
+                    <span className="material-icons text-[16px]">edit</span>
+                  </button>
+                </div>
+              )}
+              <p className="text-sm text-slate-400 truncate">{user?.email}</p>
+              {user?.commaNo && (
+                <span className="inline-block mt-1.5 px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-bold rounded-full">
+                  {user.commaNo}
+                </span>
+              )}
+            </div>
+
+            {/* 배지 배너 */}
+            {profile?.badgeCount > 0 && (
+              <div className="shrink-0 text-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mx-auto">
+                  <span className="material-icons text-amber-400 text-lg">emoji_events</span>
+                </div>
+                <p className="text-[10px] font-bold text-amber-400 mt-0.5">{profile.badgeCount}개</p>
+              </div>
+            )}
+          </div>
+
+          {/* 빠른 통계 스트립 */}
+          <div className="grid grid-cols-3 mt-6 pt-5 border-t border-slate-100">
+            <div className="text-center">
+              <p className="text-lg font-black text-slate-800">{formatMinutes(stats.totalRestMinutes)}</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">총 휴식 시간</p>
+            </div>
+            <div className="text-center border-x border-slate-100">
+              <p className="text-lg font-black text-slate-800">{stats.totalLogs || 0}</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">총 기록</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-black text-slate-800">{profile?.badgeCount || 0}</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">배지</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-3" />
+
+        {/* ── 나의 휴식 유형 ── */}
+        <div className="px-4">
+          <div
+            className="rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden"
+            style={{
+              background: primaryType
+                ? `linear-gradient(135deg, ${primaryType.color}ee 0%, ${primaryType.color}bb 100%)`
+                : 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
+            }}
+          >
+            <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+              <span className="material-icons text-white text-2xl">
+                {primaryType?.icon || 'psychology'}
+              </span>
+            </div>
+            <div className="flex-1">
+              <p className="text-white/75 text-[11px] font-semibold">나의 휴식 유형</p>
+              <p className="text-white text-lg font-black leading-tight">
+                {primaryType?.label || '아직 진단 전이에요'}
+              </p>
+              {latestDiagnosis?.stressIndex != null && (
+                <p className="text-white/70 text-xs mt-0.5">스트레스 지수 {latestDiagnosis.stressIndex}점</p>
               )}
             </div>
             <button
               onClick={() => navigate('/rest-test')}
-              className="w-full py-3.5 bg-white text-primary rounded-xl font-bold hover:bg-opacity-90 transition-all shadow-md flex items-center justify-center gap-2"
+              className="shrink-0 px-3 py-1.5 bg-white/20 text-white text-xs font-bold rounded-xl hover:bg-white/30 transition-colors"
             >
-              <span>{primaryType ? '테스트 다시하기' : '진단 시작하기'}</span>
-              <span className="material-icons text-sm">chevron_right</span>
+              {primaryType ? '재진단' : '진단하기'}
             </button>
-          </section>
+          </div>
+        </div>
 
-          {/* Monthly Stats */}
-          <section className="col-span-12 lg:col-span-7 p-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900">
-                  <span className="material-icons text-primary">bar_chart</span>
-                  이번 달 휴식 통계
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  {monthlyStats?.yearMonth || new Date().toISOString().slice(0, 7)} 기준
-                </p>
-              </div>
-              <button
-                onClick={() => navigate('/rest-record')}
-                className="text-sm text-primary font-bold hover:underline"
-              >
-                전체 기록 →
-              </button>
-            </div>
+        <div className="h-3" />
 
-            {monthlyStats ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-[#F9F7F2] rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-slate-800">{monthlyStats.recordCount || 0}</p>
-                    <p className="text-xs text-slate-400 mt-1">기록 횟수</p>
-                  </div>
-                  <div className="bg-[#F9F7F2] rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-slate-800">{formatMinutes(monthlyStats.totalRestMinutes)}</p>
-                    <p className="text-xs text-slate-400 mt-1">총 휴식 시간</p>
-                  </div>
-                  <div className="bg-[#F9F7F2] rounded-xl p-4 text-center">
-                    <p className="text-2xl font-bold text-slate-800">
-                      {monthlyStats.avgEmotionScore ? `${monthlyStats.avgEmotionScore.toFixed(1)}` : '-'}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">평균 기분</p>
-                  </div>
+        {/* ── 이번 달 요약 ── */}
+        {monthlyStats && (
+          <>
+            <div className="px-4">
+              <div className="bg-white rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-bold text-slate-700">이번 달 휴식 요약</p>
+                  <button
+                    onClick={() => navigate('/rest-record')}
+                    className="text-xs text-primary font-bold"
+                  >
+                    전체 보기
+                  </button>
                 </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {[
+                    { label: '기록', value: monthlyStats.recordCount || 0, unit: '회' },
+                    { label: '휴식 시간', value: formatMinutes(monthlyStats.totalRestMinutes), unit: '' },
+                    { label: '평균 기분', value: monthlyStats.avgEmotionScore ? monthlyStats.avgEmotionScore.toFixed(1) : '-', unit: monthlyStats.avgEmotionScore ? '점' : '' },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-slate-50 rounded-xl p-3 text-center">
+                      <p className="text-base font-black text-slate-800">{s.value}{s.unit}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
                 {typeRatios.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     {typeRatios.map((item, i) => (
                       <div key={item.type}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-slate-700">{item.label}</span>
-                          <span className="text-slate-400">{item.pct}%</span>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium text-slate-600">{item.label}</span>
+                          <span className="font-bold" style={{ color: TYPE_RATIO_COLORS[i] }}>{item.pct}%</span>
                         </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full"
+                            className="h-full rounded-full transition-all duration-700"
                             style={{ width: `${item.pct}%`, backgroundColor: TYPE_RATIO_COLORS[i] }}
                           />
                         </div>
@@ -312,83 +368,82 @@ function MyPage() {
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="text-center py-10">
-                <span className="material-icons text-4xl text-slate-300 block mb-2">bar_chart</span>
-                <p className="text-slate-400 text-sm">아직 이번 달 기록이 없어요</p>
-                <button
-                  onClick={() => navigate('/rest-record')}
-                  className="mt-3 text-primary text-sm font-bold hover:underline"
-                >
-                  첫 번째 휴식 기록하기 →
-                </button>
-              </div>
-            )}
-          </section>
-
-          {/* Recent Activity */}
-          <section className="col-span-12 lg:col-span-5 p-8 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900">
-              <span className="material-icons text-primary">history</span>
-              최근 활동 기록
-            </h3>
-
-            {recentLogs.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <span className="material-icons text-4xl text-slate-300 block mb-2">event_note</span>
-                <p className="text-slate-400 text-sm">최근 활동이 없어요</p>
-              </div>
-            ) : (
-              <div className="space-y-2 flex-1">
-                {recentLogs.map((log) => (
-                  <div key={log.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#F9F7F2] transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shadow-sm shrink-0">
-                      <span className="material-icons text-primary text-lg">self_improvement</span>
-                    </div>
-                    <div className="flex-1 border-b border-slate-100 pb-2">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <span className="font-bold text-slate-800 text-sm">{log.memo || '휴식 기록'}</span>
-                        <span className="text-xs font-medium text-slate-400">{formatDate(log.startTime)}</span>
-                      </div>
-                      {log.emotionAfter != null && (
-                        <p className="text-xs text-slate-500">기분 점수: {log.emotionAfter}/10</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button
-              onClick={() => navigate('/rest-record')}
-              className="mt-6 py-2 text-sm font-bold text-slate-400 hover:text-primary transition-colors border-t border-slate-100 pt-4"
-            >
-              모든 기록 보기 →
-            </button>
-          </section>
-
-          {/* Settings */}
-          <section className="col-span-12 mt-2">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { icon: 'person_outline', label: '개인정보 관리', action: () => navigate('/settings/profile') },
-                { icon: 'security', label: '보안 및 로그인', action: () => navigate('/settings/security') },
-                { icon: 'tune', label: '맞춤 추천 설정', action: () => navigate('/settings/preferences') },
-                { icon: 'logout', label: '로그아웃', action: handleLogout, red: true },
-              ].map((item, i) => (
-                <button
-                  key={i}
-                  onClick={item.action}
-                  className={`flex items-center gap-4 p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group w-full text-left ${item.red ? 'hover:border-red-100' : 'hover:border-primary/30'}`}
-                >
-                  <div className={`p-2 rounded-lg bg-[#F9F7F2] transition-colors ${item.red ? 'group-hover:bg-red-50 group-hover:text-red-400' : 'group-hover:bg-green-50 group-hover:text-primary'} text-slate-400`}>
-                    <span className="material-icons">{item.icon}</span>
-                  </div>
-                  <span className={`text-sm font-bold ${item.red ? 'text-red-400' : 'text-slate-700'}`}>{item.label}</span>
-                </button>
-              ))}
             </div>
-          </section>
-        </div>
+            <div className="h-3" />
+          </>
+        )}
+
+        {/* ── 최근 활동 ── */}
+        {recentLogs.length > 0 && (
+          <>
+            <div className="px-4">
+              <div className="bg-white rounded-2xl overflow-hidden">
+                <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                  <p className="text-sm font-bold text-slate-700">최근 휴식 기록</p>
+                  <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                    전체 보기
+                  </button>
+                </div>
+                <div className="divide-y divide-slate-50">
+                  {recentLogs.map((log) => (
+                    <div key={log.id} className="flex items-center gap-3 px-5 py-3.5">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="material-icons text-primary text-sm">self_improvement</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-700 truncate">{log.memo || '휴식 기록'}</p>
+                        {log.emotionAfter != null && (
+                          <p className="text-xs text-slate-400">기분 {log.emotionAfter}/10</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-400 shrink-0">{formatDate(log.startTime)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="h-3" />
+          </>
+        )}
+
+        {/* ── 메뉴 그룹: 기록 ── */}
+        <MenuGroup title="기록">
+          <MenuRow icon="event_note"     iconBg="#ECFDF5" iconColor="#10b981" label="휴식 기록"   onClick={() => navigate('/rest-record')} />
+          <MenuRow icon="psychology"     iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 기록"   sublabel="진단 유형 히스토리" onClick={() => navigate('/records/diagnosis')} />
+          <MenuRow icon="favorite"       iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 기록"   sublabel="감정 변화 히스토리" onClick={() => navigate('/records/emotion')} />
+        </MenuGroup>
+
+        <div className="h-3" />
+
+        {/* ── 메뉴 그룹: 통계 ── */}
+        <MenuGroup title="통계">
+          <MenuRow icon="bar_chart"   iconBg="#ECFDF5" iconColor="#10b981" label="휴식 활동 통계" onClick={() => navigate('/stats/rest')} />
+          <MenuRow icon="analytics"  iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 유형 통계" onClick={() => navigate('/stats/diagnosis')} />
+          <MenuRow icon="show_chart" iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 변화 통계" onClick={() => navigate('/stats/emotion')} />
+        </MenuGroup>
+
+        <div className="h-3" />
+
+        {/* ── 메뉴 그룹: 설정 ── */}
+        <MenuGroup title="설정">
+          <MenuRow icon="person_outline"  iconBg="#F8FAFC" iconColor="#64748B" label="개인정보 관리"   onClick={() => navigate('/settings/profile')} />
+          <MenuRow icon="security"        iconBg="#F8FAFC" iconColor="#64748B" label="보안 및 로그인"  onClick={() => navigate('/settings/security')} />
+          <MenuRow icon="tune"            iconBg="#F8FAFC" iconColor="#64748B" label="맞춤 추천 설정"  onClick={() => navigate('/settings/preferences')} />
+          <MenuRow icon="notifications"   iconBg="#F8FAFC" iconColor="#64748B" label="알림 설정"      onClick={() => navigate('/notifications')} />
+        </MenuGroup>
+
+        <div className="h-3" />
+
+        {/* ── 메뉴 그룹: 계정 ── */}
+        <MenuGroup title="계정">
+          <MenuRow icon="logout" label="로그아웃" onClick={handleLogout} red />
+        </MenuGroup>
+
+        {/* ── 버전 정보 ── */}
+        <p className="text-center text-xs text-slate-300 py-8 tracking-wide">
+          쉼표(,) v1.0.0
+        </p>
+
       </main>
     </div>
   );
