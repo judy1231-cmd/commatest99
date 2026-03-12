@@ -3,16 +3,22 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const CATEGORY_INFO = {
-  physical:  { name: '신체적 이완', icon: 'fitness_center', color: '#EF4444' },
-  mental:    { name: '정신적 고요', icon: 'spa',            color: '#10B981' },
-  sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#F59E0B' },
-  emotional: { name: '정서적 지지', icon: 'favorite',       color: '#EC4899' },
-  social:    { name: '사회적 휴식', icon: 'groups',         color: '#8B5CF6' },
-  nature:    { name: '자연의 연결', icon: 'forest',       color: '#059669' },
-  creative:  { name: '창조적 몰입', icon: 'brush',          color: '#F97316' },
+  physical:  { name: '신체적 이완', icon: 'fitness_center', color: '#4CAF82' },
+  mental:    { name: '정신적 고요', icon: 'spa',            color: '#5B8DEF' },
+  sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
+  emotional: { name: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },
+  social:    { name: '사회적 휴식', icon: 'groups',         color: '#FF9A3C' },
+  nature:    { name: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
+  creative:  { name: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 };
 
-// 추천 관련 콘텐츠 — 같은 카테고리 기반 예시
+const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
+const DIFFICULTY_COLOR = {
+  easy:   { bg: '#ECFDF5', text: '#10B981' },
+  medium: { bg: '#FFFBEB', text: '#F59E0B' },
+  hard:   { bg: '#FEF2F2', text: '#EF4444' },
+};
+
 const RELATED_CONTENTS = {
   physical:  [
     { id: 'p1', title: '5분 전신 스트레칭', duration: '5분', icon: 'self_improvement' },
@@ -51,6 +57,12 @@ const RELATED_CONTENTS = {
   ],
 };
 
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function ContentsDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -86,10 +98,9 @@ function ContentsDetail() {
     }
   };
 
-  // ── 로딩 ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="min-h-screen bg-[#F7F7F8]">
         <UserNavbar />
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -98,14 +109,14 @@ function ContentsDetail() {
     );
   }
 
-  // ── 에러 ──
   if (error || !content) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="min-h-screen bg-[#F7F7F8]">
         <UserNavbar />
-        <main className="max-w-2xl mx-auto px-4 pt-12 text-center">
-          <span className="material-icons text-5xl text-slate-300 mb-4 block">article</span>
-          <p className="text-slate-500 mb-6">{error || '콘텐츠를 찾을 수 없어요.'}</p>
+        <main className="max-w-2xl mx-auto px-4 pt-16 text-center">
+          <span className="material-icons text-5xl text-slate-200 mb-4 block">article</span>
+          <p className="font-semibold text-slate-500 mb-1">콘텐츠를 찾을 수 없어요</p>
+          <p className="text-sm text-slate-400 mb-6">{error}</p>
           <button
             onClick={() => navigate('/contents')}
             className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all"
@@ -117,134 +128,181 @@ function ContentsDetail() {
     );
   }
 
-  const category = CATEGORY_INFO[content.category] || CATEGORY_INFO.mental;
+  const cat = CATEGORY_INFO[content.category] || CATEGORY_INFO.mental;
   const related = RELATED_CONTENTS[content.category] || RELATED_CONTENTS.mental;
   const tags = content.tags || [];
+  const diff = content.difficulty ? DIFFICULTY_COLOR[content.difficulty] : null;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      <main className="max-w-2xl mx-auto px-4 pt-6 pb-24">
+      <main className="max-w-2xl mx-auto px-4 pt-5 pb-28">
 
         {/* 뒤로가기 */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-primary transition-colors mb-6"
+          className="flex items-center gap-1 text-sm text-slate-400 hover:text-primary transition-colors mb-4"
         >
           <span className="material-icons text-base">arrow_back</span>
-          콘텐츠 목록으로
+          콘텐츠 목록
         </button>
 
-        {/* 헤더 카드 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-          {/* 카테고리 뱃지 */}
-          <div
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
-            style={{ backgroundColor: `${category.color}15`, color: category.color }}
+        {/* 히어로 영역 */}
+        <div
+          className="rounded-2xl overflow-hidden mb-4 relative"
+          style={{ background: `linear-gradient(135deg, ${cat.color}22 0%, ${cat.color}0d 100%)` }}
+        >
+          {/* 배경 아이콘 */}
+          <span
+            className="material-icons absolute right-5 top-1/2 -translate-y-1/2 opacity-[0.12] pointer-events-none select-none"
+            style={{ fontSize: '96px', color: cat.color }}
           >
-            <span className="material-icons" style={{ fontSize: '14px' }}>{category.icon}</span>
-            {category.name}
-          </div>
+            {cat.icon}
+          </span>
 
-          <h1 className="text-xl font-bold text-slate-800 mb-2">{content.title}</h1>
+          <div className="relative z-10 px-6 py-7">
+            {/* 카테고리 배지 */}
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-4"
+              style={{ backgroundColor: `${cat.color}25`, color: cat.color }}
+            >
+              <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
+              {cat.name}
+            </span>
 
-          {/* 메타 정보 */}
-          <div className="flex items-center gap-4 text-xs text-slate-400 mb-4">
-            {content.duration && (
-              <span className="flex items-center gap-1">
-                <span className="material-icons text-base">timer</span>
-                {content.duration}
-              </span>
-            )}
-            {content.difficulty && (
-              <span className="flex items-center gap-1">
-                <span className="material-icons text-base">bar_chart</span>
-                {content.difficulty}
-              </span>
-            )}
-            {content.createdAt && (
-              <span>{new Date(content.createdAt).toLocaleDateString('ko-KR')}</span>
-            )}
-          </div>
+            {/* 제목 */}
+            <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800 leading-snug mb-4 pr-16">
+              {content.title}
+            </h1>
 
-          {/* 태그 */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, i) => (
+            {/* 메타 정보 */}
+            <div className="flex flex-wrap items-center gap-2">
+              {diff && content.difficulty && (
                 <span
-                  key={i}
-                  className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-medium"
+                  className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+                  style={{ backgroundColor: diff.bg, color: diff.text }}
                 >
-                  #{tag}
+                  {DIFFICULTY_LABEL[content.difficulty]}
                 </span>
-              ))}
+              )}
+              {content.duration && (
+                <span className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                  <span className="material-icons text-xs text-slate-400">schedule</span>
+                  {content.duration}분 읽기
+                </span>
+              )}
+              {content.createdAt && (
+                <span className="text-xs text-slate-400">{formatDate(content.createdAt)}</span>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* 본문 내용 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-          {content.summary && (
-            <div
-              className="rounded-xl p-4 mb-5 text-sm font-medium leading-relaxed"
-              style={{ backgroundColor: `${category.color}10`, color: category.color }}
+        {/* 요약 인용 박스 */}
+        {content.summary && (
+          <div
+            className="flex gap-3 rounded-2xl px-5 py-4 mb-4 border-l-4"
+            style={{
+              backgroundColor: `${cat.color}0d`,
+              borderLeftColor: cat.color,
+            }}
+          >
+            <span
+              className="material-icons text-base shrink-0 mt-0.5"
+              style={{ color: cat.color }}
+            >
+              format_quote
+            </span>
+            <p
+              className="text-sm font-medium leading-relaxed"
+              style={{ color: cat.color }}
             >
               {content.summary}
-            </div>
-          )}
-
-          <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-            {content.body || content.guideContent || '본문 내용이 없습니다.'}
+            </p>
           </div>
+        )}
+
+        {/* 본문 */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-6 mb-4">
+          <p className="text-[15px] text-slate-700 leading-[1.95] whitespace-pre-line">
+            {content.body || content.guideContent || '본문 내용이 없습니다.'}
+          </p>
         </div>
 
-        {/* 추천 관련 콘텐츠 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-bold text-slate-800 mb-4">관련 콘텐츠</h2>
-          <div className="space-y-3">
+        {/* 태그 */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-5">
+            {tags.map((tag, i) => (
+              <span
+                key={i}
+                className="px-3 py-1 bg-white border border-slate-200 text-slate-500 text-xs font-semibold rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 관련 콘텐츠 */}
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-3 px-0.5">
+            <p className="text-sm font-extrabold text-slate-700">관련 콘텐츠</p>
+            <Link to="/contents" className="text-xs text-slate-400 hover:text-primary transition-colors">
+              더보기
+            </Link>
+          </div>
+
+          {/* 가로 스크롤 카드 */}
+          <div
+            className="flex gap-3 overflow-x-auto pb-1"
+            style={{ scrollbarWidth: 'none' }}
+          >
             {related.map((item) => (
               <Link
                 key={item.id}
                 to={`/contents/${item.id}`}
-                className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                className="shrink-0 w-40 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all"
               >
+                {/* 썸네일 */}
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: `${category.color}15` }}
+                  className="h-20 flex items-center justify-center"
+                  style={{ backgroundColor: `${cat.color}15` }}
                 >
-                  <span className="material-icons text-xl" style={{ color: category.color }}>
+                  <span
+                    className="material-icons text-3xl opacity-70"
+                    style={{ color: cat.color }}
+                  >
                     {item.icon}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{category.name} · {item.duration}</p>
+                {/* 텍스트 */}
+                <div className="px-3 py-2.5">
+                  <p className="text-xs font-bold text-slate-800 line-clamp-2 leading-snug mb-1">
+                    {item.title}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {cat.name} · {item.duration}
+                  </p>
                 </div>
-                <span className="material-icons text-slate-300 shrink-0">chevron_right</span>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* 하단 버튼 */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="py-3.5 px-6 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
-          >
-            뒤로가기
-          </button>
-          <button
-            onClick={handleRecordClick}
-            className="flex-1 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-          >
-            <span className="material-icons text-base">edit_note</span>
-            휴식 기록하기
-            {!isLoggedIn && <span className="material-icons text-sm opacity-70">lock</span>}
-          </button>
-        </div>
       </main>
+
+      {/* 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-4 py-4 max-w-2xl mx-auto">
+        <button
+          onClick={handleRecordClick}
+          className="w-full bg-primary text-white font-bold py-4 rounded-2xl hover:bg-primary/90 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2"
+        >
+          <span className="material-icons text-base">edit_note</span>
+          이 콘텐츠로 휴식 기록하기
+          {!isLoggedIn && <span className="material-icons text-sm opacity-70">lock</span>}
+        </button>
+      </div>
     </div>
   );
 }
