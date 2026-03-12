@@ -5,12 +5,6 @@ import {
 import { fetchWithAuth } from '../../../api/fetchWithAuth';
 import UserNavbar from '../../../components/user/UserNavbar';
 
-const PERIODS = [
-  { label: '1주', days: 7 },
-  { label: '1개월', days: 30 },
-  { label: '3개월', days: 90 },
-];
-
 const TYPE_INFO = {
   physical:  { name: '신체적 이완', color: '#4CAF82' },
   mental:    { name: '정신적 고요', color: '#5B8DEF' },
@@ -21,12 +15,25 @@ const TYPE_INFO = {
   creative:  { name: '창조적 몰입', color: '#FFB830' },
 };
 
+const MONTH_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
 function formatMinutes(total) {
   if (total === 0) return '0분';
   if (total < 60) return `${total}분`;
   const h = Math.floor(total / 60);
   const m = total % 60;
   return m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
+}
+
+function getWeekOfMonth(date) {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  return Math.ceil((date.getDate() + firstDay) / 7);
+}
+
+function weeksInMonth(year, month) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return Math.ceil((daysInMonth + firstDay) / 7);
 }
 
 function CustomTooltip({ active, payload }) {
@@ -43,9 +50,19 @@ function CustomTooltip({ active, payload }) {
 function StatsRest() {
   const [logs, setLogs] = useState([]);
   const [restTypes, setRestTypes] = useState([]);
-  const [period, setPeriod] = useState(PERIODS[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // UI-only navigation states (no API calls)
+  const [activeTab, setActiveTab] = useState('monthly');
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth(), week: getWeekOfMonth(now) };
+  });
 
   useEffect(() => {
     loadRestTypes();
@@ -77,10 +94,47 @@ function StatsRest() {
     }
   };
 
-  // 기간 필터 적용
+  // Month navigation
+  const prevMonth = () => setCurrentMonth((prev) => {
+    const d = new Date(prev.year, prev.month - 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
+  const nextMonth = () => setCurrentMonth((prev) => {
+    const d = new Date(prev.year, prev.month + 1);
+    const now = new Date();
+    if (d.getFullYear() > now.getFullYear() || (d.getFullYear() === now.getFullYear() && d.getMonth() > now.getMonth())) return prev;
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
+
+  // Week navigation
+  const prevWeek = () => setCurrentWeek((prev) => {
+    if (prev.week > 1) return { ...prev, week: prev.week - 1 };
+    const d = new Date(prev.year, prev.month - 1);
+    const totalWeeks = weeksInMonth(d.getFullYear(), d.getMonth());
+    return { year: d.getFullYear(), month: d.getMonth(), week: totalWeeks };
+  });
+  const nextWeek = () => setCurrentWeek((prev) => {
+    const now = new Date();
+    const nowWeek = { year: now.getFullYear(), month: now.getMonth(), week: getWeekOfMonth(now) };
+    const isAtNow = prev.year === nowWeek.year && prev.month === nowWeek.month && prev.week === nowWeek.week;
+    if (isAtNow) return prev;
+    const total = weeksInMonth(prev.year, prev.month);
+    if (prev.week < total) return { ...prev, week: prev.week + 1 };
+    const d = new Date(prev.year, prev.month + 1);
+    return { year: d.getFullYear(), month: d.getMonth(), week: 1 };
+  });
+
+  // Filter logs by selected period (UI-only, no API)
   const filteredLogs = logs.filter((l) => {
-    const from = new Date(Date.now() - period.days * 24 * 60 * 60 * 1000);
-    return new Date(l.startTime) >= from;
+    const d = new Date(l.startTime);
+    if (activeTab === 'monthly') {
+      return d.getFullYear() === currentMonth.year && d.getMonth() === currentMonth.month;
+    }
+    return (
+      d.getFullYear() === currentWeek.year &&
+      d.getMonth() === currentWeek.month &&
+      getWeekOfMonth(d) === currentWeek.week
+    );
   });
 
   // 유형별 집계
@@ -115,6 +169,10 @@ function StatsRest() {
     ? Math.round(totalMinutes / filteredLogs.length)
     : 0;
 
+  const periodLabel = activeTab === 'monthly'
+    ? `${currentMonth.year}년 ${MONTH_NAMES[currentMonth.month]}`
+    : `${currentWeek.year}년 ${MONTH_NAMES[currentWeek.month]} ${currentWeek.week}주차`;
+
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
@@ -122,26 +180,43 @@ function StatsRest() {
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
         {/* 헤더 */}
-        <div className="mb-6">
+        <div className="mb-5">
           <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">휴식 활동 통계</h1>
           <p className="text-xs text-slate-400 mt-0.5">어떤 휴식을 많이 했는지 확인해요</p>
         </div>
 
-        {/* 기간 필터 */}
-        <div className="flex gap-2 mb-6">
-          {PERIODS.map((p) => (
+        {/* 주간 / 월간 탭 */}
+        <div className="flex bg-slate-100 rounded-2xl p-1 mb-4">
+          {[['monthly', '월간'], ['weekly', '주간']].map(([tab, label]) => (
             <button
-              key={p.label}
-              onClick={() => setPeriod(p)}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
-                period.label === p.label
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-primary hover:text-primary'
+                activeTab === tab
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-400'
               }`}
             >
-              {p.label}
+              {label}
             </button>
           ))}
+        </div>
+
+        {/* 기간 네비게이터 */}
+        <div className="flex items-center justify-between mb-5">
+          <button
+            onClick={activeTab === 'monthly' ? prevMonth : prevWeek}
+            className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors"
+          >
+            <span className="material-icons text-base">chevron_left</span>
+          </button>
+          <span className="text-sm font-bold text-slate-700">{periodLabel}</span>
+          <button
+            onClick={activeTab === 'monthly' ? nextMonth : nextWeek}
+            className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors"
+          >
+            <span className="material-icons text-base">chevron_right</span>
+          </button>
         </div>
 
         {/* 로딩 */}
@@ -161,22 +236,45 @@ function StatsRest() {
 
         {!loading && !error && (
           <>
-            {/* 요약 카드 */}
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              {[
-                { label: '총 기록', value: `${filteredLogs.length}회`, icon: 'event_note', color: 'text-primary' },
-                { label: '총 휴식 시간', value: formatMinutes(totalMinutes), icon: 'schedule', color: 'text-blue-500' },
-                { label: '평균 소요', value: formatMinutes(avgMinutesPerSession), icon: 'timer', color: 'text-amber-500' },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm text-center">
-                  <span className={`material-icons ${stat.color} text-xl mb-1 block`}>{stat.icon}</span>
-                  <p className="text-base font-bold text-slate-800 leading-tight">{stat.value}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{stat.label}</p>
+            {/* 히어로 요약 카드 */}
+            <div
+              className="rounded-3xl p-6 mb-5 relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
+            >
+              {/* 배경 장식 원 */}
+              <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+              <div className="absolute right-4 -bottom-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
+
+              <p className="text-white/70 text-[11px] font-semibold uppercase tracking-wider mb-1 relative z-10">
+                {periodLabel} 총 휴식 시간
+              </p>
+              <p className="text-white text-[38px] font-black tracking-tight leading-none relative z-10 mb-5">
+                {formatMinutes(totalMinutes)}
+              </p>
+
+              <div className="flex items-center gap-5 relative z-10">
+                <div>
+                  <p className="text-white text-lg font-bold leading-tight">{filteredLogs.length}회</p>
+                  <p className="text-white/60 text-[11px] mt-0.5">총 기록</p>
                 </div>
-              ))}
+                <div className="w-px h-8 bg-white/20" />
+                <div>
+                  <p className="text-white text-lg font-bold leading-tight">{formatMinutes(avgMinutesPerSession)}</p>
+                  <p className="text-white/60 text-[11px] mt-0.5">평균 소요</p>
+                </div>
+                {pieData.length > 0 && (
+                  <>
+                    <div className="w-px h-8 bg-white/20" />
+                    <div>
+                      <p className="text-white text-base font-bold leading-tight">{pieData[0].name}</p>
+                      <p className="text-white/60 text-[11px] mt-0.5">최다 유형</p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
-            {/* 파이 차트 */}
+            {/* 도넛 차트 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
               <h2 className="text-sm font-bold text-slate-700 mb-4">휴식 유형 비율</h2>
 
@@ -186,51 +284,58 @@ function StatsRest() {
                   <p className="text-sm">이 기간에 휴식 기록이 없어요</p>
                 </div>
               ) : (
-                <>
-                  <ResponsiveContainer width="100%" height={240}>
+                <div className="relative">
+                  <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                       <Pie
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
+                        innerRadius={66}
                         outerRadius={100}
                         paddingAngle={3}
                         dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
                       >
                         {pieData.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
+                          <Cell key={i} fill={entry.color} stroke="none" />
                         ))}
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
-
-                  {/* 중앙 텍스트 (도넛 차트 스타일) */}
-                  <p className="text-center text-xs text-slate-400 -mt-2">총 {filteredLogs.length}회</p>
-                </>
+                  {/* 도넛 중앙 오버레이 */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <p className="text-2xl font-black text-slate-800">{filteredLogs.length}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">총 기록</p>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* 유형별 상세 목록 */}
+            {/* 유형별 상세 */}
             {pieData.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                 <h2 className="text-sm font-bold text-slate-700 mb-4">유형별 상세</h2>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {pieData.map((item, i) => (
                     <div key={item.name}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
                           <span
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            className="px-2 py-0.5 rounded-full text-[11px] font-bold text-white"
                             style={{ backgroundColor: item.color }}
-                          />
-                          <span className="text-sm text-slate-700">{item.name}</span>
+                          >
+                            {item.name}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span>{item.value}회</span>
-                          <span className="font-bold" style={{ color: item.color }}>{item.pct}%</span>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-slate-400">{formatMinutes(item.minutes)}</span>
+                          <span className="font-black w-9 text-right" style={{ color: item.color }}>
+                            {item.pct}%
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 pl-6">
@@ -240,9 +345,7 @@ function StatsRest() {
                             style={{ width: `${item.pct}%`, backgroundColor: item.color }}
                           />
                         </div>
-                        <span className="text-xs text-slate-400 w-16 text-right">
-                          {formatMinutes(item.minutes)}
-                        </span>
+                        <span className="text-xs text-slate-400 w-6 text-right">{item.value}회</span>
                       </div>
                     </div>
                   ))}
