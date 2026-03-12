@@ -33,7 +33,7 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
-function PostCard({ post, onLike, token }) {
+function PostCard({ post, onLike }) {
   const catColor = CATEGORY_COLOR[post.category] || '#10b981';
   const avatarLetter = (post.nickname || '?')[0];
 
@@ -268,7 +268,6 @@ function Community() {
                 key={post.id}
                 post={post}
                 onLike={handleLike}
-                token={token}
               />
             ))}
           </div>
