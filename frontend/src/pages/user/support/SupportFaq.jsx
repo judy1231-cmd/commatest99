@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import UserNavbar from '../../../components/user/UserNavbar';
 
-const CATEGORIES = ['전체', '서비스 이용', '계정', '진단', '기타'];
+const CATEGORIES = [
+  { key: '전체',      icon: 'grid_view' },
+  { key: '서비스 이용', icon: 'apps' },
+  { key: '계정',      icon: 'person' },
+  { key: '진단',      icon: 'psychology' },
+  { key: '기타',      icon: 'help_outline' },
+];
 
 const FAQ_LIST = [
   {
@@ -71,31 +77,49 @@ const FAQ_LIST = [
   },
 ];
 
-function AccordionItem({ item, isOpen, onToggle }) {
+function highlight(text, query) {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} className="bg-yellow-100 text-yellow-800 rounded px-0.5">{part}</mark>
+      : part
+  );
+}
+
+function AccordionItem({ item, isOpen, onToggle, searchQuery }) {
   return (
-    <div className="border-b border-slate-100 last:border-none">
+    <div className="border-b border-slate-50 last:border-none">
+      {/* 질문 행 */}
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between gap-4 py-4 text-left group"
+        className="w-full flex items-start gap-3 py-4 text-left group"
       >
-        <div className="flex items-start gap-3">
-          <span className="text-primary font-bold text-sm mt-0.5 shrink-0">Q</span>
-          <span className="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">
-            {item.question}
-          </span>
-        </div>
+        <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[11px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
+          Q
+        </span>
+        <span className={`flex-1 text-sm font-bold leading-snug transition-colors ${isOpen ? 'text-primary' : 'text-slate-700 group-hover:text-primary'}`}>
+          {highlight(item.question, searchQuery)}
+        </span>
         <span
-          className="material-icons text-slate-400 shrink-0 transition-transform duration-200"
+          className="material-icons text-slate-300 text-xl shrink-0 transition-transform duration-200 mt-0.5"
           style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >
           expand_more
         </span>
       </button>
 
+      {/* 답변 영역 */}
       {isOpen && (
-        <div className="flex items-start gap-3 pb-4">
-          <span className="text-slate-400 font-bold text-sm shrink-0">A</span>
-          <p className="text-sm text-slate-500 leading-relaxed">{item.answer}</p>
+        <div className="mb-3 rounded-xl bg-slate-50 border-l-[3px] border-primary overflow-hidden">
+          <div className="flex items-start gap-3 px-4 py-3.5">
+            <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-500 text-[11px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
+              A
+            </span>
+            <p className="text-sm text-slate-600 leading-relaxed flex-1">
+              {highlight(item.answer, searchQuery)}
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -105,10 +129,22 @@ function AccordionItem({ item, isOpen, onToggle }) {
 function SupportFaq() {
   const [activeCategory, setActiveCategory] = useState('전체');
   const [openIndex, setOpenIndex] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filtered = activeCategory === '전체'
-    ? FAQ_LIST
-    : FAQ_LIST.filter((f) => f.category === activeCategory);
+  const isSearching = searchQuery.trim().length > 0;
+
+  const filtered = (() => {
+    let list = activeCategory === '전체' || isSearching
+      ? FAQ_LIST
+      : FAQ_LIST.filter(f => f.category === activeCategory);
+    if (isSearching) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(f =>
+        f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  })();
 
   const handleToggle = (index) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -117,43 +153,78 @@ function SupportFaq() {
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
     setOpenIndex(null);
+    setSearchQuery('');
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
         {/* 헤더 */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-800">자주 묻는 질문</h1>
-          <p className="text-sm text-slate-400 mt-0.5">궁금한 점을 빠르게 찾아보세요</p>
+        <div className="mb-5">
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">자주 묻는 질문</h1>
+          <p className="text-xs text-slate-400 mt-0.5">궁금한 점을 빠르게 찾아보세요</p>
         </div>
 
-        {/* 카테고리 필터 */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {CATEGORIES.map((cat) => (
+        {/* 검색 입력 */}
+        <div className="relative mb-4">
+          <span className="material-icons absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-[18px]">
+            search
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setOpenIndex(null); }}
+            placeholder="질문이나 키워드를 입력해보세요"
+            className="w-full h-11 pl-10 pr-10 bg-white border border-slate-200 rounded-2xl text-sm text-slate-700 placeholder:text-slate-300 outline-none focus:border-primary transition-colors"
+          />
+          {searchQuery && (
             <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                activeCategory === cat
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-primary hover:text-primary'
-              }`}
+              onClick={() => { setSearchQuery(''); setOpenIndex(null); }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
             >
-              {cat}
+              <span className="material-icons text-[18px]">close</span>
             </button>
-          ))}
+          )}
         </div>
+
+        {/* 카테고리 탭 — 가로 스크롤 */}
+        {!isSearching && (
+          <div className="flex gap-2 mb-5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat.key}
+                onClick={() => handleCategoryChange(cat.key)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
+                  activeCategory === cat.key
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
+                }`}
+              >
+                <span className="material-icons text-xs">{cat.icon}</span>
+                {cat.key}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 검색 결과 안내 */}
+        {isSearching && (
+          <p className="text-xs text-slate-400 mb-3 px-0.5">
+            "<span className="font-bold text-slate-600">{searchQuery}</span>" 검색 결과
+            {' '}<span className="font-bold text-primary">{filtered.length}개</span>
+          </p>
+        )}
 
         {/* FAQ 아코디언 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 mb-5">
           {filtered.length === 0 ? (
-            <div className="py-12 text-center text-slate-300">
-              <span className="material-icons text-4xl mb-2 block">help_outline</span>
-              <p className="text-sm">해당 카테고리의 질문이 없어요.</p>
+            <div className="py-14 text-center">
+              <span className="material-icons text-4xl text-slate-200 mb-3 block">help_outline</span>
+              <p className="font-semibold text-slate-400 text-sm mb-1">결과가 없어요</p>
+              <p className="text-xs text-slate-300">다른 검색어나 카테고리를 시도해보세요.</p>
             </div>
           ) : (
             filtered.map((item, index) => (
@@ -162,21 +233,20 @@ function SupportFaq() {
                 item={item}
                 isOpen={openIndex === index}
                 onToggle={() => handleToggle(index)}
+                searchQuery={isSearching ? searchQuery : ''}
               />
             ))
           )}
         </div>
 
-        {/* 문의하기 안내 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <span className="material-icons text-primary text-2xl">mail_outline</span>
+        {/* 문의하기 카드 */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="material-icons text-primary text-xl">mail_outline</span>
           </div>
-          <div>
-            <p className="text-sm font-bold text-slate-700 mb-0.5">더 궁금한 점이 있으신가요?</p>
-            <p className="text-xs text-slate-400">
-              원하는 답변을 찾지 못하셨다면 이메일로 문의해주세요.
-            </p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-700 mb-0.5">원하는 답변을 찾지 못하셨나요?</p>
+            <p className="text-xs text-slate-400 leading-relaxed">이메일로 문의해주시면 빠르게 답변드릴게요.</p>
             <a
               href="mailto:support@comma.com"
               className="inline-flex items-center gap-1 text-xs text-primary font-bold mt-1.5 hover:underline"
@@ -186,6 +256,7 @@ function SupportFaq() {
             </a>
           </div>
         </div>
+
       </main>
     </div>
   );
