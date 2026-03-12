@@ -47,7 +47,7 @@ function aggregateByDate(logsToProcess) {
     dateMap[key].count += 1;
   }
   return Object.entries(dateMap)
-    .map(([date, { sum, count, raw }]) => ({
+    .map(([, { sum, count, raw }]) => ({
       date: String(raw).slice(5, 10),
       raw,
       score: Math.round((sum / count) * 10) / 10,
