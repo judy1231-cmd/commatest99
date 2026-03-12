@@ -3,22 +3,36 @@ import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const CATEGORIES = [
-  { key: 'all',      label: '전체',      icon: 'grid_view' },
-  { key: 'physical', label: '신체적 이완', icon: 'fitness_center', color: '#EF4444' },
-  { key: 'mental',   label: '정신적 고요', icon: 'spa',            color: '#10B981' },
-  { key: 'sensory',  label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B' },
-  { key: 'emotional',label: '정서적 지지', icon: 'favorite',       color: '#EC4899' },
-  { key: 'social',   label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6' },
-  { key: 'nature',   label: '자연의 연결',icon: 'forest',        color: '#059669' },
-  { key: 'creative', label: '창조적 몰입', icon: 'brush',          color: '#F97316' },
+  { key: 'all',       label: '전체',       icon: 'grid_view',      color: '#10b981' },
+  { key: 'physical',  label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82' },
+  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF' },
+  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
+  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },
+  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C' },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
+  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 ];
 
 const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
-const DIFFICULTY_COLOR = { easy: 'text-emerald-500 bg-emerald-50', medium: 'text-amber-500 bg-amber-50', hard: 'text-red-500 bg-red-50' };
+const DIFFICULTY_COLOR = {
+  easy:   { bg: '#ECFDF5', text: '#10B981' },
+  medium: { bg: '#FFFBEB', text: '#F59E0B' },
+  hard:   { bg: '#FEF2F2', text: '#EF4444' },
+};
 
-function ContentCard({ content, onBookmark, isLoggedIn }) {
+const ITEMS_PER_PAGE = 8;
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// 피처드 카드 (목록 첫 번째)
+function FeaturedCard({ content, onBookmark, isLoggedIn }) {
   const navigate = useNavigate();
-  const catInfo = CATEGORIES.find((c) => c.key === content.category) || CATEGORIES[0];
+  const catInfo = CATEGORIES.find(c => c.key === content.category) || CATEGORIES[0];
+  const diff = content.difficulty ? DIFFICULTY_COLOR[content.difficulty] : null;
 
   const handleBookmark = (e) => {
     e.preventDefault();
@@ -29,19 +43,34 @@ function ContentCard({ content, onBookmark, isLoggedIn }) {
   return (
     <Link
       to={`/contents/${content.id}`}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group flex flex-col"
+      className="block bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
     >
       {/* 썸네일 */}
       <div
-        className="h-40 flex items-center justify-center relative"
-        style={{ backgroundColor: `${catInfo.color}15` }}
+        className="h-52 flex items-center justify-center relative"
+        style={{ background: `linear-gradient(135deg, ${catInfo.color}22 0%, ${catInfo.color}10 100%)` }}
       >
-        <span className="material-icons text-6xl" style={{ color: catInfo.color }}>
+        <span className="material-icons text-8xl opacity-30" style={{ color: catInfo.color }}>
           {catInfo.icon}
         </span>
+        {/* 카테고리 배지 */}
+        <span
+          className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold"
+          style={{ backgroundColor: `${catInfo.color}20`, color: catInfo.color }}
+        >
+          {catInfo.label}
+        </span>
+        {/* 읽기 시간 배지 */}
+        {content.duration && (
+          <span className="absolute bottom-4 left-4 px-2.5 py-1 bg-white/80 rounded-full text-xs font-semibold text-slate-600 flex items-center gap-1">
+            <span className="material-icons text-xs text-slate-400">schedule</span>
+            {content.duration}분 읽기
+          </span>
+        )}
+        {/* 북마크 */}
         <button
           onClick={handleBookmark}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all"
+          className="absolute top-4 right-4 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all"
         >
           <span className="material-icons text-base text-slate-400 hover:text-primary">
             {content.bookmarked ? 'bookmark' : 'bookmark_border'}
@@ -49,35 +78,104 @@ function ContentCard({ content, onBookmark, isLoggedIn }) {
         </button>
       </div>
 
-      {/* 내용 */}
-      <div className="p-4 flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-2">
+      {/* 본문 */}
+      <div className="p-5">
+        <h2 className="text-lg font-bold text-slate-800 line-clamp-2 group-hover:text-primary transition-colors mb-2">
+          {content.title}
+        </h2>
+        {content.summary && (
+          <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+            {content.summary}
+          </p>
+        )}
+        <div className="flex items-center gap-2 mt-4">
+          {diff && content.difficulty && (
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: diff.bg, color: diff.text }}
+            >
+              {DIFFICULTY_LABEL[content.difficulty]}
+            </span>
+          )}
+          {content.createdAt && (
+            <span className="text-xs text-slate-400">{formatDate(content.createdAt)}</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// 리스트 카드 (이후 항목들)
+function ListCard({ content, onBookmark, isLoggedIn }) {
+  const navigate = useNavigate();
+  const catInfo = CATEGORIES.find(c => c.key === content.category) || CATEGORIES[0];
+  const diff = content.difficulty ? DIFFICULTY_COLOR[content.difficulty] : null;
+
+  const handleBookmark = (e) => {
+    e.preventDefault();
+    if (!isLoggedIn) { navigate('/login'); return; }
+    onBookmark(content.id);
+  };
+
+  return (
+    <Link
+      to={`/contents/${content.id}`}
+      className="flex gap-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 p-4 group"
+    >
+      {/* 텍스트 영역 */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-2">
           <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full"
+            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
             style={{ backgroundColor: `${catInfo.color}15`, color: catInfo.color }}
           >
             {catInfo.label}
           </span>
-          {content.difficulty && (
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${DIFFICULTY_COLOR[content.difficulty] || ''}`}>
-              {DIFFICULTY_LABEL[content.difficulty] || content.difficulty}
+          {diff && content.difficulty && (
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: diff.bg, color: diff.text }}
+            >
+              {DIFFICULTY_LABEL[content.difficulty]}
             </span>
           )}
         </div>
-        <h3 className="text-sm font-bold text-slate-800 mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-primary transition-colors mb-1.5">
           {content.title}
         </h3>
         {content.summary && (
-          <p className="text-xs text-slate-400 line-clamp-2 flex-1">{content.summary}</p>
+          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{content.summary}</p>
         )}
         <div className="flex items-center gap-3 mt-3 text-xs text-slate-400">
           {content.duration && (
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0.5 font-medium">
               <span className="material-icons text-xs">schedule</span>
-              {content.duration}분
+              {content.duration}분 읽기
             </span>
           )}
+          {content.createdAt && <span>{formatDate(content.createdAt)}</span>}
         </div>
+      </div>
+
+      {/* 썸네일 */}
+      <div className="flex flex-col items-end gap-2 shrink-0">
+        <div
+          className="w-20 h-20 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: `${catInfo.color}15` }}
+        >
+          <span className="material-icons text-3xl" style={{ color: `${catInfo.color}90` }}>
+            {catInfo.icon}
+          </span>
+        </div>
+        <button
+          onClick={handleBookmark}
+          className="p-1 text-slate-300 hover:text-primary transition-colors"
+        >
+          <span className="material-icons text-lg">
+            {content.bookmarked ? 'bookmark' : 'bookmark_border'}
+          </span>
+        </button>
       </div>
     </Link>
   );
@@ -90,8 +188,10 @@ function ContentsList() {
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    setCurrentPage(1);
     if (activeCategory === 'recommend') {
       loadRecommend();
     } else {
@@ -144,48 +244,41 @@ function ContentsList() {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
       });
-      setContents((prev) =>
-        prev.map((c) => c.id === id ? { ...c, bookmarked: !c.bookmarked } : c)
-      );
+      setContents(prev => prev.map(c => c.id === id ? { ...c, bookmarked: !c.bookmarked } : c));
     } catch { /* 무시 */ }
   };
 
+  // 페이지네이션
+  const totalPages = Math.ceil(contents.length / ITEMS_PER_PAGE);
+  const paged = contents.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const featured = paged[0];
+  const listItems = paged.slice(1);
+
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      <main className="max-w-6xl mx-auto px-6 pt-8 pb-24">
+      <main className="max-w-2xl mx-auto px-4 pt-6 pb-24">
 
         {/* 헤더 */}
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">휴식 콘텐츠</h1>
-            <p className="text-sm text-slate-400 mt-1">나에게 맞는 휴식 방법을 찾아보세요</p>
-          </div>
-          {isLoggedIn && (
-            <Link
-              to="/rest-record"
-              className="flex items-center gap-2 bg-white border border-primary text-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/5 transition-all"
-            >
-              <span className="material-icons text-base">event_note</span>
-              내 휴식 기록
-            </Link>
-          )}
+        <div className="mb-5">
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">휴식 콘텐츠</h1>
+          <p className="text-xs text-slate-400 mt-0.5">나에게 맞는 휴식 방법을 찾아보세요</p>
         </div>
 
-        {/* 카테고리 필터 */}
-        <div className="flex gap-2 mb-8 flex-wrap">
-          {/* 맞춤 탭 — 로그인 사용자만 */}
+        {/* 카테고리 칩 — 가로 스크롤 */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {/* 맞춤 추천 (로그인 시) */}
           {isLoggedIn && (
             <button
               onClick={() => setActiveCategory('recommend')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 activeCategory === 'recommend'
                   ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border border-primary text-primary hover:bg-primary/5'
+                  : 'bg-white border border-primary/30 text-primary hover:bg-primary/5'
               }`}
             >
-              <span className="material-icons text-sm">auto_awesome</span>
+              <span className="material-icons text-xs">auto_awesome</span>
               맞춤 추천
             </button>
           )}
@@ -193,13 +286,13 @@ function ContentsList() {
             <button
               key={cat.key}
               onClick={() => setActiveCategory(cat.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
                 activeCategory === cat.key
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-primary hover:text-primary'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
               }`}
             >
-              <span className="material-icons text-sm">{cat.icon}</span>
+              <span className="material-icons text-xs">{cat.icon}</span>
               {cat.label}
             </button>
           ))}
@@ -229,11 +322,20 @@ function ContentsList() {
           </div>
         )}
 
-        {/* 콘텐츠 그리드 */}
+        {/* 콘텐츠 목록 */}
         {!loading && !error && contents.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {contents.map((content) => (
-              <ContentCard
+          <div className="space-y-3">
+            {/* 피처드 카드 */}
+            {featured && (
+              <FeaturedCard
+                content={featured}
+                onBookmark={handleBookmark}
+                isLoggedIn={isLoggedIn}
+              />
+            )}
+            {/* 리스트 카드 */}
+            {listItems.map(content => (
+              <ListCard
                 key={content.id}
                 content={content}
                 onBookmark={handleBookmark}
@@ -242,6 +344,49 @@ function ContentsList() {
             ))}
           </div>
         )}
+
+        {/* 페이지네이션 */}
+        {!loading && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0); }}
+              disabled={currentPage === 1}
+              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors disabled:opacity-30"
+            >
+              <span className="material-icons text-base">chevron_left</span>
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => { setCurrentPage(page); window.scrollTo(0, 0); }}
+                className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
+                  page === currentPage
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-primary hover:text-primary'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0); }}
+              disabled={currentPage === totalPages}
+              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors disabled:opacity-30"
+            >
+              <span className="material-icons text-base">chevron_right</span>
+            </button>
+          </div>
+        )}
+
+        {/* 총 콘텐츠 수 */}
+        {!loading && contents.length > 0 && (
+          <p className="text-center text-xs text-slate-300 mt-4">
+            총 {contents.length}개 콘텐츠 · {currentPage}/{totalPages} 페이지
+          </p>
+        )}
+
       </main>
     </div>
   );
