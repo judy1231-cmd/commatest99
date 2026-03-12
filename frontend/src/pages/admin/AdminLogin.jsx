@@ -48,38 +48,39 @@ function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      {/* Background decoration */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-[10%] w-[300px] h-[300px] rounded-full blur-[150px] bg-primary/20"></div>
-        <div className="absolute bottom-[10%] right-[15%] w-[250px] h-[250px] rounded-full blur-[150px] bg-primary/10"></div>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F172A]">
 
-      <div className="w-full max-w-md px-6">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30 overflow-hidden">
-            <img src="/logo_comma.png" alt="쉼표" className="w-8 h-8 object-contain" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">쉼표 관리자</h1>
-          <p className="text-slate-400 text-sm mt-2">관리자 계정으로 로그인해주세요</p>
-        </div>
+      <div className="w-full max-w-[400px] px-4">
+        {/* White Card */}
+        <div className="bg-white rounded-2xl shadow-2xl shadow-black/40 overflow-hidden">
 
-        {/* Card */}
-        <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
-          {error && (
-            <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
-              {error}
+          {/* Card Header */}
+          <div className="px-8 pt-10 pb-8 border-b border-gray-100">
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center">
+                <span className="material-icons text-white text-xl">lock</span>
+              </div>
+              <div className="text-center">
+                <h1 className="text-xl font-bold text-slate-900 tracking-tight">관리자 로그인</h1>
+                <p className="text-xs text-slate-400 mt-1">쉼표(,) 관리자 전용 접근</p>
+              </div>
             </div>
-          )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">이메일</label>
-              <div className="relative">
-                <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl">mail</span>
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-1">
+                <span className="material-icons text-red-500 text-base">error_outline</span>
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Form */}
+          <div className="px-8 py-8">
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">이메일</label>
                 <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all"
+                  className="w-full h-11 px-3.5 border border-gray-200 rounded-lg text-sm text-slate-800 placeholder:text-slate-300 bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                   placeholder="admin@comma.com"
                   type="email"
                   value={email}
@@ -87,35 +88,38 @@ function AdminLogin() {
                   disabled={loading}
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">비밀번호</label>
-              <div className="relative">
-                <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl">lock</span>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">비밀번호</label>
                 <input
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all"
-                  placeholder="비밀번호를 입력하세요"
+                  className="w-full h-11 px-3.5 border border-gray-200 rounded-lg text-sm text-slate-800 placeholder:text-slate-300 bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  placeholder="••••••••"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                 />
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? '로그인 중...' : '관리자 로그인'}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    로그인 중...
+                  </span>
+                ) : '로그인'}
+              </button>
+            </form>
+          </div>
         </div>
 
+        {/* Footer */}
         <p className="text-center mt-6 text-xs text-slate-500">
-          &copy; 2024 쉼표 Admin Console
+          쉼표(,) 관리자 시스템 v1.0
         </p>
       </div>
     </div>
