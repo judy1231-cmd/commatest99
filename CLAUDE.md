@@ -1,3 +1,4 @@
+
 # 쉼표 (,) 프로젝트 — Claude Code 작업 가이드
 
 > 이 파일을 먼저 전부 읽고 작업을 시작해줘.
@@ -80,8 +81,8 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - 챌린지 참여/달성률
 
 ### 회원 식별자
-- **쉼표번호**: `쉼표` + 4자리 숫자 (예: `쉼표1234`)
-- VARCHAR(12), 가입 시 자동 생성, 중복 불가
+- **쉼표번호**: `쉼표` + 4자리 숫자 (예: `쉼표1234`) — **닉네임**
+- VARCHAR(12), 가입 시 자동 생성, **변경 가능** (사용자가 직접 수정 가능)
 - **반드시 String 타입** — bigint 변환 금지
 
 ---
@@ -225,7 +226,7 @@ users → measurement_sessions → diagnosis_results → recommendations → res
 
 ### [A] 사용자 / 인증 (5개)
 ```
-users                - 쉼표번호(PK/VARCHAR12), 이메일(UNIQUE), 비밀번호, 닉네임, 상태(active/dormant/banned), 이메일인증여부, 권한(USER/ADMIN)
+users                - 아이디(PK/BIGINT), 쉼표번호(VARCHAR12/닉네임/변경가능), 이메일(UNIQUE), 비밀번호, 상태(active/dormant/banned), 이메일인증여부, 권한(USER/ADMIN)
 auth_provider        - 아이디(PK), 쉼표번호(FK), 제공자(kakao/google), 제공자ID(UNIQUE)
 email_verification   - 아이디(PK), 쉼표번호(FK), 토큰, 인증여부, 만료일시
 password_reset_token - 아이디(PK), 쉼표번호(FK), 토큰, 만료일시, 사용여부
@@ -311,7 +312,7 @@ blocked_keywords  - 아이디(PK), 키워드(UNIQUE), 활성여부
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    private String 쉼표번호;  // PK — String 타입, bigint 절대 아님
+    private String 쉼표번호;  // 닉네임 — String 타입, 변경 가능, bigint 절대 아님
     private String email;
 }
 ```
@@ -415,7 +416,7 @@ spring.mail.password=지메일앱비밀번호
 ## ⚠️ 주의사항
 
 1. **핵심 흐름 먼저** — 진단→추천→기록→개선 데이터 품질 우선
-2. **쉼표번호는 String** — bigint 변환 절대 금지
+2. **쉼표번호는 닉네임(String)** — 가입 시 자동생성, 변경 가능, bigint 변환 절대 금지
 3. **Seed 데이터 먼저** — rest_types 7개, badges 5개 없으면 화면 텅 빔
 4. **추천 로그 반드시 저장** — recommendations 테이블 기록해야 통계 살아남
 5. **원천데이터 vs 산출물 분리** — 심박/응답(원천) ↔ 진단결과(산출물)
