@@ -85,15 +85,24 @@ function MypagePassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
+        {/* 뒤로가기 */}
+        <button
+          onClick={() => window.history.back()}
+          className="flex items-center gap-1 text-sm text-slate-400 hover:text-primary mb-5 transition-colors"
+        >
+          <span className="material-icons text-base">arrow_back</span>
+          마이페이지
+        </button>
+
         {/* 헤더 */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-800">비밀번호 변경</h1>
-          <p className="text-sm text-slate-400 mt-0.5">계정 보안을 위해 주기적으로 변경해요</p>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">비밀번호 변경</h1>
+          <p className="text-xs text-slate-400 mt-0.5">계정 보안을 위해 주기적으로 변경해요</p>
         </div>
 
         {/* 소셜 가입자 안내 */}

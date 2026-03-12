@@ -13,9 +13,10 @@ const WITHDRAW_WARNINGS = [
 
 function ConfirmModal({ onConfirm, onCancel, loading }) {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
-        <div className="text-center mb-5">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-0">
+      <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-10">
+        <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-6" />
+        <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
             <span className="material-icons text-3xl text-red-500">warning</span>
           </div>
@@ -29,14 +30,14 @@ function ConfirmModal({ onConfirm, onCancel, loading }) {
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-2xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all disabled:opacity-50"
           >
             취소
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-all disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-2xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-all disabled:opacity-50"
           >
             {loading ? '처리 중...' : '탈퇴 확인'}
           </button>
@@ -83,28 +84,37 @@ function MypageWithdraw() {
   const canSubmit = isSocialUser || password.length >= 1;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
+        {/* 뒤로가기 */}
+        <button
+          onClick={() => navigate('/my')}
+          className="flex items-center gap-1 text-sm text-slate-400 hover:text-primary mb-5 transition-colors"
+        >
+          <span className="material-icons text-base">arrow_back</span>
+          마이페이지
+        </button>
+
         {/* 헤더 */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-800">회원 탈퇴</h1>
-          <p className="text-sm text-slate-400 mt-0.5">탈퇴 전에 아래 내용을 꼭 확인해주세요</p>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">회원 탈퇴</h1>
+          <p className="text-xs text-slate-400 mt-0.5">탈퇴 전에 아래 내용을 꼭 확인해주세요</p>
         </div>
 
         {/* 탈퇴 경고 안내 */}
-        <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-5">
+        <div className="bg-red-50 border border-red-100 rounded-2xl p-5 mb-4">
           <div className="flex items-center gap-2 mb-4">
-            <span className="material-icons text-red-500 text-xl">error_outline</span>
+            <span className="material-icons text-red-500 text-lg">error_outline</span>
             <p className="font-bold text-red-600 text-sm">탈퇴하면 다음 항목이 삭제돼요</p>
           </div>
           <div className="space-y-3">
             {WITHDRAW_WARNINGS.map((w) => (
               <div key={w.icon} className="flex items-start gap-3">
                 <span className="material-icons text-red-400 text-base mt-0.5 shrink-0">{w.icon}</span>
-                <p className="text-sm text-red-700">{w.text}</p>
+                <p className="text-sm text-red-700 leading-relaxed">{w.text}</p>
               </div>
             ))}
           </div>
@@ -114,9 +124,11 @@ function MypageWithdraw() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-5">
           {isSocialUser ? (
             <div className="flex items-center gap-3">
-              <span className="material-icons text-slate-400">
-                {user?.provider === 'kakao' ? 'chat_bubble' : 'account_circle'}
-              </span>
+              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                <span className="material-icons text-slate-400 text-lg">
+                  {user?.provider === 'kakao' ? 'chat_bubble' : 'account_circle'}
+                </span>
+              </div>
               <div>
                 <p className="text-sm font-semibold text-slate-700">
                   {user?.provider === 'kakao' ? '카카오' : '구글'} 소셜 로그인 계정
@@ -126,8 +138,8 @@ function MypageWithdraw() {
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                비밀번호 확인
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                본인 확인
               </label>
               <div className="relative">
                 <input
@@ -135,7 +147,7 @@ function MypageWithdraw() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="현재 비밀번호를 입력해주세요"
-                  className="w-full h-12 px-4 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-red-200 focus:border-red-400 outline-none"
+                  className="w-full h-12 px-4 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-sm text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none"
                 />
                 <button
                   type="button"
@@ -158,7 +170,7 @@ function MypageWithdraw() {
         <button
           onClick={() => setShowModal(true)}
           disabled={!canSubmit}
-          className="w-full py-3 rounded-xl border-2 border-red-400 text-red-500 font-bold text-sm hover:bg-red-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-4 rounded-2xl border-2 border-red-300 text-red-500 font-bold text-sm hover:bg-red-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           회원 탈퇴 신청
         </button>
@@ -168,7 +180,6 @@ function MypageWithdraw() {
         </p>
       </main>
 
-      {/* 최종 확인 모달 */}
       {showModal && (
         <ConfirmModal
           onConfirm={handleWithdraw}
