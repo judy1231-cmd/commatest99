@@ -63,160 +63,255 @@ function AdminDashboard() {
     { label: '장소 승인 대기', value: pendingPlaces.length.toString(), change: '검토 필요', icon: 'map', color: 'bg-red-100 text-red-600', changeColor: 'text-red-600 bg-red-50', urgent: pendingPlaces.length > 0 },
   ] : [];
 
+  /* ── Skeleton UI ── */
+  if (loading) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader title="실시간 대시보드" subtitle="플랫폼의 현재 상태와 실시간 통계를 확인하세요." />
+          <main className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* stat card skeletons */}
+            <div className="grid grid-cols-5 gap-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3 animate-pulse">
+                  <div className="flex items-center justify-between">
+                    <div className="w-9 h-9 bg-gray-200 rounded-lg" />
+                    <div className="w-14 h-4 bg-gray-200 rounded-full" />
+                  </div>
+                  <div className="w-20 h-3 bg-gray-200 rounded" />
+                  <div className="w-16 h-7 bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
+            {/* chart skeletons */}
+            <div className="grid grid-cols-3 gap-6">
+              <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-4">
+                <div className="w-32 h-4 bg-gray-200 rounded" />
+                <div className="h-48 bg-gray-100 rounded-lg" />
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-4">
+                <div className="w-24 h-4 bg-gray-200 rounded" />
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex justify-between py-3 border-b border-gray-100">
+                    <div className="w-20 h-3 bg-gray-200 rounded" />
+                    <div className="w-12 h-3 bg-gray-200 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* table skeleton */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse space-y-3">
+              <div className="w-36 h-4 bg-gray-200 rounded" />
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-6 py-3 border-b border-gray-100">
+                  <div className="w-32 h-3 bg-gray-200 rounded" />
+                  <div className="flex-1 h-3 bg-gray-100 rounded" />
+                  <div className="w-12 h-3 bg-gray-200 rounded" />
+                  <div className="w-20 h-3 bg-gray-200 rounded" />
+                </div>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background-light">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader title="실시간 대시보드" subtitle="플랫폼의 현재 상태와 실시간 통계를 확인하세요." />
-        <main className="flex-1 overflow-y-auto p-6 space-y-8">
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
 
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          {/* ── 통계 카드 ── */}
+          <section className="grid grid-cols-5 gap-4">
+            {statCards.map((stat, i) => (
+              <div
+                key={i}
+                className={`bg-white rounded-xl border shadow-sm p-5 flex flex-col gap-3 transition-shadow hover:shadow-md ${stat.urgent ? 'border-l-4 border-l-red-400' : 'border-gray-200'}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${stat.color}`}>
+                    <span className="material-icons-round text-[18px]">{stat.icon}</span>
+                  </div>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${stat.changeColor}`}>
+                    {stat.change}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 tracking-tight">{stat.value}</p>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* ── 차트 + 회원 현황 ── */}
+          <section className="grid grid-cols-3 gap-6">
+
+            {/* 가입자 추이 바 차트 */}
+            <div className="col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">신규 가입자 추이</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">최근 30일</p>
+                </div>
+              </div>
+
+              {dailySignups.length > 0 ? (() => {
+                const maxCount = Math.max(...dailySignups.map(d => Number(d.count) || 0), 1);
+                const labelIdxs = [0, Math.floor(dailySignups.length / 2), dailySignups.length - 1];
+                const gridLines = [25, 50, 75, 100];
+                return (
+                  <div>
+                    {/* 그리드 + 바 */}
+                    <div className="relative h-44 w-full">
+                      {/* 수평 그리드 라인 */}
+                      {gridLines.map((pct) => (
+                        <div
+                          key={pct}
+                          className="absolute w-full border-t border-dashed border-gray-100"
+                          style={{ bottom: `${pct}%` }}
+                        />
+                      ))}
+                      {/* 바 */}
+                      <div className="absolute inset-0 flex items-end gap-px px-0.5">
+                        {dailySignups.map((d, i) => {
+                          const h = Math.max(Math.round((Number(d.count) / maxCount) * 100), 3);
+                          return (
+                            <div
+                              key={i}
+                              className="flex-1 bg-primary/25 hover:bg-primary/60 transition-colors rounded-t group relative cursor-default"
+                              style={{ height: `${h}%` }}
+                            >
+                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-lg">
+                                {d.count}명
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* 날짜 레이블 */}
+                    <div className="flex justify-between mt-2 px-0.5 text-[10px] text-gray-400">
+                      {dailySignups.map((d, i) =>
+                        labelIdxs.includes(i)
+                          ? <span key={i}>{String(d.date).slice(5)}</span>
+                          : <span key={i} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })() : (
+                <div className="h-44 flex flex-col items-center justify-center gap-2 text-gray-300">
+                  <span className="material-icons text-4xl">bar_chart</span>
+                  <p className="text-sm text-gray-400">데이터가 없습니다</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <>
-              {/* Stats Cards */}
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {statCards.map((stat, i) => (
-                  <div key={i} className={`bg-white p-5 rounded-xl border shadow-sm ${stat.urgent ? 'border-l-4 border-l-red-400 border-gray-200' : 'border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}>
-                        <span className="material-icons-round">{stat.icon}</span>
-                      </div>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${stat.changeColor}`}>{stat.change}</span>
-                    </div>
-                    <p className="text-sm text-gray-500">{stat.label}</p>
-                    <h3 className="text-2xl font-bold mt-1 text-gray-900">{stat.value}</h3>
-                  </div>
-                ))}
-              </section>
 
-              {/* Charts */}
-              <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-bold text-lg">신규 가입자 추이</h3>
-                    <span className="text-xs text-gray-400">최근 30일</span>
-                  </div>
-                  {dailySignups.length > 0 ? (() => {
-                    const maxCount = Math.max(...dailySignups.map(d => Number(d.count) || 0), 1);
-                    const labelIdxs = [0, Math.floor(dailySignups.length / 2), dailySignups.length - 1];
-                    return (
-                      <>
-                        <div className="relative h-48 w-full flex items-end gap-0.5 px-1">
-                          {dailySignups.map((d, i) => {
-                            const h = Math.max(Math.round((Number(d.count) / maxCount) * 100), 3);
-                            return (
-                              <div
-                                key={i}
-                                className={`flex-1 ${h > 60 ? 'bg-primary/50 hover:bg-primary/70' : 'bg-primary/20 hover:bg-primary/40'} transition-colors rounded-t group relative`}
-                                style={{ height: `${h}%` }}
-                              >
-                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[9px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                  {d.count}명
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="flex justify-between mt-3 px-1 text-[10px] text-gray-400">
-                          {dailySignups.map((d, i) =>
-                            labelIdxs.includes(i)
-                              ? <span key={i}>{String(d.date).slice(5)}</span>
-                              : <span key={i} />
-                          )}
-                        </div>
-                      </>
-                    );
-                  })() : (
-                    <div className="h-48 flex flex-col items-center justify-center text-gray-300">
-                      <span className="material-icons text-4xl mb-2">bar_chart</span>
-                      <p className="text-sm">아직 가입 데이터가 없어요</p>
+            {/* 회원 현황 */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col">
+              <h3 className="text-sm font-bold text-gray-900 mb-4">회원 현황</h3>
+              {stats ? (
+                <div className="flex-1 divide-y divide-gray-100">
+                  {[
+                    { label: '전체 회원', value: `${stats.totalUsers?.toLocaleString()}명`, cls: 'text-gray-900' },
+                    { label: '활성 사용자', value: `${stats.activeUsers?.toLocaleString()}명`, cls: 'text-emerald-600' },
+                    { label: '오늘 신규 가입', value: `${stats.todaySignups?.toLocaleString()}명`, cls: 'text-blue-600' },
+                    { label: '전체 휴식 기록', value: `${stats.totalRestLogs?.toLocaleString()}건`, cls: 'text-primary' },
+                  ].map(({ label, value, cls }) => (
+                    <div key={label} className="flex items-center justify-between py-3">
+                      <span className="text-xs text-gray-500">{label}</span>
+                      <span className={`text-sm font-bold ${cls}`}>{value}</span>
                     </div>
-                  )}
+                  ))}
                 </div>
+              ) : (
+                <p className="text-sm text-gray-400 mt-4">데이터가 없습니다</p>
+              )}
+            </div>
+          </section>
 
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-                  <h3 className="font-bold text-lg mb-4">회원 현황</h3>
-                  {stats && (
-                    <div className="flex-1 space-y-4">
-                      <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">전체 회원</span>
-                        <span className="font-bold text-gray-900">{stats.totalUsers?.toLocaleString()}명</span>
-                      </div>
-                      <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">활성 사용자</span>
-                        <span className="font-bold text-emerald-600">{stats.activeUsers?.toLocaleString()}명</span>
-                      </div>
-                      <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                        <span className="text-sm text-gray-600">오늘 신규 가입</span>
-                        <span className="font-bold text-blue-600">{stats.todaySignups?.toLocaleString()}명</span>
-                      </div>
-                      <div className="flex justify-between items-center py-3">
-                        <span className="text-sm text-gray-600">전체 휴식 기록</span>
-                        <span className="font-bold text-primary">{stats.totalRestLogs?.toLocaleString()}건</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* Pending Places */}
-              <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="font-bold text-lg">장소 승인 대기 목록</h3>
-                  <Link to="/admin/places" className="text-sm font-semibold text-primary hover:underline">전체보기</Link>
-                </div>
-                {pendingPlaces.length === 0 ? (
-                  <div className="p-8 text-center text-gray-400 text-sm">
-                    <span className="material-icons text-3xl block mb-2 text-gray-300">check_circle</span>
-                    승인 대기 중인 장소가 없어요
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase">
-                        <tr>
-                          <th className="px-6 py-3">장소명</th>
-                          <th className="px-6 py-3">주소</th>
-                          <th className="px-6 py-3">AI 점수</th>
-                          <th className="px-6 py-3 text-right">관리</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-sm">
-                        {pendingPlaces.map((place) => (
-                          <tr key={place.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 font-medium text-gray-900">{place.name}</td>
-                            <td className="px-6 py-4 text-gray-500">{place.address}</td>
-                            <td className="px-6 py-4 text-gray-500">
-                              {place.aiScore != null ? place.aiScore.toFixed(1) : '-'}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => handlePlaceStatus(place.id, 'approved')}
-                                  className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all"
-                                >
-                                  승인
-                                </button>
-                                <button
-                                  onClick={() => handlePlaceStatus(place.id, 'rejected')}
-                                  className="px-3 py-1 border border-red-200 text-red-500 text-xs font-bold rounded-lg hover:bg-red-50 transition-all"
-                                >
-                                  반려
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          {/* ── 승인 대기 장소 테이블 ── */}
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-gray-900">장소 승인 대기</h3>
+                {pendingPlaces.length > 0 && (
+                  <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
+                    {pendingPlaces.length}건
+                  </span>
                 )}
-              </section>
-            </>
-          )}
+              </div>
+              <Link
+                to="/admin/places"
+                className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1"
+              >
+                전체보기
+                <span className="material-icons text-sm">chevron_right</span>
+              </Link>
+            </div>
+
+            {pendingPlaces.length === 0 ? (
+              <div className="py-14 flex flex-col items-center gap-2 text-gray-300">
+                <span className="material-icons text-4xl">check_circle</span>
+                <p className="text-sm text-gray-400">승인 대기 중인 장소가 없습니다</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">장소명</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">주소</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">AI 점수</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">관리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingPlaces.map((place, idx) => (
+                      <tr
+                        key={place.id}
+                        className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/60' : 'bg-white'}`}
+                      >
+                        <td className="px-6 py-3.5 font-semibold text-gray-900">{place.name}</td>
+                        <td className="px-6 py-3.5 text-gray-500 max-w-[220px] truncate">{place.address}</td>
+                        <td className="px-6 py-3.5">
+                          {place.aiScore != null ? (
+                            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                              {place.aiScore.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handlePlaceStatus(place.id, 'approved')}
+                              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors"
+                            >
+                              승인
+                            </button>
+                            <button
+                              onClick={() => handlePlaceStatus(place.id, 'rejected')}
+                              className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors"
+                            >
+                              반려
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
         </main>
       </div>
     </div>
