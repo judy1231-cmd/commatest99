@@ -4,16 +4,16 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const REST_TYPE_NAMES = {
-  physical:  { label: '신체적 이완', icon: 'fitness_center', color: 'text-red-500' },
-  mental:    { label: '정신적 고요', icon: 'spa', color: 'text-emerald-500' },
-  sensory:   { label: '감각의 정화', icon: 'visibility_off', color: 'text-amber-500' },
-  emotional: { label: '정서적 지지', icon: 'favorite', color: 'text-pink-500' },
-  social:    { label: '사회적 휴식', icon: 'groups', color: 'text-purple-500' },
-  nature:    { label: '자연의 연결', icon: 'forest', color: 'text-green-600' },
-  creative:  { label: '창조적 몰입', icon: 'brush', color: 'text-orange-500' },
+  physical:  { label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82' },
+  mental:    { label: '정신적 고요', icon: 'spa',            color: '#5B8DEF' },
+  sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
+  emotional: { label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },
+  social:    { label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C' },
+  nature:    { label: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
+  creative:  { label: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 };
 
-const TYPE_RATIO_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400', 'bg-purple-400', 'bg-orange-400', 'bg-teal-400'];
+const TYPE_RATIO_COLORS = ['#4CAF82', '#5B8DEF', '#9B6DFF', '#FF7BAC', '#FF9A3C', '#FFB830', '#2ECC9A'];
 
 function formatMinutes(minutes) {
   if (!minutes) return '0분';
@@ -132,7 +132,7 @@ function MyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="min-h-screen bg-[#F7F7F8]">
         <UserNavbar />
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -145,7 +145,7 @@ function MyPage() {
   const stats = profile?.stats || {};
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
       <main className="max-w-7xl mx-auto px-6 py-10 pb-24 md:pb-10">
         <div className="grid grid-cols-12 gap-6">
@@ -303,8 +303,8 @@ function MyPage() {
                         </div>
                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${TYPE_RATIO_COLORS[i]} rounded-full`}
-                            style={{ width: `${item.pct}%` }}
+                            className="h-full rounded-full"
+                            style={{ width: `${item.pct}%`, backgroundColor: TYPE_RATIO_COLORS[i] }}
                           />
                         </div>
                       </div>

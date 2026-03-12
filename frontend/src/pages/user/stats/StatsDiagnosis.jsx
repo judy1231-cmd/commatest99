@@ -6,13 +6,13 @@ import { fetchWithAuth } from '../../../api/fetchWithAuth';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const REST_TYPE_INFO = {
-  physical:  { name: '신체적 이완', shortName: '신체', icon: 'fitness_center', color: '#EF4444' },
-  mental:    { name: '정신적 고요', shortName: '정신', icon: 'spa',            color: '#10B981' },
-  sensory:   { name: '감각의 정화', shortName: '감각', icon: 'visibility_off', color: '#F59E0B' },
-  emotional: { name: '정서적 지지', shortName: '정서', icon: 'favorite',       color: '#EC4899' },
-  social:    { name: '사회적 휴식', shortName: '사회', icon: 'groups',         color: '#8B5CF6' },
-  nature:    { name: '자연의 연결', shortName: '자연', icon: 'forest',         color: '#059669' },
-  creative:  { name: '창조적 몰입', shortName: '창조', icon: 'brush',          color: '#F97316' },
+  physical:  { name: '신체적 이완', shortName: '신체', icon: 'fitness_center', color: '#4CAF82' },
+  mental:    { name: '정신적 고요', shortName: '정신', icon: 'spa',            color: '#5B8DEF' },
+  sensory:   { name: '감각의 정화', shortName: '감각', icon: 'visibility_off', color: '#9B6DFF' },
+  emotional: { name: '정서적 지지', shortName: '정서', icon: 'favorite',       color: '#FF7BAC' },
+  social:    { name: '사회적 휴식', shortName: '사회', icon: 'groups',         color: '#FF9A3C' },
+  nature:    { name: '자연의 연결', shortName: '자연', icon: 'forest',         color: '#2ECC9A' },
+  creative:  { name: '창조적 몰입', shortName: '창조', icon: 'brush',          color: '#FFB830' },
 };
 
 function CustomTooltip({ active, payload }) {
@@ -86,15 +86,15 @@ function StatsDiagnosis() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
         {/* 헤더 */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-800">진단 유형 통계</h1>
-          <p className="text-sm text-slate-400 mt-0.5">어떤 휴식 유형이 자주 나왔는지 확인해요</p>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">진단 유형 통계</h1>
+          <p className="text-xs text-slate-400 mt-0.5">어떤 휴식 유형이 자주 나왔는지 확인해요</p>
         </div>
 
         {/* 로딩 */}

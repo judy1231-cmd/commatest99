@@ -12,13 +12,13 @@ const PERIODS = [
 ];
 
 const TYPE_INFO = {
-  physical:  { name: '신체적 이완', color: '#EF4444' },
-  mental:    { name: '정신적 고요', color: '#10B981' },
-  sensory:   { name: '감각의 정화', color: '#F59E0B' },
-  emotional: { name: '정서적 지지', color: '#EC4899' },
-  social:    { name: '사회적 휴식', color: '#8B5CF6' },
-  nature:    { name: '자연의 연결', color: '#059669' },
-  creative:  { name: '창조적 몰입', color: '#F97316' },
+  physical:  { name: '신체적 이완', color: '#4CAF82' },
+  mental:    { name: '정신적 고요', color: '#5B8DEF' },
+  sensory:   { name: '감각의 정화', color: '#9B6DFF' },
+  emotional: { name: '정서적 지지', color: '#FF7BAC' },
+  social:    { name: '사회적 휴식', color: '#FF9A3C' },
+  nature:    { name: '자연의 연결', color: '#2ECC9A' },
+  creative:  { name: '창조적 몰입', color: '#FFB830' },
 };
 
 function formatMinutes(total) {
@@ -116,15 +116,15 @@ function StatsRest() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
+    <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
       <main className="max-w-lg mx-auto px-4 pt-6 pb-24">
 
         {/* 헤더 */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-800">휴식 활동 통계</h1>
-          <p className="text-sm text-slate-400 mt-0.5">어떤 휴식을 많이 했는지 확인해요</p>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">휴식 활동 통계</h1>
+          <p className="text-xs text-slate-400 mt-0.5">어떤 휴식을 많이 했는지 확인해요</p>
         </div>
 
         {/* 기간 필터 */}
