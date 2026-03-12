@@ -178,18 +178,6 @@ function StatsDiagnosis() {
     ? `${currentMonth.year}년 ${MONTH_NAMES[currentMonth.month]}`
     : `${currentWeek.year}년 ${MONTH_NAMES[currentWeek.month]} ${currentWeek.week}주차`;
 
-  // 필터된 기록이 없을 때는 전체 집계로 폴백 (기간 네비 전 전체 요약용)
-  const allTypeCountMap = {};
-  for (const r of records) {
-    const key = r.primaryRestType;
-    if (key) allTypeCountMap[key] = (allTypeCountMap[key] || 0) + 1;
-  }
-  const allAvgStress = records.length
-    ? Math.round(records.reduce((s, r) => s + (r.stressIndex || 0), 0) / records.length)
-    : null;
-  const allTopKey = Object.entries(allTypeCountMap).sort((a, b) => b[1] - a[1])[0]?.[0];
-  const allTopInfo = allTopKey ? REST_TYPE_INFO[allTopKey] : null;
-
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
