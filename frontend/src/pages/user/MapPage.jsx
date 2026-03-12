@@ -68,7 +68,7 @@ function MapPage() {
   const highlightPlace = location.state?.highlightPlace || null;
   const flyToMyLocation = location.state?.flyToMyLocation || false;
 
-  const [selectedType, setSelectedType] = useState('nature');
+  const [selectedType, setSelectedType] = useState('');
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
