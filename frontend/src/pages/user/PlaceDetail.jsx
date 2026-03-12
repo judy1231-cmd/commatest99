@@ -15,13 +15,13 @@ L.Icon.Default.mergeOptions({
 });
 
 const REST_TYPE_INFO = {
-  physical:  { label: '신체적 이완', icon: 'fitness_center', color: '#EF4444', path: '/rest/physical' },
-  mental:    { label: '정신적 고요', icon: 'spa',            color: '#10B981', path: '/rest/mental'   },
-  sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', path: '/rest/sensory'  },
-  emotional: { label: '정서적 지지', icon: 'favorite',       color: '#EC4899', path: '/rest/emotional'},
-  social:    { label: '사회적 휴식', icon: 'groups',         color: '#8B5CF6', path: '/rest/social'   },
-  nature:    { label: '자연의 연결',icon: 'forest',        color: '#059669', path: '/rest/nature'   },
-  creative:  { label: '창조적 몰입', icon: 'brush',          color: '#F97316', path: '/rest/creative' },
+  physical:  { label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82', path: '/rest/physical'  },
+  mental:    { label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', path: '/rest/mental'    },
+  sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', path: '/rest/sensory'   },
+  emotional: { label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', path: '/rest/emotional' },
+  social:    { label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', path: '/rest/social'    },
+  nature:    { label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', path: '/rest/nature'    },
+  creative:  { label: '창조적 몰입', icon: 'brush',          color: '#FFB830', path: '/rest/creative'  },
 };
 
 function StarRating({ rating, onRate }) {
@@ -49,17 +49,16 @@ function PlaceDetail() {
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('accessToken');
 
-  const [place, setPlace]         = useState(null);
-  const [tags, setTags]           = useState([]);
-  const [reviews, setReviews]     = useState([]);
+  const [place, setPlace]           = useState(null);
+  const [tags, setTags]             = useState([]);
+  const [reviews, setReviews]       = useState([]);
   const [bookmarked, setBookmarked] = useState(false);
-  const [loading, setLoading]     = useState(true);
-  const [toast, setToast]         = useState({ message: '', type: 'success' });
+  const [loading, setLoading]       = useState(true);
+  const [toast, setToast]           = useState({ message: '', type: 'success' });
 
-  // 리뷰 작성
-  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewRating, setReviewRating]   = useState(0);
   const [reviewContent, setReviewContent] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting]       = useState(false);
 
   useEffect(() => {
     loadDetail();
@@ -132,13 +131,11 @@ function PlaceDetail() {
     }
   };
 
+  /* ── 로딩 ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9F7F2]">
-        <UserNavbar />
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-        </div>
+      <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -149,180 +146,283 @@ function PlaceDetail() {
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
 
-  // 이 장소에 연결된 유형 태그들
   const restTypeTags = [...new Set(tags.map(t => t.restType).filter(Boolean))];
 
+  // 히어로 컬러: 첫 번째 휴식유형 컬러, 없으면 primary green
+  const heroTypeInfo = restTypeTags.length > 0 ? REST_TYPE_INFO[restTypeTags[0]] : null;
+  const heroColor    = heroTypeInfo?.color || '#10B981';
+
   return (
-    <div className="min-h-screen bg-[#F9F7F2]">
-      <UserNavbar />
-      <main className="max-w-2xl mx-auto px-4 pt-6 pb-24">
+    <div className="min-h-screen bg-[#F7F7F8] pb-28">
+
+      {/* ===== 히어로 영역 ===== */}
+      <div
+        className="relative w-full"
+        style={{
+          height: '230px',
+          background: `linear-gradient(145deg, ${heroColor}ee 0%, ${heroColor}99 60%, ${heroColor}55 100%)`,
+        }}
+      >
+        {/* 패턴 오버레이 */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 80%, white 1px, transparent 1px),
+                              radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+          }}
+        />
 
         {/* 뒤로가기 */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-primary transition-colors mb-6"
+          className="absolute top-5 left-4 w-9 h-9 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all hover:bg-black/30"
         >
-          <span className="material-icons text-base">arrow_back</span>
-          지도로 돌아가기
+          <span className="material-icons text-white text-xl">arrow_back</span>
         </button>
 
-        {/* 장소 기본 정보 카드 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-slate-800 mb-1">{place.name}</h1>
-              <p className="text-sm text-slate-500 flex items-start gap-1">
-                <span className="material-icons text-base shrink-0 mt-0.5">location_on</span>
-                {place.address}
-              </p>
-              {place.operatingHours && (
-                <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                  <span className="material-icons text-base">schedule</span>
-                  {place.operatingHours}
-                </p>
+        {/* 북마크 (상단 우측) */}
+        <button
+          onClick={handleBookmark}
+          className="absolute top-5 right-4 w-9 h-9 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all hover:bg-black/30"
+        >
+          <span className={`material-icons text-xl ${bookmarked ? 'text-amber-300' : 'text-white'}`}>
+            {bookmarked ? 'bookmark' : 'bookmark_border'}
+          </span>
+        </button>
+
+        {/* 장소명 + 카테고리 칩 — 히어로 하단 */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 pt-10 bg-gradient-to-t from-black/40 to-transparent">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {restTypeTags.slice(0, 3).map(type => {
+              const info = REST_TYPE_INFO[type];
+              if (!info) return null;
+              return (
+                <span
+                  key={type}
+                  className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/25 text-white backdrop-blur-sm"
+                >
+                  <span className="material-icons" style={{ fontSize: '11px' }}>{info.icon}</span>
+                  {info.label}
+                </span>
+              );
+            })}
+          </div>
+          <h1 className="text-[24px] font-extrabold text-white leading-tight drop-shadow-sm">
+            {place.name}
+          </h1>
+        </div>
+      </div>
+
+      {/* ===== 기본 정보 카드 ===== */}
+      <div className="bg-white rounded-b-3xl px-5 pt-5 pb-6 mb-2 shadow-sm">
+
+        {/* 점수 배지 행 */}
+        <div className="flex items-center gap-4 mb-5">
+          {place.aiScore && (
+            <div className="flex items-center gap-1.5 bg-amber-50 px-3 py-1.5 rounded-full">
+              <span className="material-icons text-amber-400 text-sm">auto_awesome</span>
+              <span className="text-xs font-extrabold text-amber-600">AI {Number(place.aiScore).toFixed(1)}</span>
+            </div>
+          )}
+          {avgRating ? (
+            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <span key={s} className={`material-icons text-xs ${parseFloat(avgRating) >= s ? 'text-amber-400' : 'text-slate-200'}`}>
+                    star
+                  </span>
+                ))}
+              </div>
+              <span className="text-xs font-extrabold text-slate-600">{avgRating}</span>
+              <span className="text-xs text-slate-400">({reviews.length})</span>
+            </div>
+          ) : (
+            <span className="text-xs text-slate-400">아직 리뷰가 없어요</span>
+          )}
+        </div>
+
+        {/* 정보 리스트 */}
+        <div className="space-y-3.5">
+          <div className="flex items-start gap-3.5">
+            <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+              <span className="material-icons text-slate-400 text-base">location_on</span>
+            </div>
+            <div className="flex-1 pt-1">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">주소</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{place.address}</p>
+            </div>
+          </div>
+
+          {place.operatingHours && (
+            <div className="flex items-start gap-3.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                <span className="material-icons text-slate-400 text-base">schedule</span>
+              </div>
+              <div className="flex-1 pt-1">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">운영시간</p>
+                <p className="text-sm text-slate-700">{place.operatingHours}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ===== 추천 휴식 유형 ===== */}
+      {restTypeTags.length > 0 && (
+        <div className="bg-white px-5 py-5 mb-2 shadow-sm">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">추천 휴식 유형</p>
+          <div className="flex flex-wrap gap-2">
+            {restTypeTags.map(type => {
+              const info = REST_TYPE_INFO[type];
+              if (!info) return null;
+              return (
+                <Link
+                  key={type}
+                  to={info.path}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:opacity-80"
+                  style={{ backgroundColor: `${info.color}15`, color: info.color }}
+                >
+                  <span className="material-icons" style={{ fontSize: '13px' }}>{info.icon}</span>
+                  {info.label}
+                  <span className="material-icons" style={{ fontSize: '11px' }}>arrow_forward</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ===== 미니 지도 ===== */}
+      {place.latitude && place.longitude && (
+        <div className="mb-2 overflow-hidden shadow-sm" style={{ height: '180px' }}>
+          <MapContainer
+            center={[place.latitude, place.longitude]}
+            zoom={15}
+            style={{ width: '100%', height: '100%' }}
+            zoomControl={false}
+          >
+            <TileLayer
+              attribution='&copy; OpenStreetMap'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[place.latitude, place.longitude]}>
+              <Popup>{place.name}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      )}
+
+      {/* ===== 리뷰 작성 ===== */}
+      <div className="bg-white px-5 py-5 mb-2 shadow-sm">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">리뷰 작성</p>
+
+        {isLoggedIn ? (
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <StarRating rating={reviewRating} onRate={setReviewRating} />
+              {reviewRating > 0 && (
+                <span className="text-xs font-bold text-amber-500">{reviewRating}점</span>
               )}
             </div>
+            <textarea
+              value={reviewContent}
+              onChange={e => setReviewContent(e.target.value)}
+              placeholder="이 장소에서의 휴식 경험을 나눠주세요"
+              rows={3}
+              className="w-full px-4 py-3 rounded-2xl border border-slate-100 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+            />
             <button
-              onClick={handleBookmark}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                bookmarked ? 'bg-amber-50 text-amber-500' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-              }`}
+              onClick={handleReviewSubmit}
+              disabled={submitting}
+              className="mt-3 w-full bg-primary text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-100 hover:bg-primary/90 transition-all disabled:opacity-50"
             >
-              <span className="material-icons text-xl">{bookmarked ? 'bookmark' : 'bookmark_border'}</span>
+              {submitting ? '등록 중...' : '리뷰 등록'}
             </button>
           </div>
-
-          {/* AI 점수 + 리뷰 수 */}
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
-            {place.aiScore && (
-              <div className="flex items-center gap-1">
-                <span className="material-icons text-amber-400 text-base">auto_awesome</span>
-                <span className="text-sm font-bold text-slate-700">AI 점수 {Number(place.aiScore).toFixed(1)}</span>
-              </div>
-            )}
-            {avgRating && (
-              <div className="flex items-center gap-1">
-                <span className="material-icons text-amber-400 text-base">star</span>
-                <span className="text-sm font-bold text-slate-700">{avgRating}</span>
-                <span className="text-xs text-slate-400">({reviews.length}개 리뷰)</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 휴식유형 태그 + 유형 페이지 링크 */}
-        {restTypeTags.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-            <h3 className="text-sm font-bold text-slate-700 mb-3">추천 휴식 유형</h3>
-            <div className="flex flex-wrap gap-2">
-              {restTypeTags.map(type => {
-                const info = REST_TYPE_INFO[type];
-                if (!info) return null;
-                return (
-                  <Link
-                    key={type}
-                    to={info.path}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all hover:opacity-80"
-                    style={{ backgroundColor: `${info.color}15`, color: info.color }}
-                  >
-                    <span className="material-icons" style={{ fontSize: '13px' }}>{info.icon}</span>
-                    {info.label}
-                    <span className="material-icons" style={{ fontSize: '11px' }}>arrow_forward</span>
-                  </Link>
-                );
-              })}
-            </div>
+        ) : (
+          <div className="flex items-center justify-between px-4 py-3.5 bg-slate-50 rounded-2xl">
+            <p className="text-sm text-slate-500">로그인하면 리뷰를 남길 수 있어요</p>
+            <Link to="/login" className="text-sm font-bold text-primary">로그인</Link>
           </div>
         )}
+      </div>
 
-        {/* 미니 지도 */}
-        {place.latitude && place.longitude && (
-          <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-4" style={{ height: '200px' }}>
-            <MapContainer
-              center={[place.latitude, place.longitude]}
-              zoom={15}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer
-                attribution='&copy; OpenStreetMap'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={[place.latitude, place.longitude]}>
-                <Popup>{place.name}</Popup>
-              </Marker>
-            </MapContainer>
-          </div>
-        )}
-
-        {/* 리뷰 작성 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
-          <h3 className="font-bold text-slate-800 mb-4">리뷰 작성</h3>
-          {isLoggedIn ? (
-            <>
-              <div className="mb-3">
-                <p className="text-xs text-slate-500 mb-2">별점</p>
-                <StarRating rating={reviewRating} onRate={setReviewRating} />
-              </div>
-              <textarea
-                value={reviewContent}
-                onChange={e => setReviewContent(e.target.value)}
-                placeholder="이 장소에서의 휴식 경험을 나눠주세요"
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
-              />
-              <button
-                onClick={handleReviewSubmit}
-                disabled={submitting}
-                className="mt-3 w-full bg-primary text-white font-bold py-2.5 rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50"
-              >
-                {submitting ? '등록 중...' : '리뷰 등록'}
-              </button>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-slate-400 mb-3">로그인하면 리뷰를 남길 수 있어요</p>
-              <Link to="/login" className="text-sm text-primary font-bold hover:underline">로그인하기</Link>
+      {/* ===== 리뷰 목록 ===== */}
+      <div className="bg-white px-5 py-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+            리뷰 {reviews.length}개
+          </p>
+          {avgRating && (
+            <div className="flex items-center gap-1">
+              <span className="material-icons text-amber-400 text-base">star</span>
+              <span className="text-sm font-extrabold text-slate-700">{avgRating}</span>
             </div>
           )}
         </div>
 
-        {/* 리뷰 목록 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h3 className="font-bold text-slate-800 mb-4">리뷰 {reviews.length}개</h3>
-          {reviews.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">
-              <span className="material-icons text-3xl mb-2 block">rate_review</span>
-              <p className="text-sm">아직 리뷰가 없어요. 첫 리뷰를 남겨보세요!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review, i) => (
-                <div key={review.id || i} className="pb-4 border-b border-slate-100 last:border-0 last:pb-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <span key={s} className={`material-icons text-sm ${review.rating >= s ? 'text-amber-400' : 'text-slate-200'}`}>
-                          star
-                        </span>
-                      ))}
-                    </div>
-                    {review.verified && (
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">인증</span>
-                    )}
+        {reviews.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-slate-300">
+            <span className="material-icons text-4xl mb-2">rate_review</span>
+            <p className="text-sm font-medium text-slate-400">아직 리뷰가 없어요</p>
+            <p className="text-xs mt-1">첫 번째 리뷰를 남겨보세요!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((review, i) => (
+              <div key={review.id || i} className="p-4 bg-slate-50 rounded-2xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <span key={s} className={`material-icons text-sm ${review.rating >= s ? 'text-amber-400' : 'text-slate-200'}`}>
+                        star
+                      </span>
+                    ))}
                   </div>
-                  <p className="text-sm text-slate-700">{review.content}</p>
+                  {review.verified && (
+                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">인증</span>
+                  )}
                   {review.createdAt && (
-                    <p className="text-xs text-slate-400 mt-1">
+                    <span className="text-[11px] text-slate-400 ml-auto">
                       {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                    </p>
+                    </span>
                   )}
                 </div>
-              ))}
-            </div>
+                <p className="text-sm text-slate-700 leading-relaxed">{review.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ===== 하단 고정 버튼 ===== */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-5 py-4 z-50">
+        <div className="flex gap-3 max-w-2xl mx-auto">
+          {place.latitude && place.longitude && (
+            <a
+              href={`https://map.kakao.com/link/to/${encodeURIComponent(place.name)},${place.latitude},${place.longitude}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors"
+            >
+              <span className="material-icons text-base">directions</span>
+              길찾기
+            </a>
           )}
+          <button
+            onClick={handleBookmark}
+            className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all ${
+              bookmarked
+                ? 'bg-amber-400 text-white shadow-lg shadow-amber-100'
+                : 'bg-primary text-white shadow-lg shadow-emerald-100 hover:bg-primary/90'
+            }`}
+          >
+            <span className="material-icons text-base">{bookmarked ? 'bookmark' : 'bookmark_border'}</span>
+            {bookmarked ? '저장됨' : '저장하기'}
+          </button>
         </div>
-      </main>
+      </div>
 
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
     </div>
