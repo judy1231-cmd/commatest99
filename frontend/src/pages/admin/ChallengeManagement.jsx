@@ -54,7 +54,7 @@ function ChallengeManagement() {
                     <tr key={i} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-semibold text-gray-900">{c.title}</td>
                       <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-accent-mint text-teal-600 text-[11px] font-bold rounded-full">{c.type}</span>
+                        <span className="px-2 py-1 bg-primary/10 text-primary text-[11px] font-bold rounded-full">{c.type}</span>
                       </td>
                       <td className="px-6 py-4 text-gray-600">{c.participants.toLocaleString()}명</td>
                       <td className="px-6 py-4 text-gray-400 text-xs">{c.startDate} ~ {c.endDate}</td>

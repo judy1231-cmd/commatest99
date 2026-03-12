@@ -3,7 +3,7 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 
-const REST_TYPE_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400', 'bg-purple-400', 'bg-orange-400', 'bg-teal-400'];
+const REST_TYPE_COLORS = ['#4CAF82', '#5B8DEF', '#9B6DFF', '#FF7BAC', '#FF9A3C', '#FFB830', '#2ECC9A'];
 
 function Analytics() {
   const [analytics, setAnalytics] = useState(null);
@@ -46,7 +46,7 @@ function Analytics() {
   const maxPct = Math.max(...restTypeStats.map(r => r.count || 0), 1);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F9F7F2]">
+    <div className="flex h-screen overflow-hidden bg-background-light">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader title="통계 및 분석" subtitle="플랫폼 전체 현황과 사용자 인사이트" />
@@ -134,7 +134,7 @@ function Analytics() {
                               <span className="text-slate-400">{rt.count?.toLocaleString()}건</span>
                             </div>
                             <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div className={`h-full ${REST_TYPE_COLORS[i % REST_TYPE_COLORS.length]} rounded-full`} style={{ width: `${pct}%` }} />
+                              <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: REST_TYPE_COLORS[i % REST_TYPE_COLORS.length] }} />
                             </div>
                           </div>
                         );

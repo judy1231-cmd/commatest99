@@ -46,7 +46,7 @@ function CommunityManagement() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs text-gray-400">{post.id}</span>
-                        <span className="px-2 py-0.5 bg-accent-mint text-teal-600 text-[11px] font-bold rounded-full">{post.category}</span>
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-bold rounded-full">{post.category}</span>
                         {post.reports > 0 && (
                           <span className="px-2 py-0.5 bg-red-50 text-red-500 text-[11px] font-bold rounded-full">신고 {post.reports}건</span>
                         )}
