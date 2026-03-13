@@ -145,7 +145,8 @@ comma-main/
 | 컨테이너 | Docker |
 | AI | Claude API |
 | 데이터수집 | Python, BeautifulSoup, 공공데이터포털 API |
-| 외부 API | 카카오맵, 카카오 OAuth2, 구글 OAuth2, 기상청 API |
+| 지도 | Leaflet (카카오맵 사용 안 함) |
+| 외부 API | 카카오 OAuth2, 구글 OAuth2, 기상청 API, 공공데이터포털 API |
 | 형상관리 | Git, GitHub |
 | API 테스트 | Postman |
 | IDE | VS Code |
@@ -181,12 +182,13 @@ colors: {
 | `/` | MainDashboard.jsx | UI완성, API연결필요 | ✅ |
 | `/login` | Login.jsx | ✅ API연결완료 | ✅ |
 | `/signup` | Signup.jsx | ✅ API연결완료 | ✅ |
-| `/signup-complete` | SignupComplete.jsx | 미완성 | ✅ |
-| `/password-reset` | PasswordReset.jsx | 미완성 | ✅ |
+| `/signup-complete` | SignupComplete.jsx | ✅ UI완성 (API 불필요) | ✅ |
+| `/password-reset` | PasswordReset.jsx | ✅ API연결완료 | ✅ |
+| `/places/:id` | PlaceDetail.jsx | ✅ API연결완료 (장소상세/리뷰/북마크, Leaflet 미니지도) | ✅ |
 | `/my` | MyPage.jsx | UI있음, API연결필요 | ✅ |
 | `/rest-test` | RestTypeTest.jsx | ✅ API연결완료 (12문항, 진단계산) | ✅ |
 | `/heartrate` | HeartRateCheck.jsx | ✅ API연결완료 (동적URL, 복사버튼, QR) | ✅ |
-| `/map` | MapPage.jsx | 하드코딩, 카카오맵미연동 | ✅ |
+| `/map` | MapPage.jsx | 하드코딩, Leaflet+공공데이터포털 연동 필요 | ✅ |
 | `/rest-record` | RestRecord.jsx | ✅ API연결완료 (등록/목록/월간통계) | ✅ |
 | `/community` | Community.jsx | UI있음 | 2차 |
 | `/community/:id` | 없음 (새로 만들기) | 미완성 | 2차 |
@@ -484,7 +486,7 @@ chore: MyBatis 의존성 추가
 - rest_logs CRUD, RestRecord.jsx 완성 ✅
 - StatsMapper.xml year_month 버그 수정 ✅
 - **공공데이터 크롤링 실행 (장소 Seed)** → 미완
-- 장소 CRUD, 카카오맵 연동 → 미완
+- 장소 CRUD, Leaflet 지도 + 공공데이터포털 API 연동 → 미완
 - recommendations 저장 로직 → 미완
 
 ### Phase 5 — 통계 / 마이페이지 / 알림

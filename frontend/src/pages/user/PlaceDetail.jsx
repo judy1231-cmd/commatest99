@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import UserNavbar from '../../components/user/UserNavbar';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import Toast from '../../components/common/Toast';
 
@@ -60,9 +59,8 @@ function PlaceDetail() {
   const [reviewContent, setReviewContent] = useState('');
   const [submitting, setSubmitting]       = useState(false);
 
-  useEffect(() => {
-    loadDetail();
-  }, [id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadDetail(); }, [id]);
 
   const loadDetail = async () => {
     setLoading(true);
@@ -401,7 +399,7 @@ function PlaceDetail() {
         <div className="flex gap-3 max-w-2xl mx-auto">
           {place.latitude && place.longitude && (
             <a
-              href={`https://map.kakao.com/link/to/${encodeURIComponent(place.name)},${place.latitude},${place.longitude}`}
+              href={`https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`}
               target="_blank"
               rel="noreferrer"
               className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors"
