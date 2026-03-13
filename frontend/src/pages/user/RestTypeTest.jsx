@@ -514,19 +514,30 @@ function RestTypeTest() {
 
         {/* 하단 고정 버튼 */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-5 py-4 z-40">
-          <div className="max-w-lg mx-auto flex gap-3">
-            <button
-              onClick={() => { setStep('intro'); setCurrentIndex(0); setAnswers({}); setOtherTexts({}); setResult(null); setTypeScores([]); }}
-              className="flex-1 py-4 border-2 border-slate-200 text-slate-600 font-bold text-[15px] rounded-2xl hover:bg-slate-50 transition-all"
-            >
-              다시 진단
-            </button>
-            <Link
-              to={isLoggedIn ? '/rest-record' : '/login'}
-              className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all"
-            >
-              {isLoggedIn ? '휴식 기록하기' : '로그인하기'}
-            </Link>
+          <div className="max-w-lg mx-auto space-y-2">
+            {isLoggedIn && (
+              <Link
+                to="/records/diagnosis"
+                className="flex items-center justify-center gap-2 w-full py-3 border-2 border-primary text-primary font-bold text-[14px] rounded-2xl hover:bg-primary/5 transition-all"
+              >
+                <span className="material-icons text-base">history</span>
+                진단 기록 보기
+              </Link>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setStep('intro'); setCurrentIndex(0); setAnswers({}); setOtherTexts({}); setResult(null); setTypeScores([]); }}
+                className="flex-1 py-4 border-2 border-slate-200 text-slate-600 font-bold text-[15px] rounded-2xl hover:bg-slate-50 transition-all"
+              >
+                다시 진단
+              </button>
+              <Link
+                to={isLoggedIn ? '/rest-record' : '/login'}
+                className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all"
+              >
+                {isLoggedIn ? '휴식 기록하기' : '로그인하기'}
+              </Link>
+            </div>
           </div>
         </div>
 
