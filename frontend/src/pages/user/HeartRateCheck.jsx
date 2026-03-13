@@ -146,6 +146,7 @@ function HeartRateCheck() {
     if (sessionId) {
       try {
         await fetchWithAuth(`/api/diagnosis/sessions/${sessionId}/end`, { method: 'POST' });
+        localStorage.setItem('lastSessionId', sessionId);
       } catch { /* 무시 */ }
     }
     setPhase('done');

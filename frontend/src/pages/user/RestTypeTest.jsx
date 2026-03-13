@@ -108,10 +108,12 @@ function RestTypeTest() {
       }));
       await fetchWithAuth('/api/survey/responses', { method: 'POST', body: JSON.stringify(responseList) });
       const otherTextList = Object.values(otherTexts).filter((t) => t.trim() !== '');
+      const lastSessionId = localStorage.getItem('lastSessionId');
       const diagRes = await fetchWithAuth('/api/diagnosis/calculate', {
         method: 'POST',
-        body: JSON.stringify({ sessionId: null, otherTexts: otherTextList }),
+        body: JSON.stringify({ sessionId: lastSessionId ? Number(lastSessionId) : null, otherTexts: otherTextList }),
       });
+      localStorage.removeItem('lastSessionId');
       if (diagRes.success && diagRes.data) {
         setResult(diagRes.data);
         const scores = JSON.parse(diagRes.data.scoresJson || '{}');
