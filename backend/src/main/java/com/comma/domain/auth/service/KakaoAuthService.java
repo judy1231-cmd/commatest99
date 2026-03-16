@@ -100,41 +100,48 @@ public class KakaoAuthService {
     /**
      * 가입 확인 페이지에서 사용자가 "가입 완료" 버튼 클릭 시 호출
      * pending 토큰 검증 → 계정 생성 → 접근 토큰 반환
+     * @param pendingToken 임시 토큰
+     * @param username     사용자가 직접 입력한 아이디
      */
     @Transactional
-    public String confirmPendingSignup(String pendingToken) {
+    public String confirmPendingSignup(String pendingToken, String username) {
         io.jsonwebtoken.Claims claims = jwtUtil.extractPendingClaims(pendingToken);
         if (claims == null) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 가입 토큰입니다.");
+        }
+        if (username == null || !username.matches("^[a-zA-Z0-9_]{4,20}$")) {
+            throw new IllegalArgumentException("아이디는 영문/숫자/_만 사용 가능하고 4~20자여야 합니다.");
+        }
+        if (authMapper.countByUsername(username) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
 
         String provider   = claims.get("provider", String.class);
         String providerId = claims.getSubject();
         String nickname   = claims.get("nickname", String.class);
 
-        // 혹시 그 사이에 이미 가입된 경우 (동일 토큰 재사용 방지)
+        // 동일 토큰 재사용 방지
         User existing = authMapper.findByProvider(provider, providerId);
         if (existing != null) {
             if ("dormant".equals(existing.getStatus())) {
                 authMapper.deleteAuthProvider(existing.get쉼표번호(), provider);
             } else {
-                // 이미 가입 완료 → 로그인 처리
                 return jwtUtil.generateAccessToken(existing.get쉼표번호(), existing.getRole());
             }
         }
 
-        User newUser = createKakaoUser(providerId, nickname);
+        User newUser = createKakaoUser(providerId, nickname, username);
         return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole());
     }
 
-    private User createKakaoUser(String providerId, String nickname) {
+    private User createKakaoUser(String providerId, String nickname, String username) {
         String 쉼표번호 = generate쉼표번호();
 
         User user = new User();
         user.set쉼표번호(쉼표번호);
         user.setEmail("kakao_" + providerId + "@kakao.com");
         user.setPassword(BCrypt.hashpw(UUID.randomUUID().toString(), BCrypt.gensalt()));
-        user.setUsername("kakao_" + providerId);
+        user.setUsername(username);
         user.setNickname(nickname != null ? nickname : 쉼표번호);
         user.setStatus("active");
         user.setEmailVerified(true);

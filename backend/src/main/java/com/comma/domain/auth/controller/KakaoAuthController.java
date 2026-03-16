@@ -90,8 +90,9 @@ public class KakaoAuthController {
     @PostMapping("/confirm")
     public ResponseEntity<Map<String, Object>> confirmSignup(@RequestBody Map<String, String> body) {
         String pendingToken = body.get("pendingToken");
+        String username     = body.get("username");
         try {
-            String accessToken = kakaoAuthService.confirmPendingSignup(pendingToken);
+            String accessToken = kakaoAuthService.confirmPendingSignup(pendingToken, username);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "data", Map.of("accessToken", accessToken),
