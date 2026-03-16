@@ -199,8 +199,11 @@ public class AuthService {
         if (record == null) throw new IllegalArgumentException("유효하지 않은 인증 링크입니다.");
 
         Object verifiedVal = record.get("verified");
-        if (verifiedVal != null && ((Number) verifiedVal).intValue() == 1) {
-            throw new IllegalArgumentException("이미 인증된 이메일입니다.");
+        if (verifiedVal != null) {
+            boolean alreadyVerified = verifiedVal instanceof Boolean
+                    ? (Boolean) verifiedVal
+                    : ((Number) verifiedVal).intValue() == 1;
+            if (alreadyVerified) throw new IllegalArgumentException("이미 인증된 이메일입니다.");
         }
 
         Object expiresVal = record.get("expiresAt");
