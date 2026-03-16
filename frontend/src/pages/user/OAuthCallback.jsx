@@ -18,10 +18,12 @@ function OAuthCallback() {
       return;
     }
 
+    const isNew = searchParams.get('isNew') === 'true';
+
     // 토큰 저장
     localStorage.setItem('accessToken', token);
 
-    // 사용자 정보 조회 후 메인으로 이동
+    // 사용자 정보 조회 후 이동
     fetch('/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -30,7 +32,8 @@ function OAuthCallback() {
         if (data.success) {
           localStorage.setItem('user', JSON.stringify(data.data));
         }
-        navigate('/', { replace: true });
+        // 신규 가입이면 가입 완료 페이지, 기존 로그인이면 메인
+        navigate(isNew ? '/signup-complete' : '/', { replace: true });
       })
       .catch(() => navigate('/', { replace: true }));
   }, []);

@@ -55,11 +55,19 @@ public class KakaoAuthController {
             @RequestParam(required = false) String state) {
         HttpHeaders headers = new HttpHeaders();
         try {
-            String token = kakaoAuthService.handleCallback(code, state);
-            // 연동 요청이면 설정 페이지로, 로그인이면 메인으로
-            String redirect = (state != null && !state.isBlank())
-                    ? frontUrl + "/settings/security?linked=true"
-                    : frontUrl + "/oauth/callback?token=" + token;
+            String result = kakaoAuthService.handleCallback(code, state);
+            String[] parts = result.split(":");
+            String token = parts[0];
+            String flag  = parts.length > 1 ? parts[1] : "false";
+
+            String redirect;
+            if ("link".equals(flag)) {
+                redirect = frontUrl + "/settings/security?linked=true";
+            } else if ("true".equals(flag)) {
+                redirect = frontUrl + "/oauth/callback?token=" + token + "&isNew=true";
+            } else {
+                redirect = frontUrl + "/oauth/callback?token=" + token;
+            }
             headers.add("Location", redirect);
         } catch (Exception e) {
             log.error("[카카오 콜백 실패]", e);

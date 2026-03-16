@@ -51,7 +51,7 @@ public class KakaoAuthService {
      * 카카오 콜백 처리
      * - state가 있으면 기존 계정에 카카오 연동
      * - state 없으면 기존 회원 로그인 또는 신규 가입
-     * @return JWT access token
+     * @return "token:isNew" 형태 (isNew: true=신규가입, false=기존로그인)
      */
     @Transactional
     public String handleCallback(String code, String state) throws Exception {
@@ -79,7 +79,7 @@ public class KakaoAuthService {
             // 현재 계정에 카카오 연동
             authMapper.insertAuthProvider(쉼표번호, "kakao", providerId);
             User linkedUser = authMapper.findBy쉼표번호(쉼표번호);
-            return jwtUtil.generateAccessToken(linkedUser.get쉼표번호(), linkedUser.getRole());
+            return jwtUtil.generateAccessToken(linkedUser.get쉼표번호(), linkedUser.getRole()) + ":link";
         }
 
         // 일반 로그인 — 기존 소셜 계정 있으면 로그인, 없으면 신규 가입
@@ -88,11 +88,13 @@ public class KakaoAuthService {
                 // 탈퇴 계정에 연결된 카카오 → 연결 해제 후 신규 가입
                 authMapper.deleteAuthProvider(existingKakaoUser.get쉼표번호(), "kakao");
             } else {
-                return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+                // 기존 회원 로그인 — isNew=false
+                return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole()) + ":false";
             }
         }
+        // 신규 가입 — isNew=true
         User newUser = createKakaoUser(providerId, nickname);
-        return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole());
+        return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole()) + ":true";
     }
 
     private User createKakaoUser(String providerId, String nickname) {
