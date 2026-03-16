@@ -28,7 +28,7 @@ function Login() {
 
   const handleSocialLogin = (provider) => {
     if (provider === '카카오') {
-      window.location.href = '/api/auth/kakao/login';
+      window.location.href = 'http://localhost:8080/api/auth/kakao/login';
       return;
     }
     setToast({ message: `${provider} 로그인은 준비 중이에요.`, type: 'info' });
