@@ -109,6 +109,7 @@ import SupportFaq from './pages/user/support/SupportFaq';
 
 // OAuth Callback
 import OAuthCallback from './pages/user/OAuthCallback';
+import KakaoConfirm from './pages/user/KakaoConfirm';
 
 // 404
 import NotFound from './pages/NotFound';
@@ -246,8 +247,9 @@ function App() {
       <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
       <Route path="/auth/find-password" element={<AuthFindPassword />} />
 
-      {/* 소셜 로그인 콜백 */}
+      {/* 소셜 로그인 콜백 / 가입 확인 */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Route path="/kakao/confirm" element={<KakaoConfirm />} />
 
       {/* 고객지원 */}
       <Route path="/support/faq" element={<SupportFaq />} />

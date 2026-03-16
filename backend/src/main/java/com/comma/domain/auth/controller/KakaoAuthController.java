@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/auth/kakao")
@@ -56,17 +58,22 @@ public class KakaoAuthController {
         HttpHeaders headers = new HttpHeaders();
         try {
             String result = kakaoAuthService.handleCallback(code, state);
-            String[] parts = result.split(":");
-            String token = parts[0];
-            String flag  = parts.length > 1 ? parts[1] : "false";
 
             String redirect;
-            if ("link".equals(flag)) {
-                redirect = frontUrl + "/settings/security?linked=true";
-            } else if ("true".equals(flag)) {
-                redirect = frontUrl + "/oauth/callback?token=" + token + "&isNew=true";
+            if (result.startsWith("pending:")) {
+                // 신규 가입 — 확인 페이지로 이동
+                String pendingToken = result.substring("pending:".length());
+                redirect = frontUrl + "/kakao/confirm?pendingToken=" + pendingToken;
             } else {
-                redirect = frontUrl + "/oauth/callback?token=" + token;
+                String[] parts = result.split(":");
+                String token = parts[0];
+                String flag  = parts.length > 1 ? parts[1] : "false";
+
+                if ("link".equals(flag)) {
+                    redirect = frontUrl + "/settings/security?linked=true";
+                } else {
+                    redirect = frontUrl + "/oauth/callback?token=" + token;
+                }
             }
             headers.add("Location", redirect);
         } catch (Exception e) {
@@ -74,5 +81,35 @@ public class KakaoAuthController {
             headers.add("Location", frontUrl + "/login?error=kakao_failed");
         }
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
+    }
+
+    /**
+     * POST /api/auth/kakao/confirm — 가입 확인 페이지에서 "가입 완료" 클릭 시 계정 생성
+     * Body: { "pendingToken": "xxx" }
+     */
+    @PostMapping("/confirm")
+    public ResponseEntity<Map<String, Object>> confirmSignup(@RequestBody Map<String, String> body) {
+        String pendingToken = body.get("pendingToken");
+        try {
+            String accessToken = kakaoAuthService.confirmPendingSignup(pendingToken);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("accessToken", accessToken),
+                    "message", "가입이 완료되었습니다."
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "data", null,
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("[카카오 가입 확인 실패]", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "data", null,
+                    "message", "가입 처리 중 오류가 발생했습니다."
+            ));
+        }
     }
 }

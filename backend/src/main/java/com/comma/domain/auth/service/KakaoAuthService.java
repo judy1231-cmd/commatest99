@@ -92,9 +92,39 @@ public class KakaoAuthService {
                 return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole()) + ":false";
             }
         }
-        // 신규 가입 — isNew=true
+        // 신규 가입 — 즉시 생성하지 않고 임시 pending 토큰 반환
+        String pendingToken = jwtUtil.generatePendingToken("kakao", providerId, nickname);
+        return "pending:" + pendingToken;
+    }
+
+    /**
+     * 가입 확인 페이지에서 사용자가 "가입 완료" 버튼 클릭 시 호출
+     * pending 토큰 검증 → 계정 생성 → 접근 토큰 반환
+     */
+    @Transactional
+    public String confirmPendingSignup(String pendingToken) {
+        io.jsonwebtoken.Claims claims = jwtUtil.extractPendingClaims(pendingToken);
+        if (claims == null) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 가입 토큰입니다.");
+        }
+
+        String provider   = claims.get("provider", String.class);
+        String providerId = claims.getSubject();
+        String nickname   = claims.get("nickname", String.class);
+
+        // 혹시 그 사이에 이미 가입된 경우 (동일 토큰 재사용 방지)
+        User existing = authMapper.findByProvider(provider, providerId);
+        if (existing != null) {
+            if ("dormant".equals(existing.getStatus())) {
+                authMapper.deleteAuthProvider(existing.get쉼표번호(), provider);
+            } else {
+                // 이미 가입 완료 → 로그인 처리
+                return jwtUtil.generateAccessToken(existing.get쉼표번호(), existing.getRole());
+            }
+        }
+
         User newUser = createKakaoUser(providerId, nickname);
-        return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole()) + ":true";
+        return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole());
     }
 
     private User createKakaoUser(String providerId, String nickname) {
