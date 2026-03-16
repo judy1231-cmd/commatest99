@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -91,18 +92,18 @@ public class NaverAuthController {
                     "message", "가입이 완료되었습니다."
             ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "data", null,
-                    "message", e.getMessage()
-            ));
+            Map<String, Object> err = new HashMap<>();
+            err.put("success", false);
+            err.put("data", null);
+            err.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(err);
         } catch (Exception e) {
             log.error("[네이버 가입 확인 실패]", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "data", null,
-                    "message", "가입 처리 중 오류가 발생했습니다."
-            ));
+            Map<String, Object> err = new HashMap<>();
+            err.put("success", false);
+            err.put("data", null);
+            err.put("message", "가입 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(err);
         }
     }
 }

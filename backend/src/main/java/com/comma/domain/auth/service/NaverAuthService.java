@@ -208,7 +208,21 @@ public class NaverAuthService {
     private String extractNestedField(String json, String field) {
         String pattern = "\"" + field + "\"\\s*:\\s*\"([^\"]+)\"";
         java.util.regex.Matcher m = java.util.regex.Pattern.compile(pattern).matcher(json);
-        return m.find() ? m.group(1) : null;
+        return m.find() ? unescapeUnicode(m.group(1)) : null;
+    }
+
+    /** JSON \uXXXX 이스케이프 → 실제 유니코드 문자 변환 */
+    private String unescapeUnicode(String s) {
+        if (s == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("\\\\u([0-9a-fA-F]{4})")
+                .matcher(s);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            m.appendReplacement(sb, String.valueOf((char) Integer.parseInt(m.group(1), 16)));
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     private String generate쉼표번호() {
