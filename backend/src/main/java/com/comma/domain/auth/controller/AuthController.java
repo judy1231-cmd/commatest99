@@ -5,6 +5,9 @@ import com.comma.domain.user.model.User;
 import com.comma.global.util.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +17,9 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    @Value("${app.front-url:http://localhost:3000}")
+    private String frontUrl;
 
     private final AuthService authService;
 
@@ -114,13 +120,15 @@ public class AuthController {
 
     // GET /api/auth/email/verify?token=...  [공개]
     @GetMapping("/email/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
+        HttpHeaders headers = new HttpHeaders();
         try {
             authService.verifyEmail(token);
-            return ResponseEntity.ok(ApiResponse.ok("이메일 인증이 완료되었습니다."));
+            headers.add("Location", frontUrl + "/login?verified=true");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+            headers.add("Location", frontUrl + "/login?verified=false");
         }
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     // ==================== 닉네임 변경 ====================

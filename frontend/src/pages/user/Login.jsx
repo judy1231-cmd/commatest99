@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
 
@@ -11,11 +11,20 @@ const KakaoLogo = () => (
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ message: '', type: 'info' });
+
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      setToast({ message: '이메일 인증이 완료되었습니다! 로그인해주세요.', type: 'success' });
+    } else if (searchParams.get('verified') === 'false') {
+      setToast({ message: '인증 링크가 유효하지 않거나 만료되었습니다.', type: 'error' });
+    }
+  }, []);
 
   const handleSocialLogin = (provider) => {
     setToast({ message: `${provider} 로그인은 준비 중이에요.`, type: 'info' });
