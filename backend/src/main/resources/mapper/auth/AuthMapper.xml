@@ -30,11 +30,11 @@
     </select>
 
     <select id="countByEmail" resultType="int">
-        SELECT COUNT(*) FROM users WHERE email = #{email}
+        SELECT COUNT(*) FROM users WHERE email = #{email} AND status = 'active'
     </select>
 
     <select id="countByUsername" resultType="int">
-        SELECT COUNT(*) FROM users WHERE username = #{username}
+        SELECT COUNT(*) FROM users WHERE username = #{username} AND status = 'active'
     </select>
 
     <select id="countBy쉼표번호" resultType="int">
