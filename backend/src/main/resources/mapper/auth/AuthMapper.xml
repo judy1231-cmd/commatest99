@@ -100,6 +100,14 @@
         UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
+    <update id="anonymizeUser">
+        UPDATE users
+        SET username = CONCAT('deleted_', `쉼표번호`),
+            email    = CONCAT('deleted_', `쉼표번호`, '@deleted.com'),
+            password = 'DELETED'
+        WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
     <!-- ==================== 소셜 로그인 ==================== -->
 
     <select id="findByProvider" resultType="User">

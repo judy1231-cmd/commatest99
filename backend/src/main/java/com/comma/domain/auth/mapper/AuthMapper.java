@@ -63,6 +63,8 @@ public interface AuthMapper {
 
     void updateStatus(@Param("쉼표번호") String 쉼표번호, @Param("status") String status);
 
+    void anonymizeUser(@Param("쉼표번호") String 쉼표번호);
+
     // ==================== 소셜 로그인 ====================
 
     User findByProvider(@Param("provider") String provider, @Param("providerId") String providerId);
