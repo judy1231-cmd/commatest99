@@ -6,6 +6,7 @@ import com.comma.global.config.JwtUtil;
 import com.comma.global.util.MailService;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,10 @@ public class AuthService {
     private final MailService mailService;
 
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
+
+    // 로컬 개발용 — true면 가입 즉시 이메일 인증 완료 처리 (배포 환경에선 false)
+    @Value("${app.skip-email-verification:false}")
+    private boolean skipEmailVerification;
 
     // ==================== 회원가입 ====================
 
@@ -55,13 +60,19 @@ public class AuthService {
 
         authMapper.insertUser(user);
 
-        // 회원가입 직후 이메일 인증 메일 자동 발송
-        try {
-            String token = UUID.randomUUID().toString();
-            authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
-            mailService.sendVerificationEmail(email.trim(), token);
-        } catch (Exception e) {
-            // 메일 발송 실패해도 회원가입은 성공 처리
+        // 로컬 개발 환경: 이메일 인증 자동 완료
+        if (skipEmailVerification) {
+            authMapper.updateUserEmailVerified(쉼표번호);
+            user.setEmailVerified(true);
+        } else {
+            // 회원가입 직후 이메일 인증 메일 자동 발송
+            try {
+                String token = UUID.randomUUID().toString();
+                authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
+                mailService.sendVerificationEmail(email.trim(), token);
+            } catch (Exception e) {
+                // 메일 발송 실패해도 회원가입은 성공 처리
+            }
         }
 
         user.setPassword(null);

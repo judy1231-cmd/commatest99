@@ -18,6 +18,9 @@ public class MailService {
     @Value("${app.front-url:http://localhost:3000}")
     private String frontUrl;
 
+    @Value("${spring.mail.username}")
+    private String fromEmail;
+
     public void sendVerificationEmail(String to, String token) {
         String link = baseUrl + "/api/auth/email/verify?token=" + token;
         send(to,
@@ -40,6 +43,7 @@ public class MailService {
 
     private void send(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
