@@ -4,6 +4,7 @@ import com.comma.domain.auth.mapper.AuthMapper;
 import com.comma.domain.user.model.User;
 import com.comma.global.config.JwtUtil;
 import com.comma.global.util.MailService;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -72,6 +74,7 @@ public class AuthService {
                 mailService.sendVerificationEmail(email.trim(), token);
             } catch (Exception e) {
                 // 메일 발송 실패해도 회원가입은 성공 처리
+                log.error("[메일 발송 실패] to={}, error={}", email.trim(), e.getMessage(), e);
             }
         }
 
