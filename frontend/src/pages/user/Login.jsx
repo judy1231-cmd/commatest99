@@ -110,6 +110,7 @@ function Login() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 disabled={loading}
+                autoComplete="username"
               />
             </div>
 
@@ -123,6 +124,7 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                autoComplete="current-password"
               />
             </div>
 
