@@ -130,4 +130,8 @@
         DELETE FROM auth_provider WHERE `쉼표번호` = #{쉼표번호} AND provider = #{provider}
     </delete>
 
+    <delete id="deleteAllAuthProviders">
+        DELETE FROM auth_provider WHERE `쉼표번호` = #{쉼표번호}
+    </delete>
+
 </mapper>

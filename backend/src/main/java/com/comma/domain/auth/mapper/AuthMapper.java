@@ -78,4 +78,6 @@ public interface AuthMapper {
     java.util.List<String> findProvidersByUser(@Param("쉼표번호") String 쉼표번호);
 
     void deleteAuthProvider(@Param("쉼표번호") String 쉼표번호, @Param("provider") String provider);
+
+    void deleteAllAuthProviders(@Param("쉼표번호") String 쉼표번호);
 }

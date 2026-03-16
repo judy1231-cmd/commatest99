@@ -312,6 +312,8 @@ public class AuthService {
         authMapper.updateStatus(쉼표번호, "dormant");
         // UNIQUE 컬럼 해제 → 탈퇴 후 같은 아이디/이메일로 재가입 가능
         authMapper.anonymizeUser(쉼표번호);
+        // 소셜 연동 해제 → 탈퇴 후 같은 소셜 계정으로 재가입 가능
+        authMapper.deleteAllAuthProviders(쉼표번호);
     }
 
     // ==================== 내부 유틸 ====================

@@ -84,7 +84,12 @@ public class KakaoAuthService {
 
         // 일반 로그인 — 기존 소셜 계정 있으면 로그인, 없으면 신규 가입
         if (existingKakaoUser != null) {
-            return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+            if ("dormant".equals(existingKakaoUser.getStatus())) {
+                // 탈퇴 계정에 연결된 카카오 → 연결 해제 후 신규 가입
+                authMapper.deleteAuthProvider(existingKakaoUser.get쉼표번호(), "kakao");
+            } else {
+                return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+            }
         }
         User newUser = createKakaoUser(providerId, nickname);
         return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole());
