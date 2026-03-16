@@ -68,10 +68,15 @@ public class KakaoAuthService {
         if (state != null && !state.isBlank()) {
             String 쉼표번호 = state;
             if (existingKakaoUser != null) {
-                // 이 카카오 계정이 이미 다른 계정에 연동된 경우 — 그 계정으로 로그인
-                return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+                if ("dormant".equals(existingKakaoUser.getStatus())) {
+                    // 탈퇴 계정에 연결된 카카오 → 기존 연결 삭제 후 현재 계정에 재연동
+                    authMapper.deleteAuthProvider(existingKakaoUser.get쉼표번호(), "kakao");
+                } else {
+                    // 활성 계정에 이미 연동됨 → 해당 계정으로 로그인
+                    return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+                }
             }
-            // 기존 계정에 카카오 연동
+            // 현재 계정에 카카오 연동
             authMapper.insertAuthProvider(쉼표번호, "kakao", providerId);
             User linkedUser = authMapper.findBy쉼표번호(쉼표번호);
             return jwtUtil.generateAccessToken(linkedUser.get쉼표번호(), linkedUser.getRole());

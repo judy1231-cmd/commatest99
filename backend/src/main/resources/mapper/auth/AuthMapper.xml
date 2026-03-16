@@ -126,4 +126,8 @@
         SELECT provider FROM auth_provider WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
+    <delete id="deleteAuthProvider">
+        DELETE FROM auth_provider WHERE `쉼표번호` = #{쉼표번호} AND provider = #{provider}
+    </delete>
+
 </mapper>
