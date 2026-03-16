@@ -33,6 +33,10 @@ function Signup() {
   const [step, setStep] = useState(1); // 1 | 2 | 3
 
   const handleSocialLogin = (provider) => {
+    if (provider === '카카오') {
+      window.location.href = '/api/auth/kakao/login';
+      return;
+    }
     setToast({ message: `${provider} 로그인은 준비 중이에요.`, type: 'info' });
   };
   const [usernameCheck, setUsernameCheck] = useState({ status: null, message: '' });

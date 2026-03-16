@@ -100,4 +100,18 @@
         UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
+    <!-- ==================== 소셜 로그인 ==================== -->
+
+    <select id="findByProvider" resultType="User">
+        SELECT u.`쉼표번호`, u.email, u.password, u.username, u.nickname, u.status, u.email_verified, u.role, u.created_at, u.updated_at
+        FROM users u
+        INNER JOIN auth_provider ap ON u.`쉼표번호` = ap.`쉼표번호`
+        WHERE ap.provider = #{provider} AND ap.provider_id = #{providerId}
+    </select>
+
+    <insert id="insertAuthProvider">
+        INSERT INTO auth_provider (`쉼표번호`, provider, provider_id)
+        VALUES (#{쉼표번호}, #{provider}, #{providerId})
+    </insert>
+
 </mapper>
