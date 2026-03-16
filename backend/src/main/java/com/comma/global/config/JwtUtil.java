@@ -56,15 +56,20 @@ public class JwtUtil {
 
     /** 소셜 가입 확인 전 임시 토큰 (10분 유효) — subject: providerId, claims: provider/nickname */
     public @NonNull String generatePendingToken(String provider, String providerId, String nickname) {
-        return Jwts.builder()
+        return generatePendingToken(provider, providerId, nickname, null);
+    }
+
+    /** email 포함 버전 (구글 등 이메일 제공 소셜) */
+    public @NonNull String generatePendingToken(String provider, String providerId, String nickname, String email) {
+        var builder = Jwts.builder()
                 .setSubject(providerId)
                 .claim("provider", provider)
                 .claim("nickname", nickname != null ? nickname : "")
                 .claim("pending", true)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+                .setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000));
+        if (email != null) builder = builder.claim("email", email);
+        return builder.signWith(key, SignatureAlgorithm.HS256).compact();
     }
 
     /** pending 토큰에서 클레임 추출 — 유효하지 않거나 pending 아닌 경우 null 반환 */

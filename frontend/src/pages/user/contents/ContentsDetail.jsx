@@ -76,9 +76,8 @@ function ContentsDetail() {
     navigate('/records/rest');
   };
 
-  useEffect(() => {
-    loadContent();
-  }, [id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadContent(); }, [id]);
 
   const loadContent = async () => {
     setLoading(true);

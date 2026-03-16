@@ -37,6 +37,10 @@ function Signup() {
       window.location.href = 'http://localhost:8080/api/auth/kakao/login';
       return;
     }
+    if (provider === '구글') {
+      window.location.href = 'http://localhost:8080/api/auth/google/login';
+      return;
+    }
     setToast({ message: `${provider} 로그인은 준비 중이에요.`, type: 'info' });
   };
   const [usernameCheck, setUsernameCheck] = useState({ status: null, message: '' });

@@ -190,13 +190,11 @@ function ContentsList() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setCurrentPage(1);
-    if (activeCategory === 'recommend') {
-      loadRecommend();
-    } else {
-      loadContents();
-    }
+    if (activeCategory === 'recommend') loadRecommend();
+    else loadContents();
   }, [activeCategory]);
 
   const loadContents = async () => {

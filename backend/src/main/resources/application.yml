@@ -56,3 +56,5 @@ claude:
 logging:
   level:
     com.comma: DEBUG
+    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari.HikariConfig: DEBUG
