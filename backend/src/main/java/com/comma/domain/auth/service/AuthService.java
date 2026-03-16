@@ -71,7 +71,7 @@ public class AuthService {
             try {
                 String token = UUID.randomUUID().toString();
                 authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
-                mailService.sendVerificationEmail(email.trim(), token);
+                mailService.sendVerificationEmail(email.trim(), username.trim(), token);
             } catch (Exception e) {
                 // 메일 발송 실패해도 회원가입은 성공 처리
                 log.error("[메일 발송 실패] to={}, error={}", email.trim(), e.getMessage(), e);
@@ -190,7 +190,7 @@ public class AuthService {
         String token = UUID.randomUUID().toString();
         authMapper.insertEmailVerification(쉼표번호, token, LocalDateTime.now().plusHours(24));
 
-        mailService.sendVerificationEmail(user.getEmail(), token);
+        mailService.sendVerificationEmail(user.getEmail(), user.getUsername(), token);
     }
 
     @Transactional

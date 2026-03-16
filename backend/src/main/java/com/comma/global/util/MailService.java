@@ -23,12 +23,13 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendVerificationEmail(String to, String token) {
+    public void sendVerificationEmail(String to, String username, String token) {
         String link = baseUrl + "/api/auth/email/verify?token=" + token;
         String html =
             "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;'>" +
             "<h2 style='color:#10b981;'>쉼표(,) 이메일 인증</h2>" +
-            "<p>안녕하세요, 쉼표입니다.<br>아래 버튼을 클릭해 이메일 인증을 완료해주세요.<br>링크는 24시간 동안 유효합니다.</p>" +
+            "<p><b>" + username + "님</b>, 쉼표 가족이 되어주셔서 감사합니다! 🎉<br><br>" +
+            "아래 버튼을 클릭해 이메일 인증을 완료해주세요.<br>링크는 24시간 동안 유효합니다.</p>" +
             "<a href='" + link + "' style='display:inline-block;margin-top:16px;padding:12px 24px;" +
             "background:#10b981;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;'>" +
             "이메일 인증하기</a>" +
