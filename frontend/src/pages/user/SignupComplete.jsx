@@ -1,6 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 function SignupComplete() {
+  const [searchParams] = useSearchParams();
+  const isSocial = searchParams.get('social') === 'true';
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-20">
       <div className="w-full max-w-sm text-center">
@@ -25,18 +28,20 @@ function SignupComplete() {
           이제 나만의 휴식 여정을 시작해볼까요
         </p>
 
-        {/* 이메일 인증 안내 */}
-        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-4 mb-4 text-left">
-          <div className="flex items-start gap-3">
-            <span className="material-icons text-primary text-[22px] mt-0.5 flex-shrink-0">mark_email_read</span>
-            <div>
-              <p className="text-[14px] font-bold text-slate-800 mb-0.5">이메일 인증을 완료해주세요</p>
-              <p className="text-[12px] text-slate-500 leading-relaxed">
-                가입하신 이메일로 인증 링크를 보냈어요.<br />24시간 내에 인증해주세요.
-              </p>
+        {/* 이메일 인증 안내 — 소셜 가입 시 불필요 */}
+        {!isSocial && (
+          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-4 mb-4 text-left">
+            <div className="flex items-start gap-3">
+              <span className="material-icons text-primary text-[22px] mt-0.5 flex-shrink-0">mark_email_read</span>
+              <div>
+                <p className="text-[14px] font-bold text-slate-800 mb-0.5">이메일 인증을 완료해주세요</p>
+                <p className="text-[12px] text-slate-500 leading-relaxed">
+                  가입하신 이메일로 인증 링크를 보냈어요.<br />24시간 내에 인증해주세요.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 추천 활동 */}
         <div className="bg-slate-50 rounded-2xl px-5 py-4 mb-10 text-left">

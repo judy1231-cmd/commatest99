@@ -55,9 +55,9 @@ function KakaoConfirm() {
           if (me.success) {
             localStorage.setItem('user', JSON.stringify(me.data));
           }
-          navigate('/signup-complete', { replace: true });
+          navigate('/signup-complete?social=true', { replace: true });
         })
-        .catch(() => navigate('/signup-complete', { replace: true }));
+        .catch(() => navigate('/signup-complete?social=true', { replace: true }));
     } catch {
       setError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
