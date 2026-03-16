@@ -211,7 +211,7 @@ public class NaverAuthService {
         return m.find() ? unescapeUnicode(m.group(1)) : null;
     }
 
-    /** JSON \uXXXX 이스케이프 → 실제 유니코드 문자 변환 */
+    /** JSON 유니코드 이스케이프 시퀀스를 실제 문자로 변환 */
     private String unescapeUnicode(String s) {
         if (s == null) return null;
         java.util.regex.Matcher m = java.util.regex.Pattern
