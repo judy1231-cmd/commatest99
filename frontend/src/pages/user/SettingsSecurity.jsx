@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
 
 function SettingsSecurity() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [pwErrors, setPwErrors] = useState({});
   const [pwSaving, setPwSaving] = useState(false);
@@ -16,6 +17,9 @@ function SettingsSecurity() {
     fetchWithAuth('/api/auth/social/providers')
       .then(data => { if (data.success) setConnectedProviders(data.data || []); })
       .catch(() => {});
+    if (searchParams.get('linked') === 'true') {
+      setToast({ message: '카카오 계정이 연동되었습니다.', type: 'success' });
+    }
   }, []);
 
   const validatePassword = (pw) => {
@@ -150,7 +154,10 @@ function SettingsSecurity() {
                     <span className="text-xs text-primary bg-green-50 border border-primary/20 px-2.5 py-1 rounded-full font-medium">연동됨</span>
                   ) : (
                     <button
-                      onClick={() => { window.location.href = 'http://localhost:8080/api/auth/kakao/login'; }}
+                      onClick={() => {
+                        const token = localStorage.getItem('accessToken');
+                        window.location.href = `http://localhost:8080/api/auth/kakao/link?token=${token}`;
+                      }}
                       className="text-xs text-white bg-primary px-2.5 py-1 rounded-full font-medium hover:bg-primary/90"
                     >
                       연동하기

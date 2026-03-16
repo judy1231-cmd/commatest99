@@ -1,6 +1,8 @@
 package com.comma.domain.auth.controller;
 
 import com.comma.domain.auth.service.KakaoAuthService;
+import com.comma.global.config.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
+    private final JwtUtil jwtUtil;
 
     @Value("${app.front-url:http://localhost:3000}")
     private String frontUrl;
@@ -24,19 +27,42 @@ public class KakaoAuthController {
     @GetMapping("/login")
     public ResponseEntity<Void> login() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", kakaoAuthService.getAuthorizationUrl());
+        headers.add("Location", kakaoAuthService.getAuthorizationUrl(null));
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+    }
+
+    /**
+     * GET /api/auth/kakao/link?token=xxx — 기존 계정에 카카오 연동
+     * 쿼리파라미터로 JWT 받아서 쉼표번호 추출 후 state에 실어 카카오로 리다이렉트
+     */
+    @GetMapping("/link")
+    public ResponseEntity<Void> link(@RequestParam String token) {
+        HttpHeaders headers = new HttpHeaders();
+        try {
+            String 쉼표번호 = jwtUtil.extract쉼표번호(token);
+            headers.add("Location", kakaoAuthService.getAuthorizationUrl(쉼표번호));
+        } catch (Exception e) {
+            log.error("[카카오 연동 실패] 토큰 파싱 오류", e);
+            headers.add("Location", frontUrl + "/settings/security?error=link_failed");
+        }
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     /** GET /api/auth/kakao/callback — 카카오 인가 코드 수신 후 처리 */
     @GetMapping("/callback")
-    public ResponseEntity<Void> callback(@RequestParam String code) {
+    public ResponseEntity<Void> callback(
+            @RequestParam String code,
+            @RequestParam(required = false) String state) {
         HttpHeaders headers = new HttpHeaders();
         try {
-            String token = kakaoAuthService.handleCallback(code);
-            headers.add("Location", frontUrl + "/oauth/callback?token=" + token);
+            String token = kakaoAuthService.handleCallback(code, state);
+            // 연동 요청이면 설정 페이지로, 로그인이면 메인으로
+            String redirect = (state != null && !state.isBlank())
+                    ? frontUrl + "/settings/security?linked=true"
+                    : frontUrl + "/oauth/callback?token=" + token;
+            headers.add("Location", redirect);
         } catch (Exception e) {
-            log.error("[카카오 로그인 실패]", e);
+            log.error("[카카오 콜백 실패]", e);
             headers.add("Location", frontUrl + "/login?error=kakao_failed");
         }
         return new ResponseEntity<>(headers, HttpStatus.FOUND);

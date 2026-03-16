@@ -28,6 +28,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/auth/check/username",
             "/api/auth/check/email",
             "/api/auth/kakao/login",
+            "/api/auth/kakao/link",
             "/api/auth/kakao/callback",
             "/api/places",
             "/api/places/nearby",

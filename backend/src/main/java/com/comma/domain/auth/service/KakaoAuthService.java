@@ -37,35 +37,52 @@ public class KakaoAuthService {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-    /** 카카오 로그인 URL 반환 */
-    public String getAuthorizationUrl() {
-        return "https://kauth.kakao.com/oauth/authorize" +
+    /** 카카오 로그인 URL 반환 (state: 연동 대상 쉼표번호 또는 null) */
+    public String getAuthorizationUrl(String state) {
+        String url = "https://kauth.kakao.com/oauth/authorize" +
                 "?client_id=" + clientId +
                 "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
                 "&response_type=code";
+        if (state != null) url += "&state=" + URLEncoder.encode(state, StandardCharsets.UTF_8);
+        return url;
     }
 
     /**
-     * 카카오 콜백 처리 — 기존 회원이면 로그인, 신규면 자동 가입 후 로그인
+     * 카카오 콜백 처리
+     * - state가 있으면 기존 계정에 카카오 연동
+     * - state 없으면 기존 회원 로그인 또는 신규 가입
      * @return JWT access token
      */
     @Transactional
-    public String handleCallback(String code) throws Exception {
+    public String handleCallback(String code, String state) throws Exception {
         String accessToken = fetchKakaoAccessToken(code);
         Map<String, String> kakaoUser = fetchKakaoUserInfo(accessToken);
 
         String providerId = kakaoUser.get("id");
         String nickname   = kakaoUser.get("nickname");
 
-        // 기존 소셜 계정 조회
-        User user = authMapper.findByProvider("kakao", providerId);
+        // 이미 이 카카오 계정으로 가입된 유저가 있는지 확인
+        User existingKakaoUser = authMapper.findByProvider("kakao", providerId);
 
-        if (user == null) {
-            // 신규 가입
-            user = createKakaoUser(providerId, nickname);
+        // state가 있으면 기존 계정에 연동 요청
+        if (state != null && !state.isBlank()) {
+            String 쉼표번호 = state;
+            if (existingKakaoUser != null) {
+                // 이 카카오 계정이 이미 다른 계정에 연동된 경우 — 그 계정으로 로그인
+                return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+            }
+            // 기존 계정에 카카오 연동
+            authMapper.insertAuthProvider(쉼표번호, "kakao", providerId);
+            User linkedUser = authMapper.findBy쉼표번호(쉼표번호);
+            return jwtUtil.generateAccessToken(linkedUser.get쉼표번호(), linkedUser.getRole());
         }
 
-        return jwtUtil.generateAccessToken(user.get쉼표번호(), user.getRole());
+        // 일반 로그인 — 기존 소셜 계정 있으면 로그인, 없으면 신규 가입
+        if (existingKakaoUser != null) {
+            return jwtUtil.generateAccessToken(existingKakaoUser.get쉼표번호(), existingKakaoUser.getRole());
+        }
+        User newUser = createKakaoUser(providerId, nickname);
+        return jwtUtil.generateAccessToken(newUser.get쉼표번호(), newUser.getRole());
     }
 
     private User createKakaoUser(String providerId, String nickname) {
