@@ -16,6 +16,8 @@ public interface UserMapper {
 
     void updateStatus(@Param("쉼표번호") String 쉼표번호, @Param("status") String status);
 
+    void anonymizeUser(@Param("쉼표번호") String 쉼표번호);
+
     UserSettings findSettingsBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
 
     void insertSettings(UserSettings settings);

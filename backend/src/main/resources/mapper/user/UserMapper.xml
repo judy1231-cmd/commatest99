@@ -18,6 +18,15 @@
         UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
+    <!-- 탈퇴 익명화 — UNIQUE 컬럼(username, email) 해제하여 재가입 가능하게 함 -->
+    <update id="anonymizeUser">
+        UPDATE users
+        SET username = NULL,
+            email    = NULL,
+            password = NULL
+        WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
     <select id="findSettingsBy쉼표번호" resultType="com.comma.domain.user.model.UserSettings">
         SELECT id, `쉼표번호`, notification_settings_json, theme, smartwatch_type
         FROM user_settings

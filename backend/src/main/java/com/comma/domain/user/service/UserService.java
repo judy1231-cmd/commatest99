@@ -77,5 +77,7 @@ public class UserService {
     @Transactional
     public void deleteAccount(String 쉼표번호) {
         userMapper.updateStatus(쉼표번호, "dormant");
+        // UNIQUE 컬럼 해제 → 탈퇴 후 같은 아이디/이메일로 재가입 가능
+        userMapper.anonymizeUser(쉼표번호);
     }
 }
