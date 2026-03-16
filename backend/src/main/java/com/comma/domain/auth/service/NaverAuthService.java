@@ -42,8 +42,10 @@ public class NaverAuthService {
      * state: 쉼표번호이면 계정 연동, null이면 일반 로그인 (CSRF용 UUID 사용)
      */
     public String getAuthorizationUrl(String 쉼표번호) {
-        // 네이버는 state 필수 — 연동 시 쉼표번호, 일반 로그인 시 랜덤 UUID
-        String state = (쉼표번호 != null) ? 쉼표번호 : UUID.randomUUID().toString();
+        // 네이버는 state 필수 (ASCII only) — 연동 시 link_{번호}, 일반 로그인 시 랜덤 UUID
+        String state = (쉼표번호 != null)
+                ? "link_" + 쉼표번호.replaceAll("[^0-9]", "")  // "쉼표0001" → "link_0001"
+                : UUID.randomUUID().toString();
         return "https://nid.naver.com/oauth2.0/authorize" +
                 "?client_id=" + clientId +
                 "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) +
@@ -66,9 +68,9 @@ public class NaverAuthService {
 
         User existingNaverUser = authMapper.findByProvider("naver", providerId);
 
-        // state가 쉼표번호 형식이면 계정 연동
-        if (state != null && state.startsWith("쉼표")) {
-            String 연동쉼표번호 = state;
+        // state가 "link_{번호}" 형식이면 계정 연동 (예: link_0001 → 쉼표0001)
+        if (state != null && state.startsWith("link_")) {
+            String 연동쉼표번호 = "쉼표" + state.substring("link_".length());
             if (existingNaverUser != null) {
                 if ("dormant".equals(existingNaverUser.getStatus())) {
                     authMapper.deleteAuthProvider(existingNaverUser.get쉼표번호(), "naver");
