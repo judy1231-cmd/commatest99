@@ -192,7 +192,8 @@ public class NaverAuthService {
 
         // 네이버 응답: {"resultcode":"00","message":"success","response":{"id":"...","email":"...","nickname":"..."}}
         Map<String, String> result = new HashMap<>();
-        result.put("id",       extractNestedField(json, "id"));
+        // id는 숫자(따옴표 없음)로 올 수 있으므로 extractJsonField 사용
+        result.put("id",       extractJsonField(json, "id"));
         result.put("email",    extractNestedField(json, "email"));
         result.put("nickname", extractNestedField(json, "nickname"));
 
