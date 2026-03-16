@@ -22,6 +22,7 @@ public class AuthController {
     private String frontUrl;
 
     private final AuthService authService;
+    private final com.comma.domain.auth.mapper.AuthMapper authMapper;
 
     // ==================== 회원가입 ====================
     // POST /api/auth/signup
@@ -103,6 +104,13 @@ public class AuthController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(ApiResponse.fail(e.getMessage()));
         }
+    }
+
+    // GET /api/auth/social/providers  [JWT 필요] — 연동된 소셜 제공자 목록
+    @GetMapping("/social/providers")
+    public ResponseEntity<ApiResponse<java.util.List<String>>> getSocialProviders(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        return ResponseEntity.ok(ApiResponse.ok(authMapper.findProvidersByUser(쉼표번호), "조회 성공"));
     }
 
     // ==================== 이메일 인증 ====================

@@ -72,4 +72,6 @@ public interface AuthMapper {
             @Param("provider") String provider,
             @Param("providerId") String providerId
     );
+
+    java.util.List<String> findProvidersByUser(@Param("쉼표번호") String 쉼표번호);
 }

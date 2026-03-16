@@ -114,4 +114,8 @@
         VALUES (#{쉼표번호}, #{provider}, #{providerId})
     </insert>
 
+    <select id="findProvidersByUser" resultType="String">
+        SELECT provider FROM auth_provider WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
 </mapper>
