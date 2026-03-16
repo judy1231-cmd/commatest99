@@ -18,12 +18,12 @@
         UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
-    <!-- 탈퇴 익명화 — UNIQUE 컬럼(username, email) 해제하여 재가입 가능하게 함 -->
+    <!-- 탈퇴 익명화 — UNIQUE 컬럼(username, email)을 쉼표번호 기반 더미값으로 교체하여 재가입 가능하게 함 -->
     <update id="anonymizeUser">
         UPDATE users
-        SET username = NULL,
-            email    = NULL,
-            password = NULL
+        SET username = CONCAT('deleted_', `쉼표번호`),
+            email    = CONCAT('deleted_', `쉼표번호`, '@deleted.com'),
+            password = 'DELETED'
         WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
