@@ -17,8 +17,12 @@ function SettingsSecurity() {
     fetchWithAuth('/api/auth/social/providers')
       .then(data => { if (data.success) setConnectedProviders(data.data || []); })
       .catch(() => {});
-    if (searchParams.get('linked') === 'true') {
-      setToast({ message: '카카오 계정이 연동되었습니다.', type: 'success' });
+    const linked = searchParams.get('linked');
+    const providerNames = { kakao: '카카오', google: 'Google', naver: '네이버' };
+    if (linked && providerNames[linked]) {
+      setToast({ message: `${providerNames[linked]} 계정이 연동되었습니다.`, type: 'success' });
+    } else if (linked === 'true') {
+      setToast({ message: '소셜 계정이 연동되었습니다.', type: 'success' });
     }
   }, []);
 

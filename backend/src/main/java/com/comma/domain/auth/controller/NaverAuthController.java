@@ -65,7 +65,7 @@ public class NaverAuthController {
                 String flag  = parts.length > 1 ? parts[1] : "false";
 
                 if ("link".equals(flag)) {
-                    redirect = frontUrl + "/settings/security?linked=true";
+                    redirect = frontUrl + "/settings/security?linked=naver";
                 } else {
                     redirect = frontUrl + "/oauth/callback?token=" + token;
                 }
