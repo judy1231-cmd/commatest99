@@ -25,6 +25,8 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/auth/email/verify",
             "/api/auth/password/reset-request",
             "/api/auth/password/reset",
+            "/api/auth/check/username",
+            "/api/auth/check/email",
             "/api/places",
             "/api/places/nearby",
             "/api/places/*/reviews",
