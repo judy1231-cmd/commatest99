@@ -49,7 +49,7 @@ function KakaoConfirm() {
     try {
       const res = await fetch(`/api/auth/check/username?username=${encodeURIComponent(username)}`);
       const data = await res.json();
-      setUsernameStatus(data.data?.available ? 'available' : 'taken');
+      setUsernameStatus(data.success ? 'available' : 'taken');
     } catch {
       setUsernameStatus(null);
     }
