@@ -111,6 +111,7 @@ import SupportFaq from './pages/user/support/SupportFaq';
 import OAuthCallback from './pages/user/OAuthCallback';
 import KakaoConfirm from './pages/user/KakaoConfirm';
 import GoogleConfirm from './pages/user/GoogleConfirm';
+import NaverConfirm from './pages/user/NaverConfirm';
 
 // 404
 import NotFound from './pages/NotFound';
@@ -252,6 +253,7 @@ function App() {
       <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route path="/kakao/confirm" element={<KakaoConfirm />} />
       <Route path="/google/confirm" element={<GoogleConfirm />} />
+      <Route path="/naver/confirm" element={<NaverConfirm />} />
 
       {/* 고객지원 */}
       <Route path="/support/faq" element={<SupportFaq />} />

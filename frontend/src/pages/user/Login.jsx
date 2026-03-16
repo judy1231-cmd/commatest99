@@ -35,6 +35,10 @@ function Login() {
       window.location.href = 'http://localhost:8080/api/auth/google/login';
       return;
     }
+    if (provider === '네이버') {
+      window.location.href = 'http://localhost:8080/api/auth/naver/login';
+      return;
+    }
     setToast({ message: `${provider} 로그인은 준비 중이에요.`, type: 'info' });
   };
 
