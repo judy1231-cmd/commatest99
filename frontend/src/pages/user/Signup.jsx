@@ -23,8 +23,10 @@ function Signup() {
     all: false,
     age: false,
     terms: false,
-    privacy: false
+    privacy: false,
+    marketing: false
   });
+  const [expandedTerm, setExpandedTerm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
@@ -67,12 +69,18 @@ function Signup() {
   const handleAgreementChange = (key) => {
     if (key === 'all') {
       const newValue = !agreements.all;
-      setAgreements({ all: newValue, age: newValue, terms: newValue, privacy: newValue });
+      setAgreements({ all: newValue, age: newValue, terms: newValue, privacy: newValue, marketing: newValue });
     } else {
       const updated = { ...agreements, [key]: !agreements[key] };
-      updated.all = updated.age && updated.terms && updated.privacy;
+      updated.all = updated.age && updated.terms && updated.privacy && updated.marketing;
       setAgreements(updated);
     }
+  };
+
+  const TERM_DETAILS = {
+    terms: `제1조 (목적)\n본 약관은 쉼표(이하 "서비스")가 제공하는 휴식 추천 플랫폼 서비스의 이용과 관련하여 필요한 사항을 규정합니다.\n\n제2조 (서비스 이용)\n회원은 서비스를 통해 휴식 진단, 장소 추천, 기록 관리 등의 기능을 이용할 수 있습니다.\n\n제3조 (이용 제한)\n타인의 정보를 무단으로 사용하거나 서비스를 악의적으로 이용하는 경우 이용이 제한될 수 있습니다.\n\n제4조 (면책조항)\n서비스는 천재지변, 불가항력적 사유로 인한 서비스 중단에 대해 책임을 지지 않습니다.`,
+    privacy: `수집 항목: 이메일, 아이디, 닉네임, 심박수 측정 데이터, 설문 응답, 휴식 기록\n\n수집 목적: 회원 식별 및 인증, 휴식 유형 진단 및 맞춤 추천, 서비스 개선\n\n보유 기간: 회원 탈퇴 시까지 (단, 관계 법령에 따라 일정 기간 보관)\n\n귀하는 개인정보 수집에 동의하지 않을 권리가 있으나, 동의 거부 시 서비스 이용이 불가합니다.`,
+    marketing: `수집 항목: 이메일, 이용 기록\n\n수집 목적: 신규 서비스 및 이벤트 안내, 맞춤형 혜택 정보 발송\n\n보유 기간: 동의 철회 시까지\n\n귀하는 마케팅 정보 수신에 동의하지 않아도 서비스를 정상 이용할 수 있습니다.`,
   };
 
   const getPasswordStrength = () => {
@@ -401,25 +409,50 @@ function Signup() {
 
                 {/* 개별 항목 */}
                 {[
-                  { key: 'age',     label: '만 14세 이상입니다',          required: true,  detail: false },
-                  { key: 'terms',   label: '서비스 이용약관 동의',          required: true,  detail: true  },
-                  { key: 'privacy', label: '개인정보 수집 및 이용 동의',    required: true,  detail: true  },
+                  { key: 'age',       label: '만 14세 이상입니다',             required: true,  detail: false },
+                  { key: 'terms',     label: '서비스 이용약관 동의',             required: true,  detail: true  },
+                  { key: 'privacy',   label: '개인정보 수집 및 이용 동의',       required: true,  detail: true  },
+                  { key: 'marketing', label: '마케팅 정보 수신 동의',            required: false, detail: true  },
                 ].map(({ key, label, required, detail }) => (
-                  <label key={key} className="flex items-center gap-4 px-2 py-3 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                      agreements[key] ? 'bg-primary border-primary' : 'border-slate-300 group-hover:border-primary/50'
-                    }`}>
-                      {agreements[key] && <span className="material-icons text-white text-[12px]">check</span>}
-                    </div>
-                    <input type="checkbox" className="hidden" checked={agreements[key]} onChange={() => handleAgreementChange(key)} />
-                    <span className="flex-1 text-[14px] text-slate-700 font-medium">
-                      <span className={`text-[11px] font-bold mr-1.5 ${required ? 'text-primary' : 'text-slate-400'}`}>
-                        {required ? '[필수]' : '[선택]'}
+                  <div key={key}>
+                    <div className="flex items-center gap-4 px-2 py-3 group">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all cursor-pointer ${
+                          agreements[key] ? 'bg-primary border-primary' : 'border-slate-300 group-hover:border-primary/50'
+                        }`}
+                        onClick={() => handleAgreementChange(key)}
+                      >
+                        {agreements[key] && <span className="material-icons text-white text-[12px]">check</span>}
+                      </div>
+                      <span
+                        className="flex-1 text-[14px] text-slate-700 font-medium cursor-pointer"
+                        onClick={() => handleAgreementChange(key)}
+                      >
+                        <span className={`text-[11px] font-bold mr-1.5 ${required ? 'text-primary' : 'text-slate-400'}`}>
+                          {required ? '[필수]' : '[선택]'}
+                        </span>
+                        {label}
                       </span>
-                      {label}
-                    </span>
-                    {detail && <span className="material-icons text-slate-300 text-[18px] group-hover:text-slate-400 transition-colors">chevron_right</span>}
-                  </label>
+                      {detail && (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedTerm(expandedTerm === key ? null : key)}
+                          className="p-1 transition-colors"
+                        >
+                          <span className={`material-icons text-[18px] transition-transform duration-200 ${
+                            expandedTerm === key ? 'rotate-90 text-primary' : 'text-slate-300 hover:text-slate-400'
+                          }`}>chevron_right</span>
+                        </button>
+                      )}
+                    </div>
+                    {detail && expandedTerm === key && (
+                      <div className="mx-2 mb-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <p className="text-[12px] text-slate-500 leading-relaxed whitespace-pre-line">
+                          {TERM_DETAILS[key]}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </form>
