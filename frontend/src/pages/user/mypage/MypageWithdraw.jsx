@@ -64,8 +64,7 @@ function MypageWithdraw() {
     setLoading(true);
     try {
       const res = await fetchWithAuth('/api/auth/withdraw', {
-        method: 'POST',
-        body: JSON.stringify({ password: isSocialUser ? null : password }),
+        method: 'DELETE',
       });
       if (res.success) {
         localStorage.clear();

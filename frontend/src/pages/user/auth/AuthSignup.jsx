@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 function AuthSignup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
     passwordConfirm: ''
@@ -36,7 +36,8 @@ function AuthSignup() {
 
   const handleNextStep = () => {
     setError(null);
-    if (!form.name.trim()) { setError('이름을 입력해주세요.'); return; }
+    if (!form.username.trim()) { setError('아이디를 입력해주세요.'); return; }
+    if (form.username.trim().length < 2 || form.username.trim().length > 20) { setError('아이디는 2~20자로 입력해주세요.'); return; }
     if (!form.email.trim()) { setError('이메일을 입력해주세요.'); return; }
     setStep(2);
   };
@@ -45,7 +46,7 @@ function AuthSignup() {
     e.preventDefault();
     setError(null);
 
-    if (!form.name.trim()) { setError('이름을 입력해주세요.'); return; }
+    if (!form.username.trim()) { setError('아이디를 입력해주세요.'); return; }
     if (!form.email.trim()) { setError('이메일을 입력해주세요.'); return; }
     if (form.password.length < 8) { setError('비밀번호는 8자 이상이어야 합니다.'); return; }
     if (form.password !== form.passwordConfirm) { setError('비밀번호가 일치하지 않습니다.'); return; }
@@ -56,7 +57,7 @@ function AuthSignup() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name,
+          username: form.username,
           email: form.email,
           password: form.password
         })
@@ -127,17 +128,18 @@ function AuthSignup() {
               )}
 
               <div className="space-y-8">
-                {/* 이름 */}
+                {/* 아이디 */}
                 <div className="space-y-2">
-                  <label className="text-[12px] font-bold text-slate-400 tracking-widest uppercase">이름</label>
+                  <label className="text-[12px] font-bold text-slate-400 tracking-widest uppercase">아이디</label>
                   <input
                     className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-slate-200 text-slate-900 text-[16px] font-medium placeholder:text-slate-300 focus:border-primary focus:outline-none transition-colors"
-                    placeholder="홍길동"
+                    placeholder="2~20자 영문, 숫자"
                     type="text"
-                    name="name"
-                    value={form.name}
+                    name="username"
+                    value={form.username}
                     onChange={handleChange}
                     disabled={loading}
+                    autoComplete="username"
                   />
                 </div>
 
