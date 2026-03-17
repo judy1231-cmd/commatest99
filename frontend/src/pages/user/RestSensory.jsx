@@ -11,7 +11,7 @@ const TYPE = {
   desc: '과부하된 오감을 내려놓고, 감각의 고요함 속에서 회복하는 시간',
   color: '#9B6DFF',
   chipBg: '#F5F0FF',
-  heroImg: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+  heroImg: 'https://images.unsplash.com/photo-1596178060671-7a80dc8059ea?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
 const SENSE_OPTIONS = [
