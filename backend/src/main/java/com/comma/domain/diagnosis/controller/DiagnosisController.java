@@ -92,6 +92,29 @@ public class DiagnosisController {
         }
     }
 
+    // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (X-Device-Key 헤더 인증)
+    @PostMapping("/measurements/device")
+    public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
+            HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        String deviceKey = request.getHeader("X-Device-Key");
+        if (!"comma-apple-watch-2024".equals(deviceKey)) {
+            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
+        }
+        String 쉼표번호 = (String) body.get("쉼표번호");
+        if (쉼표번호 == null || 쉼표번호.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("쉼표번호가 필요합니다."));
+        }
+        try {
+            Integer bpm = ((Number) body.get("bpm")).intValue();
+            Double hrv = body.get("hrv") != null ? ((Number) body.get("hrv")).doubleValue() : null;
+            diagnosisService.saveMeasurementToLatestSession(쉼표번호, bpm, hrv);
+            return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // POST /api/diagnosis/measurements  [JWT 필요] — iPhone 단축어 전용 (세션ID 불필요, 고정 URL)
     @PostMapping("/measurements")
     public ResponseEntity<ApiResponse<Void>> saveMeasurementAuto(
