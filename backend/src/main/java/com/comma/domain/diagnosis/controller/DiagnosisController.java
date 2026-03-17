@@ -101,7 +101,7 @@ public class DiagnosisController {
             HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
         String deviceKey = request.getHeader("X-Device-Key");
-        if (!"comma-apple-watch-2024".equals(deviceKey)) {
+        if (!"comma-apple-watch-2026".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
         String deviceToken = (String) body.get("deviceToken");
