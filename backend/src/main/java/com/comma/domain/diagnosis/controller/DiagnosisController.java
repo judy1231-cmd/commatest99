@@ -104,7 +104,8 @@ public class DiagnosisController {
         if (!"comma-apple-watch-2026".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
-        String deviceToken = (String) body.get("deviceToken");
+        Object deviceTokenRaw = body.get("deviceToken");
+        String deviceToken = deviceTokenRaw != null ? deviceTokenRaw.toString() : null;
         if (deviceToken == null || deviceToken.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
         }
