@@ -13,6 +13,16 @@ const CATEGORIES = [
   { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
 ];
 
+const CATEGORY_IMAGES = {
+  physical:  'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  mental:    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  sensory:   'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  emotional: 'https://images.unsplash.com/photo-1520038410233-7141be7e6f97?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  social:    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  nature:    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  creative:  'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+};
+
 const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
 const DIFFICULTY_COLOR = {
   easy:   { bg: '#ECFDF5', text: '#10B981' },
@@ -46,17 +56,21 @@ function FeaturedCard({ content, onBookmark, isLoggedIn }) {
       className="block bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
     >
       {/* 썸네일 */}
-      <div
-        className="h-52 flex items-center justify-center relative"
+      <div className="h-52 relative overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${catInfo.color}22 0%, ${catInfo.color}10 100%)` }}
       >
-        <span className="material-icons text-8xl opacity-30" style={{ color: catInfo.color }}>
-          {catInfo.icon}
-        </span>
+        <img
+          src={content.imageUrl || CATEGORY_IMAGES[content.category]}
+          alt={content.title}
+          className="w-full h-full object-cover"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+        {/* 하단 그라디언트 */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 50%)' }} />
         {/* 카테고리 배지 */}
         <span
-          className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: `${catInfo.color}20`, color: catInfo.color }}
+          className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm"
+          style={{ backgroundColor: `${catInfo.color}cc`, color: '#fff' }}
         >
           {catInfo.label}
         </span>
@@ -161,10 +175,16 @@ function ListCard({ content, onBookmark, isLoggedIn }) {
       {/* 썸네일 */}
       <div className="flex flex-col items-end gap-2 shrink-0">
         <div
-          className="w-20 h-20 rounded-xl flex items-center justify-center"
+          className="w-20 h-20 rounded-xl overflow-hidden"
           style={{ backgroundColor: `${catInfo.color}15` }}
         >
-          <span className="material-icons text-3xl" style={{ color: `${catInfo.color}90` }}>
+          <img
+            src={content.imageUrl || CATEGORY_IMAGES[content.category]}
+            alt={content.title}
+            className="w-full h-full object-cover"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+          <span className="material-icons text-3xl hidden" style={{ color: `${catInfo.color}90` }}>
             {catInfo.icon}
           </span>
         </div>
