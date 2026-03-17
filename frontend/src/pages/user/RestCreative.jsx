@@ -11,7 +11,7 @@ const TYPE = {
   desc: '만들고 표현하는 행위 자체로 에너지를 회복하는 시간',
   color: '#FFB830',
   chipBg: '#FFFBEB',
-  heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80',
+  heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
 const FIELD_OPTIONS = [

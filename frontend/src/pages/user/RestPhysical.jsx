@@ -10,7 +10,7 @@ const TYPE = {
   icon: 'fitness_center',
   desc: '쌓인 근육 긴장을 풀고 몸이 보내는 신호에 귀 기울이는 시간',
   color: '#4CAF82',
-  heroImg: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80',
+  heroImg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
 const INTENSITY_OPTIONS = [

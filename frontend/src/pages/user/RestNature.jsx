@@ -11,7 +11,7 @@ const TYPE = {
   desc: '자연 속에서 몸과 마음의 리듬을 되찾고 살아있음을 느끼는 시간',
   color: '#2ECC9A',
   chipBg: '#ECFDF5',
-  heroImg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
+  heroImg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
 const MAIN_TABS = [
