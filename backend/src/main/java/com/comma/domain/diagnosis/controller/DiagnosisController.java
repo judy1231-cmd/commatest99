@@ -99,50 +99,58 @@ public class DiagnosisController {
         }
     }
 
-    // POST /api/diagnosis/measurements/device  [JWT 없음, JSON] — 애플워치 단축어 전용
-    @PostMapping(value = "/measurements/device", consumes = "application/json")
+    // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (JSON/form 자동 감지)
+    @PostMapping("/measurements/device")
     public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
             HttpServletRequest request,
-            @RequestBody Map<String, Object> body) {
-        log.info("[device-json] X-Device-Key={}, body={}", request.getHeader("X-Device-Key"), body);
-        String deviceToken = unwrapString(body.get("deviceToken"));
-        String bpmStr = body.get("bpm") != null ? unwrapNumber(body.get("bpm")).toString() : null;
-        String hrvStr = body.get("hrv") != null ? unwrapNumber(body.get("hrv")).toString() : null;
-        return processDeviceMeasurement(request, deviceToken, bpmStr, hrvStr);
-    }
-
-    // POST /api/diagnosis/measurements/device  [JWT 없음, form] — 애플워치 단축어 form 형식
-    @PostMapping(value = "/measurements/device", consumes = "application/x-www-form-urlencoded")
-    public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDeviceForm(
-            HttpServletRequest request,
-            @RequestParam String deviceToken,
-            @RequestParam String bpm,
-            @RequestParam(required = false) String hrv) {
-        log.info("[device-form] X-Device-Key={}, deviceToken={}, bpm={}, hrv={}", request.getHeader("X-Device-Key"), deviceToken, bpm, hrv);
-        return processDeviceMeasurement(request, deviceToken, bpm, hrv);
-    }
-
-    private ResponseEntity<ApiResponse<Void>> processDeviceMeasurement(
-            HttpServletRequest request, String deviceToken, String bpmStr, String hrvStr) {
+            @RequestBody String rawBody) {
+        log.info("[device] X-Device-Key={}, Content-Type={}, body={}", request.getHeader("X-Device-Key"), request.getContentType(), rawBody);
         String deviceKey = request.getHeader("X-Device-Key");
         if (!"comma-apple-watch-2026".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
-        if (deviceToken == null || deviceToken.isBlank()) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
-        }
-        User user = userMapper.findByDeviceToken(deviceToken);
-        if (user == null) {
-            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
-        }
         try {
+            // key=value 형식이면 form 파싱, 아니면 JSON 파싱
+            String deviceToken, bpmStr, hrvStr;
+            if (rawBody.contains("=") && !rawBody.trim().startsWith("{")) {
+                Map<String, String> params = parseFormBody(rawBody);
+                deviceToken = params.get("deviceToken");
+                bpmStr = params.get("bpm");
+                hrvStr = params.get("hrv");
+            } else {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                Map<String, Object> json = mapper.readValue(rawBody, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+                deviceToken = unwrapString(json.get("deviceToken"));
+                bpmStr = json.get("bpm") != null ? unwrapNumber(json.get("bpm")).toString() : null;
+                hrvStr = json.get("hrv") != null ? unwrapNumber(json.get("hrv")).toString() : null;
+            }
+            if (deviceToken == null || deviceToken.isBlank()) {
+                return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
+            }
+            User user = userMapper.findByDeviceToken(deviceToken);
+            if (user == null) {
+                return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
+            }
             Integer bpm = Integer.parseInt(bpmStr.trim());
             Double hrv = (hrvStr != null && !hrvStr.isBlank()) ? Double.parseDouble(hrvStr.trim()) : null;
             diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpm, hrv);
             return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            log.error("[device] 파싱 오류: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(ApiResponse.fail("요청 형식이 올바르지 않습니다: " + e.getMessage()));
         }
+    }
+
+    // key=value&key=value 형식 파싱
+    private Map<String, String> parseFormBody(String body) {
+        Map<String, String> result = new java.util.HashMap<>();
+        for (String pair : body.split("&")) {
+            String[] kv = pair.split("=", 2);
+            if (kv.length == 2) result.put(kv[0].trim(), kv[1].trim());
+        }
+        return result;
     }
 
     /**
