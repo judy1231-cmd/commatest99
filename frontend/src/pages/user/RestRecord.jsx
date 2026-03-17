@@ -211,7 +211,7 @@ function RestRecord() {
             className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl font-bold hover:bg-primary/90 transition-all"
           >
             <span className="material-icons text-base">add</span>
-            기록 추가
+            휴식 기록 추가
           </button>
         </div>
 
@@ -349,7 +349,7 @@ function RestRecord() {
               onClick={() => setShowModal(true)}
               className="bg-primary text-white px-5 py-2.5 rounded-xl font-bold hover:bg-primary/90 transition-all"
             >
-              기록 추가
+              휴식 기록 추가
             </button>
           </div>
         ) : (
