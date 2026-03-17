@@ -188,7 +188,7 @@ function ContentsDetail() {
               {content.duration && (
                 <span className="flex items-center gap-1 text-xs text-slate-500 font-medium">
                   <span className="material-icons text-xs text-slate-400">schedule</span>
-                  {content.duration}분 읽기
+                  {content.duration}분 소요
                 </span>
               )}
               {content.createdAt && (
