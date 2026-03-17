@@ -216,14 +216,6 @@ function UserNavbar() {
         />
       )}
 
-      {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-3 flex justify-between items-center z-50">
-        <Link to="/" className={isActive('/') ? 'text-primary' : 'text-slate-400'}><span className="material-icons">home</span></Link>
-        <Link to="/community" className={isActive('/community') ? 'text-primary' : 'text-slate-400'}><span className="material-icons">forum</span></Link>
-        <Link to="/challenge" className="bg-slate-900 text-white w-12 h-12 rounded-2xl -mt-10 shadow-lg flex items-center justify-center"><span className="material-icons">emoji_events</span></Link>
-        <Link to="/map" className={isActive('/map') ? 'text-primary' : 'text-slate-400'}><span className="material-icons">map</span></Link>
-        <Link to="/my" className={isActive('/my') ? 'text-primary' : 'text-slate-400'}><span className="material-icons">person</span></Link>
-      </div>
     </>
   );
 }
