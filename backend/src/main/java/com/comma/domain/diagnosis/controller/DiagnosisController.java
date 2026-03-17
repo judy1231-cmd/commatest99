@@ -99,17 +99,35 @@ public class DiagnosisController {
         }
     }
 
-    // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (X-Device-Key + deviceToken)
-    @PostMapping("/measurements/device")
+    // POST /api/diagnosis/measurements/device  [JWT 없음, JSON] — 애플워치 단축어 전용
+    @PostMapping(value = "/measurements/device", consumes = "application/json")
     public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
             HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
-        log.info("[device] X-Device-Key={}, body={}", request.getHeader("X-Device-Key"), body);
+        log.info("[device-json] X-Device-Key={}, body={}", request.getHeader("X-Device-Key"), body);
+        String deviceToken = unwrapString(body.get("deviceToken"));
+        String bpmStr = body.get("bpm") != null ? unwrapNumber(body.get("bpm")).toString() : null;
+        String hrvStr = body.get("hrv") != null ? unwrapNumber(body.get("hrv")).toString() : null;
+        return processDeviceMeasurement(request, deviceToken, bpmStr, hrvStr);
+    }
+
+    // POST /api/diagnosis/measurements/device  [JWT 없음, form] — 애플워치 단축어 form 형식
+    @PostMapping(value = "/measurements/device", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDeviceForm(
+            HttpServletRequest request,
+            @RequestParam String deviceToken,
+            @RequestParam String bpm,
+            @RequestParam(required = false) String hrv) {
+        log.info("[device-form] X-Device-Key={}, deviceToken={}, bpm={}, hrv={}", request.getHeader("X-Device-Key"), deviceToken, bpm, hrv);
+        return processDeviceMeasurement(request, deviceToken, bpm, hrv);
+    }
+
+    private ResponseEntity<ApiResponse<Void>> processDeviceMeasurement(
+            HttpServletRequest request, String deviceToken, String bpmStr, String hrvStr) {
         String deviceKey = request.getHeader("X-Device-Key");
         if (!"comma-apple-watch-2026".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
-        String deviceToken = unwrapString(body.get("deviceToken"));
         if (deviceToken == null || deviceToken.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
         }
@@ -118,9 +136,8 @@ public class DiagnosisController {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
         }
         try {
-            Integer bpm = unwrapNumber(body.get("bpm")).intValue();
-            Number hrvRaw = unwrapNumber(body.get("hrv"));
-            Double hrv = hrvRaw != null ? hrvRaw.doubleValue() : null;
+            Integer bpm = Integer.parseInt(bpmStr.trim());
+            Double hrv = (hrvStr != null && !hrvStr.isBlank()) ? Double.parseDouble(hrvStr.trim()) : null;
             diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpm, hrv);
             return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
         } catch (IllegalArgumentException e) {
