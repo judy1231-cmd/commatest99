@@ -4,13 +4,13 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
-  { icon: 'fitness_center', label: '신체적 이완', iconHex: '#4CAF82', bgHex: '#F0FAF5', path: '/rest/physical'  },
-  { icon: 'spa',            label: '정신적 고요', iconHex: '#5B8DEF', bgHex: '#F0F5FF', path: '/rest/mental'    },
-  { icon: 'visibility_off', label: '감각의 정화', iconHex: '#9B6DFF', bgHex: '#F5F0FF', path: '/rest/sensory'   },
-  { icon: 'favorite',       label: '정서적 지지', iconHex: '#FF7BAC', bgHex: '#FFF0F5', path: '/rest/emotional' },
-  { icon: 'groups',         label: '사회적 휴식', iconHex: '#FF9A3C', bgHex: '#FFF5EC', path: '/rest/social'    },
-  { icon: 'brush',          label: '창조적 몰입', iconHex: '#FFB830', bgHex: '#FFFBF0', path: '/rest/creative'  },
-  { icon: 'forest',         label: '자연의 연결', iconHex: '#2ECC9A', bgHex: '#F0FBF7', path: '/rest/nature'    },
+  { icon: 'fitness_center', label: '신체적 이완', iconHex: '#4CAF82', bgHex: '#F0FAF5', path: '/contents?category=physical'  },
+  { icon: 'spa',            label: '정신적 고요', iconHex: '#5B8DEF', bgHex: '#F0F5FF', path: '/contents?category=mental'    },
+  { icon: 'visibility_off', label: '감각의 정화', iconHex: '#9B6DFF', bgHex: '#F5F0FF', path: '/contents?category=sensory'   },
+  { icon: 'favorite',       label: '정서적 지지', iconHex: '#FF7BAC', bgHex: '#FFF0F5', path: '/contents?category=emotional' },
+  { icon: 'groups',         label: '사회적 휴식', iconHex: '#FF9A3C', bgHex: '#FFF5EC', path: '/contents?category=social'    },
+  { icon: 'brush',          label: '창조적 몰입', iconHex: '#FFB830', bgHex: '#FFFBF0', path: '/contents?category=creative'  },
+  { icon: 'forest',         label: '자연의 연결', iconHex: '#2ECC9A', bgHex: '#F0FBF7', path: '/contents?category=nature'    },
 ];
 
 const REST_TYPE_TAG_COLORS = {
