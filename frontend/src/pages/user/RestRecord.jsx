@@ -31,6 +31,15 @@ function formatDate(dateStr) {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
+function getEmoji(score) {
+  const n = Number(score);
+  if (n <= 2) return '😩';
+  if (n <= 4) return '😟';
+  if (n <= 6) return '😐';
+  if (n <= 8) return '😊';
+  return '😄';
+}
+
 const INITIAL_FORM = {
   restTypeId: '',
   startTime: '',
@@ -361,7 +370,7 @@ function RestRecord() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    휴식 전 기분 <span className="text-primary font-bold">({form.emotionBefore}점)</span>
+                    휴식 전 기분 <span className="text-primary font-bold">{getEmoji(form.emotionBefore)} ({form.emotionBefore}점)</span>
                   </label>
                   <input
                     type="range" min="1" max="10"
@@ -369,13 +378,13 @@ function RestRecord() {
                     onChange={(e) => setForm({ ...form, emotionBefore: e.target.value })}
                     className="w-full accent-primary"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>힘듦</span><span>좋음</span>
+                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                    <span>😩 힘듦</span><span>좋음 😄</span>
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    휴식 후 기분 <span className="text-primary font-bold">({form.emotionAfter}점)</span>
+                    휴식 후 기분 <span className="text-primary font-bold">{getEmoji(form.emotionAfter)} ({form.emotionAfter}점)</span>
                   </label>
                   <input
                     type="range" min="1" max="10"
@@ -383,8 +392,8 @@ function RestRecord() {
                     onChange={(e) => setForm({ ...form, emotionAfter: e.target.value })}
                     className="w-full accent-primary"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                    <span>힘듦</span><span>좋음</span>
+                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                    <span>😩 힘듦</span><span>좋음 😄</span>
                   </div>
                 </div>
               </div>
