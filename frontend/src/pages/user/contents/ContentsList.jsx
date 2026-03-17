@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const CATEGORIES = [
@@ -201,19 +201,10 @@ function ListCard({ content, onBookmark, isLoggedIn }) {
   );
 }
 
-const GUIDE_PATH = {
-  physical: '/rest/physical', mental: '/rest/mental', sensory: '/rest/sensory',
-  emotional: '/rest/emotional', social: '/rest/social', creative: '/rest/creative', nature: '/rest/nature',
-};
-
 function ContentsList() {
   const isLoggedIn = !!localStorage.getItem('accessToken');
-  const [searchParams] = useSearchParams();
 
-  const [activeCategory, setActiveCategory] = useState(() => {
-    const param = searchParams.get('category');
-    return param && CATEGORIES.find(c => c.key === param) ? param : 'all';
-  });
+  const [activeCategory, setActiveCategory] = useState('all');
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -324,27 +315,6 @@ function ContentsList() {
             </button>
           ))}
         </div>
-
-        {/* 활동 가이드 배너 — 특정 카테고리 선택 시 */}
-        {activeCategory !== 'all' && activeCategory !== 'recommend' && (() => {
-          const cat = CATEGORIES.find(c => c.key === activeCategory);
-          return cat ? (
-            <Link
-              to={GUIDE_PATH[activeCategory]}
-              className="flex items-center gap-3 rounded-2xl px-4 py-3.5 mb-5 hover:brightness-95 transition-all"
-              style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}30` }}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${cat.color}25` }}>
-                <span className="material-icons text-sm" style={{ color: cat.color }}>{cat.icon}</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-extrabold" style={{ color: cat.color }}>{cat.label} 활동 가이드</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">신호 체크·강도·장소 필터까지 한눈에 보기</p>
-              </div>
-              <span className="material-icons text-sm" style={{ color: cat.color }}>arrow_forward</span>
-            </Link>
-          ) : null;
-        })()}
 
         {/* 로딩 */}
         {loading && (
