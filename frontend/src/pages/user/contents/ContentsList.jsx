@@ -227,10 +227,10 @@ function ContentsList() {
       if (data.success && data.data) {
         setContents(data.data.contents || data.data || []);
       } else {
-        setError(data.message || '맞춤 추천을 불러오지 못했어요.');
+        setContents([]);
       }
     } catch {
-      setError('서버에 연결할 수 없습니다.');
+      setContents([]);
     } finally {
       setLoading(false);
     }
@@ -265,7 +265,7 @@ function ContentsList() {
         </div>
 
         {/* 카테고리 칩 — 가로 스크롤 */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex flex-wrap gap-2 mb-6">
           {/* 맞춤 추천 (로그인 시) */}
           {isLoggedIn && (
             <button
@@ -314,9 +314,20 @@ function ContentsList() {
         {/* 빈 상태 */}
         {!loading && !error && contents.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-            <span className="material-icons text-5xl text-slate-200 mb-3 block">article</span>
-            <p className="font-semibold text-slate-500 mb-1">콘텐츠가 없어요</p>
-            <p className="text-sm text-slate-400">다른 카테고리를 선택해보세요.</p>
+            <span className="material-icons text-5xl text-slate-200 mb-3 block">
+              {activeCategory === 'recommend' ? 'auto_awesome' : 'article'}
+            </span>
+            {activeCategory === 'recommend' ? (
+              <>
+                <p className="font-semibold text-slate-500 mb-1">맞춤 추천 준비 중이에요</p>
+                <p className="text-sm text-slate-400">진단을 받으면 나에게 맞는 콘텐츠를 추천해드릴게요.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-slate-500 mb-1">콘텐츠가 없어요</p>
+                <p className="text-sm text-slate-400">다른 카테고리를 선택해보세요.</p>
+              </>
+            )}
           </div>
         )}
 
