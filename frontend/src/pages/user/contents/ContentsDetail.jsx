@@ -19,43 +19,6 @@ const DIFFICULTY_COLOR = {
   hard:   { bg: '#FEF2F2', text: '#EF4444' },
 };
 
-const RELATED_CONTENTS = {
-  physical:  [
-    { id: 'p1', title: '5분 전신 스트레칭', duration: '5분', icon: 'self_improvement' },
-    { id: 'p2', title: '점심 산책 루틴', duration: '15분', icon: 'directions_walk' },
-    { id: 'p3', title: '폼롤러 근막이완', duration: '10분', icon: 'sports_gymnastics' },
-  ],
-  mental:    [
-    { id: 'm1', title: '마음챙김 명상 입문', duration: '5분', icon: 'self_improvement' },
-    { id: 'm2', title: '복식호흡 가이드', duration: '3분', icon: 'air' },
-    { id: 'm3', title: '저널링으로 생각 비우기', duration: '10분', icon: 'edit_note' },
-  ],
-  sensory:   [
-    { id: 's1', title: '디지털 디톡스 방법', duration: '30분', icon: 'phonelink_off' },
-    { id: 's2', title: '눈 피로 회복 루틴', duration: '5분', icon: 'visibility' },
-    { id: 's3', title: '아로마테라피 입문', duration: '20분', icon: 'spa' },
-  ],
-  emotional: [
-    { id: 'e1', title: '감정 일기 쓰는 법', duration: '10분', icon: 'edit_note' },
-    { id: 'e2', title: '플레이리스트로 감정 회복', duration: '15분', icon: 'headphones' },
-    { id: 'e3', title: '자기 위로 루틴', duration: '자유', icon: 'favorite' },
-  ],
-  social:    [
-    { id: 'so1', title: '혼자 카페에서 쉬기', duration: '1시간', icon: 'local_cafe' },
-    { id: 'so2', title: '친구에게 연락하는 법', duration: '자유', icon: 'forum' },
-    { id: 'so3', title: '소모임 찾는 법', duration: '자유', icon: 'group_add' },
-  ],
-  nature:    [
-    { id: 'n1', title: '도심 속 공원 산책', duration: '20분', icon: 'park' },
-    { id: 'n2', title: '베란다 햇볕 쬐기', duration: '10분', icon: 'wb_sunny' },
-    { id: 'n3', title: '식물 돌보기 입문', duration: '10분', icon: 'eco' },
-  ],
-  creative:  [
-    { id: 'c1', title: '낙서로 스트레스 해소', duration: '자유', icon: 'draw' },
-    { id: 'c2', title: '5분 짧은 글쓰기', duration: '5분', icon: 'edit' },
-    { id: 'c3', title: '간단한 요리 도전', duration: '30분', icon: 'restaurant' },
-  ],
-};
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -70,6 +33,7 @@ function ContentsDetail() {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [relatedContents, setRelatedContents] = useState([]);
 
   const handleRecordClick = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
@@ -79,6 +43,18 @@ function ContentsDetail() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadContent(); }, [id]);
 
+  const loadRelated = async (category, currentId) => {
+    try {
+      const res = await fetch(`/api/contents?category=${category}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setRelatedContents(data.data.filter(c => c.id !== currentId).slice(0, 6));
+      }
+    } catch {
+      // 관련 콘텐츠 로드 실패는 무시
+    }
+  };
+
   const loadContent = async () => {
     setLoading(true);
     setError(null);
@@ -87,6 +63,7 @@ function ContentsDetail() {
       const data = await res.json();
       if (data.success && data.data) {
         setContent(data.data);
+        loadRelated(data.data.category, Number(id));
       } else {
         setError('콘텐츠를 찾을 수 없어요.');
       }
@@ -128,7 +105,6 @@ function ContentsDetail() {
   }
 
   const cat = CATEGORY_INFO[content.category] || CATEGORY_INFO.mental;
-  const related = RELATED_CONTENTS[content.category] || RELATED_CONTENTS.mental;
   const tags = content.tags || [];
   const diff = content.difficulty ? DIFFICULTY_COLOR[content.difficulty] : null;
 
@@ -148,17 +124,27 @@ function ContentsDetail() {
         </button>
 
         {/* 히어로 영역 */}
-        <div
-          className="rounded-2xl overflow-hidden mb-4 relative"
+        <div className="rounded-2xl overflow-hidden mb-4 relative"
           style={{ background: `linear-gradient(135deg, ${cat.color}22 0%, ${cat.color}0d 100%)` }}
         >
-          {/* 배경 아이콘 */}
-          <span
-            className="material-icons absolute right-5 top-1/2 -translate-y-1/2 opacity-[0.12] pointer-events-none select-none"
-            style={{ fontSize: '96px', color: cat.color }}
-          >
-            {cat.icon}
-          </span>
+          {/* 실사진 */}
+          {content.imageUrl && (
+            <img
+              src={content.imageUrl}
+              alt={content.title}
+              className="w-full h-48 object-cover"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          )}
+          {/* 사진 없을 때 배경 아이콘 */}
+          {!content.imageUrl && (
+            <span
+              className="material-icons absolute right-5 top-1/2 -translate-y-1/2 opacity-[0.12] pointer-events-none select-none"
+              style={{ fontSize: '96px', color: cat.color }}
+            >
+              {cat.icon}
+            </span>
+          )}
 
           <div className="relative z-10 px-6 py-7">
             {/* 카테고리 배지 */}
@@ -257,31 +243,43 @@ function ContentsDetail() {
             className="flex gap-3 overflow-x-auto pb-1"
             style={{ scrollbarWidth: 'none' }}
           >
-            {related.map((item) => (
+            {relatedContents.length === 0 && (
+              <p className="text-sm text-slate-400 py-2">관련 콘텐츠가 없어요.</p>
+            )}
+            {relatedContents.map((item) => (
               <Link
                 key={item.id}
                 to={`/contents/${item.id}`}
                 className="shrink-0 w-40 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all"
               >
                 {/* 썸네일 */}
-                <div
-                  className="h-20 flex items-center justify-center"
-                  style={{ backgroundColor: `${cat.color}15` }}
-                >
-                  <span
-                    className="material-icons text-3xl opacity-70"
-                    style={{ color: cat.color }}
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-20 object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div
+                    className="h-20 flex items-center justify-center"
+                    style={{ backgroundColor: `${cat.color}15` }}
                   >
-                    {item.icon}
-                  </span>
-                </div>
+                    <span
+                      className="material-icons text-3xl opacity-70"
+                      style={{ color: cat.color }}
+                    >
+                      {cat.icon}
+                    </span>
+                  </div>
+                )}
                 {/* 텍스트 */}
                 <div className="px-3 py-2.5">
                   <p className="text-xs font-bold text-slate-800 line-clamp-2 leading-snug mb-1">
                     {item.title}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    {cat.name} · {item.duration}
+                    {cat.name}{item.duration ? ` · ${item.duration}분` : ''}
                   </p>
                 </div>
               </Link>
