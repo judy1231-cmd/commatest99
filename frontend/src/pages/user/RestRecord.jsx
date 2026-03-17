@@ -51,11 +51,14 @@ const INITIAL_FORM = {
 
 function RestRecord() {
   const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'rest');
   const [restTypes, setRestTypes] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [diagnosisHistory, setDiagnosisHistory] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
@@ -64,6 +67,7 @@ function RestRecord() {
 
   useEffect(() => { loadRestTypes(); }, []);
   useEffect(() => { loadLogs(); }, [selectedTypeId]);
+  useEffect(() => { if (activeTab === 'diagnosis') loadDiagnosisHistory(); }, [activeTab]);
 
   const loadRestTypes = async () => {
     try {
@@ -82,6 +86,18 @@ function RestRecord() {
       }
     } catch {
       // 무시
+    }
+  };
+
+  const loadDiagnosisHistory = async () => {
+    setDiagnosisLoading(true);
+    try {
+      const data = await fetchWithAuth('/api/diagnosis/history');
+      if (data.success && data.data) setDiagnosisHistory(data.data);
+    } catch {
+      setToast({ message: '진단 기록을 불러오지 못했어요.', type: 'error' });
+    } finally {
+      setDiagnosisLoading(false);
     }
   };
 
@@ -199,6 +215,88 @@ function RestRecord() {
           </button>
         </div>
 
+        {/* Tab Toggle */}
+        <div className="flex gap-2 mb-8 bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm w-fit">
+          <button
+            onClick={() => setActiveTab('rest')}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'rest' ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+          >
+            <span className="material-icons text-sm align-middle mr-1">event_note</span>
+            휴식 기록
+          </button>
+          <button
+            onClick={() => setActiveTab('diagnosis')}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'diagnosis' ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:text-primary'}`}
+          >
+            <span className="material-icons text-sm align-middle mr-1">monitor_heart</span>
+            진단 기록
+          </button>
+        </div>
+
+        {activeTab === 'diagnosis' ? (
+          /* ===== 진단 기록 탭 ===== */
+          diagnosisLoading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+          ) : diagnosisHistory.length === 0 ? (
+            <div className="text-center py-16">
+              <span className="material-icons text-5xl text-slate-300 block mb-3">monitor_heart</span>
+              <p className="text-slate-400 mb-4">아직 진단 기록이 없어요.</p>
+              <a href="/rest-test" className="inline-block bg-primary text-white px-5 py-2.5 rounded-xl font-bold hover:bg-primary/90 transition-all">
+                진단 시작하기
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {diagnosisHistory.map((item) => {
+                const diag = item.diagnosis || item;
+                const scores = item.scores || [];
+                const typeKey = diag.primaryRestType;
+                const typeInfo = TYPE_INFO[typeKey] || { label: typeKey, icon: 'spa', bg: 'bg-gray-50 text-gray-600' };
+                const stress = diag.stressIndex ?? diag.stress_index;
+                const stressColor = stress >= 70 ? 'text-red-500' : stress >= 40 ? 'text-amber-500' : 'text-emerald-500';
+                const stressLabel = stress >= 70 ? '높음' : stress >= 40 ? '보통' : '낮음';
+                return (
+                  <div key={diag.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-14 h-14 rounded-2xl ${typeInfo.bg} flex items-center justify-center shrink-0`}>
+                        <span className="material-icons text-xl">{typeInfo.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-xs font-bold text-primary bg-soft-mint px-2 py-0.5 rounded-full">
+                            {typeInfo.label}
+                          </span>
+                          <span className={`text-xs font-bold ${stressColor}`}>
+                            스트레스 {stressLabel} ({stress}점)
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">{formatDate(diag.diagnosedAt || diag.diagnosed_at)}</p>
+                        {scores.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {scores.slice(0, 4).map((s, i) => {
+                              const sk = s.restType || s.rest_type;
+                              const si = TYPE_INFO[sk];
+                              return si ? (
+                                <span key={i} className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${si.bg}`}>
+                                  {si.label} {s.score}점
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : (
+          /* ===== 휴식 기록 탭 ===== */
+          <>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
@@ -307,6 +405,8 @@ function RestRecord() {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </main>
 
