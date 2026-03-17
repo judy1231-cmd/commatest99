@@ -187,35 +187,15 @@ function SettingsPreferences() {
           {/* 앱 설정 */}
           <SectionGroup title="앱 설정">
             {/* 테마 */}
-            <div className="flex items-center gap-3 px-5 py-4">
+            <div className="flex items-center gap-3 px-5 py-4 opacity-50">
               <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                <span className="material-icons text-[18px] text-amber-400">
-                  {settings.theme === 'dark' ? 'dark_mode' : 'light_mode'}
-                </span>
+                <span className="material-icons text-[18px] text-amber-400">light_mode</span>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-700">테마</p>
-                <p className="text-xs text-slate-400 mt-0.5">화면 밝기 모드를 선택해요</p>
+                <p className="text-xs text-slate-400 mt-0.5">다크 모드는 준비 중이에요</p>
               </div>
-              <div className="flex bg-slate-100 rounded-xl p-0.5 gap-0.5">
-                {[
-                  { value: 'light', icon: 'light_mode',  label: '라이트' },
-                  { value: 'dark',  icon: 'dark_mode',   label: '다크' },
-                ].map(t => (
-                  <button
-                    key={t.value}
-                    onClick={() => setSettings(s => ({ ...s, theme: t.value }))}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      settings.theme === t.value
-                        ? 'bg-white text-slate-800 shadow-sm'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    <span className="material-icons text-sm">{t.icon}</span>
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+              <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-400 rounded-full">준비 중</span>
             </div>
           </SectionGroup>
 
