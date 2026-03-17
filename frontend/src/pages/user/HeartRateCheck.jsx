@@ -38,15 +38,16 @@ function HeartRateCheck() {
   const [pollCount, setPollCount] = useState(0);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
+  const [deviceToken, setDeviceToken] = useState(null);
+  const [deviceTokenLoading, setDeviceTokenLoading] = useState(false);
 
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
   const pollRef = useRef(null);
 
   const backendBase = getBackendUrl();
-  const shortcutUrl = `${backendBase}/api/diagnosis/measurements`;
+  const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const token = localStorage.getItem('accessToken') || '';
 
   const copyToClipboard = useCallback(async (text, type) => {
     try {
@@ -161,6 +162,17 @@ function HeartRateCheck() {
     setAvgBpm(null);
     setPollCount(0);
   };
+
+  // deviceToken 발급 (apple_watch 선택 시 자동)
+  useEffect(() => {
+    if (deviceType === 'apple_watch' && isLoggedIn && !deviceToken) {
+      setDeviceTokenLoading(true);
+      fetchWithAuth('/api/user/device-token', { method: 'POST' })
+        .then((res) => { if (res.success) setDeviceToken(res.data.deviceToken); })
+        .catch(() => {})
+        .finally(() => setDeviceTokenLoading(false));
+    }
+  }, [deviceType, isLoggedIn]);
 
   useEffect(() => {
     return () => {
@@ -372,26 +384,36 @@ function HeartRateCheck() {
 
             {/* STEP 2 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 2 — 인증 토큰 iPhone으로 전송</p>
-              <p className="text-xs text-slate-500 mb-4">QR 코드를 iPhone 카메라로 스캔하거나, 아래 버튼으로 복사하세요.</p>
-              <div className="flex flex-col items-center gap-4">
-                <div className="p-3 bg-white rounded-2xl">
-                  <QRCodeSVG value={token} size={180} bgColor="#ffffff" fgColor="#1e293b" level="M" />
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 2 — 내 디바이스 토큰 복사</p>
+              <p className="text-xs text-slate-500 mb-4">QR 코드로 스캔하거나 버튼으로 복사해서 단축어에 붙여넣으세요. 최초 1회만 설정하면 돼요.</p>
+              {deviceTokenLoading ? (
+                <p className="text-xs text-slate-500 text-center py-4">토큰 발급 중...</p>
+              ) : deviceToken ? (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="p-3 bg-white rounded-2xl">
+                    <QRCodeSVG value={deviceToken} size={180} bgColor="#ffffff" fgColor="#1e293b" level="M" />
+                  </div>
+                  <p className="text-[11px] text-slate-500 text-center">
+                    iPhone 카메라로 스캔 → 텍스트 탭 → 전체 선택 → 복사
+                  </p>
+                  <div className="w-full bg-slate-900/60 rounded-xl p-3 flex items-center gap-2">
+                    <code className="text-xs text-slate-300 break-all flex-1 font-mono">{deviceToken}</code>
+                    <button
+                      onClick={() => copyToClipboard(deviceToken, 'token')}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        copiedToken ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                      }`}
+                    >
+                      {copiedToken ? '✓ 복사됨' : '복사'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-amber-400/80 text-center">
+                    ⚠️ 이 토큰은 내 계정 전용이에요. 외부에 공유하지 마세요.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-500 text-center">
-                  iPhone 카메라로 스캔 → 텍스트 탭 → 전체 선택 → 복사
-                </p>
-                <button
-                  onClick={() => copyToClipboard(token, 'token')}
-                  className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all border ${
-                    copiedToken
-                      ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                      : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:border-emerald-500/40 hover:text-emerald-400'
-                  }`}
-                >
-                  {copiedToken ? '✓ 토큰 복사됨!' : '💻 맥북에서 토큰 복사하기'}
-                </button>
-              </div>
+              ) : (
+                <p className="text-xs text-red-400 text-center py-4">토큰 발급에 실패했어요. 로그인 상태를 확인해주세요.</p>
+              )}
             </div>
 
             {/* STEP 3 */}
@@ -400,7 +422,7 @@ function HeartRateCheck() {
                 <span className="text-lg">📱</span>
                 <p className="text-sm font-bold text-slate-200">STEP 3 — iPhone 단축어 설정 (최초 1회만)</p>
               </div>
-              <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — URL이 고정이라 재설정 불필요</p>
+              <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — 재설정 불필요</p>
               <ol className="space-y-4">
                 {[
                   {
@@ -413,8 +435,17 @@ function HeartRateCheck() {
                     detail: ['유형 → 「심박수」', '정렬 기준 → 「최신 항목」', '제한 → 「1」'],
                   },
                   {
-                    title: 'URL 전송 동작 추가',
-                    desc: '「동작 추가」→ 「URL 내용 가져오기」',
+                    title: 'URL 내용 가져오기 동작 추가',
+                    desc: '「동작 추가」→ 「URL 내용 가져오기」 선택',
+                    detail: [
+                      `URL: ${shortcutUrl}`,
+                      '방법: POST',
+                      '헤더 추가 → 이름: X-Device-Key / 값: comma-apple-watch-2026',
+                      '헤더 추가 → 이름: Content-Type / 값: application/json',
+                      '요청 본문: JSON',
+                      '본문에 추가 → deviceToken: (STEP 2에서 복사한 토큰 붙여넣기)',
+                      '본문에 추가 → bpm: (건강 샘플 변수)',
+                    ],
                   },
                   {
                     title: '저장 후 실행!',
@@ -440,8 +471,8 @@ function HeartRateCheck() {
               <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 space-y-1">
                 <p className="text-xs font-bold text-emerald-400">💡 이렇게 사용해요</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  웹에서 「측정 시작」→ iPhone에서 「심박수 전송」 단축어 실행 (10~20초 간격으로 반복)
-                  → 웹에서 BPM 실시간 업데이트 확인
+                  웹에서 「측정 시작」→ Apple Watch에서 심박수 측정 후 iPhone 단축어 실행
+                  (10~20초 간격으로 반복) → 웹에서 BPM 실시간 업데이트 확인
                 </p>
               </div>
             </div>
