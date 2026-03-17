@@ -12,6 +12,7 @@
         <result property="body"      column="body"/>
         <result property="duration"  column="duration"/>
         <result property="difficulty" column="difficulty"/>
+        <result property="imageUrl"  column="image_url"/>
         <result property="isActive"  column="is_active"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>

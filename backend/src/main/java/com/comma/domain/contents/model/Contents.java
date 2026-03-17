@@ -17,6 +17,7 @@ public class Contents {
     private String body;
     private Integer duration;  // 소요 시간 (분)
     private String difficulty; // easy, medium, hard
+    private String imageUrl;
     private Boolean isActive;
     private LocalDateTime createdAt;
 }

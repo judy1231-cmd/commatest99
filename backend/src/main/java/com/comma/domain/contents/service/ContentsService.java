@@ -25,7 +25,12 @@ public class ContentsService {
     }
 
     // 진단 결과 기반 맞춤 추천 — 주요 유형 콘텐츠 우선, 나머지 보완
+    public Contents getById(Long id) {
+        return contentsMapper.findById(id);
+    }
+
     public List<Contents> getRecommended(String 쉼표번호) {
+        if (쉼표번호 == null) return contentsMapper.findAll();
         DiagnosisResult latest = diagnosisMapper.findLatestBy쉼표번호(쉼표번호);
         if (latest == null) {
             return contentsMapper.findAll();

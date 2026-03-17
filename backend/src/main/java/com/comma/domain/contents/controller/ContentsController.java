@@ -25,6 +25,14 @@ public class ContentsController {
         return ResponseEntity.ok(ApiResponse.ok(list, "콘텐츠 조회 성공"));
     }
 
+    // GET /api/contents/{id}  [JWT 불필요]
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<Contents>> getContents(@PathVariable Long id) {
+        Contents content = contentsService.getById(id);
+        if (content == null) return ResponseEntity.status(404).body(ApiResponse.fail("콘텐츠를 찾을 수 없어요."));
+        return ResponseEntity.ok(ApiResponse.ok(content, "콘텐츠 조회 성공"));
+    }
+
     // GET /api/contents/recommend  [JWT 필요]
     @GetMapping("/recommend")
     public ResponseEntity<ApiResponse<List<Contents>>> getRecommended(HttpServletRequest request) {

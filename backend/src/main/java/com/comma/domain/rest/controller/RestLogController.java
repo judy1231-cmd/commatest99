@@ -130,22 +130,4 @@ public class RestLogController {
         return ResponseEntity.ok(ApiResponse.ok("감정 기록이 저장되었습니다."));
     }
 
-    // ==================== 콘텐츠 (공개 — rest_activities 기반) ====================
-
-    // GET /api/contents?category=physical
-    @GetMapping("/api/contents")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getContents(
-            @RequestParam(required = false) String category) {
-        List<Map<String, Object>> contents = restLogService.getContents(category);
-        Map<String, Object> result = Map.of("contents", contents, "total", contents.size());
-        return ResponseEntity.ok(ApiResponse.ok(result, "콘텐츠 목록 조회 성공"));
-    }
-
-    // GET /api/contents/{id}
-    @GetMapping("/api/contents/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getContentDetail(@PathVariable Long id) {
-        Map<String, Object> content = restLogService.getContentById(id);
-        if (content == null) return ResponseEntity.ok(ApiResponse.fail("콘텐츠를 찾을 수 없습니다."));
-        return ResponseEntity.ok(ApiResponse.ok(content, "콘텐츠 조회 성공"));
-    }
 }
