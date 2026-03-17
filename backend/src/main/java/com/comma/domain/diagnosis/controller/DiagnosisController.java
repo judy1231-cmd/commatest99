@@ -13,11 +13,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/diagnosis")
 @RequiredArgsConstructor
 public class DiagnosisController {
+
+    private static final Logger log = LoggerFactory.getLogger(DiagnosisController.class);
 
     private final DiagnosisService diagnosisService;
     private final UserMapper userMapper;
@@ -100,12 +104,12 @@ public class DiagnosisController {
     public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
             HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
+        log.info("[device] X-Device-Key={}, body={}", request.getHeader("X-Device-Key"), body);
         String deviceKey = request.getHeader("X-Device-Key");
         if (!"comma-apple-watch-2026".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
-        Object deviceTokenRaw = body.get("deviceToken");
-        String deviceToken = deviceTokenRaw != null ? deviceTokenRaw.toString() : null;
+        String deviceToken = unwrapString(body.get("deviceToken"));
         if (deviceToken == null || deviceToken.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
         }
@@ -114,13 +118,43 @@ public class DiagnosisController {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
         }
         try {
-            Integer bpm = ((Number) body.get("bpm")).intValue();
-            Double hrv = body.get("hrv") != null ? ((Number) body.get("hrv")).doubleValue() : null;
+            Integer bpm = unwrapNumber(body.get("bpm")).intValue();
+            Number hrvRaw = unwrapNumber(body.get("hrv"));
+            Double hrv = hrvRaw != null ? hrvRaw.doubleValue() : null;
             diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpm, hrv);
             return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }
+    }
+
+    /**
+     * 애플 단축어 {=값} 형태 언래핑 — String 추출
+     * 일반 String이면 그대로, Map{"": value} 형태면 value 반환
+     */
+    private String unwrapString(Object raw) {
+        if (raw == null) return null;
+        if (raw instanceof String) return (String) raw;
+        if (raw instanceof Map) {
+            Object inner = ((Map<?, ?>) raw).values().stream().findFirst().orElse(null);
+            return inner != null ? inner.toString() : null;
+        }
+        return raw.toString();
+    }
+
+    /**
+     * 애플 단축어 {=값} 형태 언래핑 — Number 추출
+     */
+    private Number unwrapNumber(Object raw) {
+        if (raw == null) return null;
+        if (raw instanceof Number) return (Number) raw;
+        if (raw instanceof Map) {
+            Object inner = ((Map<?, ?>) raw).values().stream().findFirst().orElse(null);
+            if (inner instanceof Number) return (Number) inner;
+            if (inner != null) return Double.parseDouble(inner.toString());
+        }
+        if (raw instanceof String) return Double.parseDouble((String) raw);
+        return null;
     }
 
     // POST /api/diagnosis/measurements  [JWT 필요] — iPhone 단축어 전용 (세션ID 불필요, 고정 URL)
