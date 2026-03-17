@@ -11,7 +11,7 @@ const TYPE = {
   desc: '관계의 피로를 내려놓고 나에게 맞는 연결 방식으로 충전하는 시간',
   color: '#FF9A3C',
   chipBg: '#FFF4EB',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBYhrJAGkOuzu7zFWSiaMCUFsIPfoAPrw3PDFtRoKp7nJuzeYbt5lCiw4tVNmCEjN0_RLWE7RTkssYt7j7GFXY9gaqTaeRX37B837oJtrfrGyawwm5Y9CmlhqmI2VQL2SvrzQg6AGgJ-cDxYkHM_bAjBECsmiZOav-jORa__0QUGWpnsvzvQZ_mCtoReYnD0NVaN8_TUv5hQtq-q_TgUt5P3ZpT3UWW1sJJWfUb4CxzgQRDbWwzT47wBJcecyLQey8oI_yQoOZXGlE',
+  heroImg: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80&fit=crop',
 };
 
 const SCALE_OPTIONS = [

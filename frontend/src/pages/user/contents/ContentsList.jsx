@@ -9,8 +9,8 @@ const CATEGORIES = [
   { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
   { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },
   { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C' },
-  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
   { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A' },
 ];
 
 const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' };

@@ -11,7 +11,7 @@ const TYPE = {
   desc: '과부하된 오감을 내려놓고, 감각의 고요함 속에서 회복하는 시간',
   color: '#9B6DFF',
   chipBg: '#F5F0FF',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuARMyoXsjBEwG0HbxvhkxbVjDRYsvhwT_ordMU7mGaVXtenucoUMrf1CjTHLT95a90PPiIHaPHcJHe-0iq_xCPRcqwB-txk8jI5nP43Pqh9dHVu-PemHJDE3t23dh6ZaxgAr9OvjraI8N88n6YQcIKORrjKvhEBkauLifUt-vjaTlbmCOBtssc0a3_1EkNhXV5_zXp1Nf7rxDatO2V5D_6vFKhz72bsk6l7h5gepOwlHjjVIB67SDGYpcWkDSWgXpNh1t3HbrFRDa4',
+  heroImg: 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80&fit=crop',
 };
 
 const SENSE_OPTIONS = [

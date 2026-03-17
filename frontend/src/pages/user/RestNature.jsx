@@ -11,7 +11,7 @@ const TYPE = {
   desc: '자연 속에서 몸과 마음의 리듬을 되찾고 살아있음을 느끼는 시간',
   color: '#2ECC9A',
   chipBg: '#ECFDF5',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXzxs2h0HKB3GCbgt1N7mJrlSCMVAzFcJVSMzZwA9bnYLLKN86Fw3KNB-n2XgcaC0FsYG0muTIsjvYpbDXG0Aqam7JO22V46BuLcOjlcIkbmzoEddBAGRKnHB_yc6e5VdO8rsnxm_7SzMAKRTjDAgYF02_hxnjEBqYVDXGEPk11e5x7XVzdZNMx4FBO1b3kSKXk-umF8cZN1_PKsxI97OPEC8PS5hOeeoW8_JcB2XyqR1MjQUC6Gt_5ydjIfwuGXY5fpqoccV8F1c',
+  heroImg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80&fit=crop',
 };
 
 const MAIN_TABS = [

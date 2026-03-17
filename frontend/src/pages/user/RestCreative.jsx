@@ -11,7 +11,7 @@ const TYPE = {
   desc: '만들고 표현하는 행위 자체로 에너지를 회복하는 시간',
   color: '#FFB830',
   chipBg: '#FFFBEB',
-  heroImg: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBUTpqDR5c82O_ETRkCkEZnONo1I_8NlxQImaVwRW2vGQn9a_zDeC1M0BvqsWxrOtC2m7Qa6X9pAV7jJAgOSRBHfB0d2phiYrkIXtydr_DiRzcgX5EIKKrInQQ67PaROHqdrYBFjQAi0JXz4wgYcsMIwQ8nxhzJYeiLwRzsl_Dn9s1WVS_ciP-uIst_PjZ753WCXL7LQ_paTHfhki2ZPeS3bt9VBEc1ks2nutTjkqCwpYOiA9-eO_KCaUMCvuxnFQEebn8PX73rONE',
+  heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80&fit=crop',
 };
 
 const FIELD_OPTIONS = [

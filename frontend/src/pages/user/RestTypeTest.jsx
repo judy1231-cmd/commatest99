@@ -534,10 +534,10 @@ function RestTypeTest() {
               </button>
               {isLoggedIn ? (
                 <button
-                  onClick={() => navigate('/rest-record', { state: { fromDiagnosis: true, primaryRestType: result.primaryRestType } })}
+                  onClick={() => navigate('/rest-record', { state: { tab: 'diagnosis' } })}
                   className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all"
                 >
-                  이 유형으로 기록하기
+                  진단 기록 보기
                 </button>
               ) : (
                 <Link to="/login" className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all">
