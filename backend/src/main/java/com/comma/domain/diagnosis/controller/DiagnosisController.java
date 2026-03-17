@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -110,19 +112,30 @@ public class DiagnosisController {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
         try {
+            // 단축어가 URL인코딩해서 보내는 경우 디코딩 (=%7B...%7D 형태)
+            String body = rawBody.trim();
+            if (body.contains("%")) {
+                body = URLDecoder.decode(body, StandardCharsets.UTF_8).trim();
+            }
+            // 앞에 = 붙어있으면 제거 (단축어 quirk)
+            if (body.startsWith("=")) {
+                body = body.substring(1).trim();
+            }
+            log.info("[device] decoded body={}", body);
+
             // key=value 형식이면 form 파싱, 아니면 JSON 파싱
             String deviceToken, bpmStr, hrvStr;
-            if (rawBody.contains("=") && !rawBody.trim().startsWith("{")) {
-                Map<String, String> params = parseFormBody(rawBody);
-                deviceToken = params.get("deviceToken");
-                bpmStr = params.get("bpm");
-                hrvStr = params.get("hrv");
-            } else {
+            if (body.startsWith("{")) {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                Map<String, Object> json = mapper.readValue(rawBody, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+                Map<String, Object> json = mapper.readValue(body, new com.fasterxml.jackson.core.type.TypeReference<>() {});
                 deviceToken = unwrapString(json.get("deviceToken"));
                 bpmStr = json.get("bpm") != null ? unwrapNumber(json.get("bpm")).toString() : null;
                 hrvStr = json.get("hrv") != null ? unwrapNumber(json.get("hrv")).toString() : null;
+            } else {
+                Map<String, String> params = parseFormBody(body);
+                deviceToken = params.get("deviceToken");
+                bpmStr = params.get("bpm");
+                hrvStr = params.get("hrv");
             }
             if (deviceToken == null || deviceToken.isBlank()) {
                 return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
