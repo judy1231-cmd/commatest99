@@ -11,7 +11,7 @@ const TYPE = {
   desc: '관계의 피로를 내려놓고 나에게 맞는 연결 방식으로 충전하는 시간',
   color: '#FF9A3C',
   chipBg: '#FFF4EB',
-  heroImg: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
 };
 
 const SCALE_OPTIONS = [
@@ -60,7 +60,7 @@ function RestSocial() {
       {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 오렌지 계열 브랜드 오버레이 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(154,52,18,0.75) 0%, rgba(251,146,60,0.28) 60%, rgba(0,0,0,0.05) 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">

@@ -11,7 +11,7 @@ const TYPE = {
   desc: '자연 속에서 몸과 마음의 리듬을 되찾고 살아있음을 느끼는 시간',
   color: '#2ECC9A',
   chipBg: '#ECFDF5',
-  heroImg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
 };
 
 const MAIN_TABS = [
@@ -81,7 +81,7 @@ function RestNature() {
       {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 민트/초록 계열 브랜드 오버레이 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(6,78,59,0.78) 0%, rgba(46,204,154,0.28) 60%, rgba(0,0,0,0.05) 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">

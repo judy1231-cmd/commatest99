@@ -11,7 +11,7 @@ const TYPE = {
   desc: '생각의 소음을 잠재우고 내면의 평정심을 되찾는 시간',
   color: '#5B8DEF',
   chipBg: '#F0F5FF',
-  heroImg: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=800&q=80',
 };
 
 const TIME_OPTIONS = [
@@ -61,7 +61,7 @@ function RestMental() {
       {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 블루 계열 브랜드 오버레이 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(30,58,138,0.72) 0%, rgba(59,130,246,0.22) 60%, rgba(0,0,0,0.05) 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">

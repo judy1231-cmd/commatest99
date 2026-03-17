@@ -11,7 +11,7 @@ const TYPE = {
   desc: '만들고 표현하는 행위 자체로 에너지를 회복하는 시간',
   color: '#FFB830',
   chipBg: '#FFFBEB',
-  heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80',
 };
 
 const FIELD_OPTIONS = [
@@ -65,7 +65,7 @@ function RestCreative() {
       {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 골드/앰버 계열 브랜드 오버레이 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(120,53,15,0.78) 0%, rgba(251,191,36,0.28) 60%, rgba(0,0,0,0.05) 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">

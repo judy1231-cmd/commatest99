@@ -10,7 +10,7 @@ const TYPE = {
   icon: 'fitness_center',
   desc: '쌓인 근육 긴장을 풀고 몸이 보내는 신호에 귀 기울이는 시간',
   color: '#4CAF82',
-  heroImg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80',
 };
 
 const INTENSITY_OPTIONS = [
@@ -64,7 +64,7 @@ function RestPhysical() {
       <div className="relative">
         {/* 사진 영역 */}
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 브랜드 컬러 그린 오버레이 — 검정 대신 앱 색으로 물들임 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(22,101,52,0.75) 0%, rgba(34,197,94,0.25) 60%, rgba(0,0,0,0.05) 100%)' }} />
           {/* 텍스트 */}

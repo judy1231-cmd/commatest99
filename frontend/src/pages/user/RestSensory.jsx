@@ -11,7 +11,7 @@ const TYPE = {
   desc: '과부하된 오감을 내려놓고, 감각의 고요함 속에서 회복하는 시간',
   color: '#9B6DFF',
   chipBg: '#F5F0FF',
-  heroImg: 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80&fit=crop',
+  heroImg: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80',
 };
 
 const SENSE_OPTIONS = [
@@ -63,7 +63,7 @@ function RestSensory() {
       {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
-          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" />
+          <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
           {/* 바이올렛 계열 브랜드 오버레이 */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(76,29,149,0.75) 0%, rgba(139,92,246,0.28) 60%, rgba(0,0,0,0.05) 100%)' }} />
           <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">
