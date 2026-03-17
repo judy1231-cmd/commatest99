@@ -28,4 +28,10 @@ public interface UserMapper {
 
     // 프로필 통계: 총 기록수, 총 휴식시간(분)
     Map<String, Object> getProfileStats(@Param("쉼표번호") String 쉼표번호);
+
+    void saveDeviceToken(@Param("쉼표번호") String 쉼표번호, @Param("deviceToken") String deviceToken);
+
+    String findDeviceTokenBy쉼표번호(@Param("쉼표번호") String 쉼표번호);
+
+    User findByDeviceToken(@Param("deviceToken") String deviceToken);
 }

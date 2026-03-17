@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +69,29 @@ public class UserService {
             settings.setId(existing.getId());
             userMapper.updateSettings(settings);
         }
+    }
+
+    /**
+     * 디바이스 토큰 발급 — 이미 있으면 기존 토큰 반환, 없으면 UUID로 신규 발급
+     */
+    @Transactional
+    public String issueDeviceToken(String 쉼표번호) {
+        String existing = userMapper.findDeviceTokenBy쉼표번호(쉼표번호);
+        if (existing != null) return existing;
+
+        String token = UUID.randomUUID().toString().replace("-", "");
+        userMapper.saveDeviceToken(쉼표번호, token);
+        return token;
+    }
+
+    /**
+     * 디바이스 토큰 재발급 — 기존 토큰 무효화 후 새 토큰 발급
+     */
+    @Transactional
+    public String reissueDeviceToken(String 쉼표번호) {
+        String token = UUID.randomUUID().toString().replace("-", "");
+        userMapper.saveDeviceToken(쉼표번호, token);
+        return token;
     }
 
     /**

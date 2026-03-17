@@ -3,6 +3,8 @@ package com.comma.domain.diagnosis.controller;
 import com.comma.domain.diagnosis.model.DiagnosisResult;
 import com.comma.domain.diagnosis.model.MeasurementSession;
 import com.comma.domain.diagnosis.service.DiagnosisService;
+import com.comma.domain.user.mapper.UserMapper;
+import com.comma.domain.user.model.User;
 import com.comma.global.util.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.Map;
 public class DiagnosisController {
 
     private final DiagnosisService diagnosisService;
+    private final UserMapper userMapper;
 
     // ==================== 심박 측정 세션 ====================
 
@@ -92,7 +95,7 @@ public class DiagnosisController {
         }
     }
 
-    // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (X-Device-Key 헤더 인증)
+    // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (X-Device-Key + deviceToken)
     @PostMapping("/measurements/device")
     public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
             HttpServletRequest request,
@@ -101,14 +104,18 @@ public class DiagnosisController {
         if (!"comma-apple-watch-2024".equals(deviceKey)) {
             return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 디바이스 키입니다."));
         }
-        String 쉼표번호 = (String) body.get("쉼표번호");
-        if (쉼표번호 == null || 쉼표번호.isBlank()) {
-            return ResponseEntity.badRequest().body(ApiResponse.fail("쉼표번호가 필요합니다."));
+        String deviceToken = (String) body.get("deviceToken");
+        if (deviceToken == null || deviceToken.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
+        }
+        User user = userMapper.findByDeviceToken(deviceToken);
+        if (user == null) {
+            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
         }
         try {
             Integer bpm = ((Number) body.get("bpm")).intValue();
             Double hrv = body.get("hrv") != null ? ((Number) body.get("hrv")).doubleValue() : null;
-            diagnosisService.saveMeasurementToLatestSession(쉼표번호, bpm, hrv);
+            diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpm, hrv);
             return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));

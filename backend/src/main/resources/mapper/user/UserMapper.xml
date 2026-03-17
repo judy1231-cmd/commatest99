@@ -50,6 +50,20 @@
         SELECT COUNT(*) FROM user_badges WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
+    <update id="saveDeviceToken">
+        UPDATE users SET device_token = #{deviceToken} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <select id="findDeviceTokenBy쉼표번호" resultType="String">
+        SELECT device_token FROM users WHERE `쉼표번호` = #{쉼표번호}
+    </select>
+
+    <select id="findByDeviceToken" resultType="com.comma.domain.user.model.User">
+        SELECT `쉼표번호`, email, username, nickname, status, role
+        FROM users
+        WHERE device_token = #{deviceToken}
+    </select>
+
     <!-- 프로필 통계: 총 기록수, 총 휴식시간 -->
     <select id="getProfileStats" resultType="map">
         SELECT COUNT(*) AS totalLogs,

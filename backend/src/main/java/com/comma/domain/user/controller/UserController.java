@@ -82,6 +82,22 @@ public class UserController {
         }
     }
 
+    // POST /api/user/device-token  [JWT 필요] — 애플워치 단축어 연동용 토큰 발급 (이미 있으면 기존 토큰 반환)
+    @PostMapping("/device-token")
+    public ResponseEntity<ApiResponse<Map<String, String>>> issueDeviceToken(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        String token = userService.issueDeviceToken(쉼표번호);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("deviceToken", token), "디바이스 토큰이 발급되었습니다."));
+    }
+
+    // POST /api/user/device-token/reissue  [JWT 필요] — 토큰 재발급 (기존 토큰 무효화)
+    @PostMapping("/device-token/reissue")
+    public ResponseEntity<ApiResponse<Map<String, String>>> reissueDeviceToken(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        String token = userService.reissueDeviceToken(쉼표번호);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("deviceToken", token), "디바이스 토큰이 재발급되었습니다."));
+    }
+
     // DELETE /api/user/account  [JWT 필요]
     @DeleteMapping("/account")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(HttpServletRequest request) {
