@@ -34,7 +34,8 @@ mybatis:
     com.comma.domain.stats.model,
     com.comma.domain.notification.model,
     com.comma.domain.badge.model,
-    com.comma.domain.admin.model
+    com.comma.domain.admin.model,
+    com.comma.domain.contents.model
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

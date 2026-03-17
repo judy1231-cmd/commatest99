@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.contents.mapper.ContentsMapper">
+
+    <resultMap id="ContentsMap" type="com.comma.domain.contents.model.Contents">
+        <id     property="id"        column="id"/>
+        <result property="category"  column="category"/>
+        <result property="title"     column="title"/>
+        <result property="summary"   column="summary"/>
+        <result property="body"      column="body"/>
+        <result property="duration"  column="duration"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="isActive"  column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="ContentsMap">
+        SELECT * FROM contents WHERE is_active = true ORDER BY category, id
+    </select>
+
+    <select id="findByCategory" resultMap="ContentsMap">
+        SELECT * FROM contents WHERE is_active = true AND category = #{category} ORDER BY id
+    </select>
+
+    <select id="findByCategories" resultMap="ContentsMap">
+        SELECT * FROM contents WHERE is_active = true
+        AND category IN
+        <foreach item="cat" collection="categories" open="(" separator="," close=")">
+            #{cat}
+        </foreach>
+        ORDER BY category, id
+    </select>
+
+    <select id="findById" resultMap="ContentsMap">
+        SELECT * FROM contents WHERE id = #{id} AND is_active = true
+    </select>
+
+</mapper>

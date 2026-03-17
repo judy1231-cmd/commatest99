@@ -16,9 +16,9 @@ const CATEGORIES = [
 const CATEGORY_IMAGES = {
   physical:  'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
   mental:    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-  sensory:   'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-  emotional: 'https://images.unsplash.com/photo-1520038410233-7141be7e6f97?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
-  social:    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  sensory:   'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  emotional: 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
+  social:    'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
   nature:    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
   creative:  'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80',
 };
@@ -78,7 +78,7 @@ function FeaturedCard({ content, onBookmark, isLoggedIn }) {
         {content.duration && (
           <span className="absolute bottom-4 left-4 px-2.5 py-1 bg-white/80 rounded-full text-xs font-semibold text-slate-600 flex items-center gap-1">
             <span className="material-icons text-xs text-slate-400">schedule</span>
-            {content.duration}분 읽기
+            {content.duration}분 소요
           </span>
         )}
         {/* 북마크 */}
@@ -165,7 +165,7 @@ function ListCard({ content, onBookmark, isLoggedIn }) {
           {content.duration && (
             <span className="flex items-center gap-0.5 font-medium">
               <span className="material-icons text-xs">schedule</span>
-              {content.duration}분 읽기
+              {content.duration}분 소요
             </span>
           )}
           {content.createdAt && <span>{formatDate(content.createdAt)}</span>}

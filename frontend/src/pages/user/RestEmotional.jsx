@@ -11,7 +11,7 @@ const TYPE = {
   desc: '감정을 억누르지 않고 있는 그대로 받아들이며 회복하는 시간',
   color: '#FF7BAC',
   chipBg: '#FFF0F5',
-  heroImg: 'https://images.unsplash.com/photo-1520038410233-7141be7e6f97?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+  heroImg: 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
 const COMPANION_OPTIONS = [
