@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
@@ -40,12 +41,14 @@ const INITIAL_FORM = {
 };
 
 function RestRecord() {
+  const location = useLocation();
   const [restTypes, setRestTypes] = useState([]);
   const [logs, setLogs] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedTypeId, setSelectedTypeId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState({ message: '', type: 'success' });
@@ -57,7 +60,17 @@ function RestRecord() {
     try {
       const res = await fetch('/api/rest-types');
       const data = await res.json();
-      if (data.success && data.data) setRestTypes(data.data);
+      if (data.success && data.data) {
+        setRestTypes(data.data);
+        // 진단 결과에서 넘어온 경우 해당 유형 자동 세팅
+        if (location.state?.fromDiagnosis && location.state?.primaryRestType) {
+          const matched = data.data.find((t) => t.typeName === location.state.primaryRestType);
+          if (matched) {
+            setForm((prev) => ({ ...prev, restTypeId: String(matched.id) }));
+            setShowModal(true);
+          }
+        }
+      }
     } catch {
       // 무시
     }
@@ -82,20 +95,20 @@ function RestRecord() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    const payload = {
+      ...form,
+      restTypeId: Number(form.restTypeId),
+      emotionBefore: Number(form.emotionBefore),
+      emotionAfter: Number(form.emotionAfter),
+    };
     try {
-      const res = await fetchWithAuth('/api/rest-logs', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...form,
-          restTypeId: Number(form.restTypeId),
-          emotionBefore: Number(form.emotionBefore),
-          emotionAfter: Number(form.emotionAfter),
-        }),
-      });
+      const res = await fetchWithAuth(
+        editingId ? `/api/rest-logs/${editingId}` : '/api/rest-logs',
+        { method: editingId ? 'PUT' : 'POST', body: JSON.stringify(payload) }
+      );
       if (res.success) {
-        setToast({ message: '휴식 기록이 저장되었어요!', type: 'success' });
-        setShowModal(false);
-        setForm(INITIAL_FORM);
+        setToast({ message: editingId ? '기록이 수정되었어요!' : '휴식 기록이 저장되었어요!', type: 'success' });
+        closeModal();
         loadLogs();
       } else {
         setToast({ message: res.message || '저장에 실패했어요.', type: 'error' });
@@ -105,6 +118,40 @@ function RestRecord() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEdit = (log) => {
+    setEditingId(log.id);
+    setForm({
+      restTypeId: String(log.restTypeId),
+      startTime: log.startTime ? log.startTime.slice(0, 16) : '',
+      endTime: log.endTime ? log.endTime.slice(0, 16) : '',
+      memo: log.memo || '',
+      emotionBefore: log.emotionBefore ?? 5,
+      emotionAfter: log.emotionAfter ?? 7,
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('이 기록을 삭제할까요?')) return;
+    try {
+      const res = await fetchWithAuth(`/api/rest-logs/${id}`, { method: 'DELETE' });
+      if (res.success) {
+        setToast({ message: '기록이 삭제되었어요.', type: 'success' });
+        loadLogs();
+      } else {
+        setToast({ message: res.message || '삭제에 실패했어요.', type: 'error' });
+      }
+    } catch {
+      setToast({ message: '삭제 중 오류가 발생했어요.', type: 'error' });
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setForm(INITIAL_FORM);
   };
 
   const getTypeInfo = (typeId) => {
@@ -232,7 +279,20 @@ function RestRecord() {
                         )}
                       </div>
                     </div>
-                    <span className="material-icons text-slate-300">chevron_right</span>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => handleEdit(log)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-soft-mint transition-all"
+                      >
+                        <span className="material-icons text-base">edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(log.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                      >
+                        <span className="material-icons text-base">delete</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -246,8 +306,8 @@ function RestRecord() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-slate-800">휴식 기록 추가</h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
+              <h2 className="text-lg font-bold text-slate-800">{editingId ? '휴식 기록 수정' : '휴식 기록 추가'}</h2>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600">
                 <span className="material-icons">close</span>
               </button>
             </div>
@@ -333,7 +393,7 @@ function RestRecord() {
                 type="submit" disabled={saving}
                 className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 mt-2"
               >
-                {saving ? '저장 중...' : '기록 저장'}
+                {saving ? '저장 중...' : editingId ? '수정 완료' : '기록 저장'}
               </button>
             </form>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
@@ -73,6 +73,7 @@ function RestTypeTest() {
   const [typeScores, setTypeScores] = useState([]);
   const [toast, setToast] = useState({ message: '', type: 'success' });
 
+  const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('accessToken');
 
   useEffect(() => {
@@ -531,12 +532,18 @@ function RestTypeTest() {
               >
                 다시 진단
               </button>
-              <Link
-                to={isLoggedIn ? '/rest-record' : '/login'}
-                className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all"
-              >
-                {isLoggedIn ? '휴식 기록하기' : '로그인하기'}
-              </Link>
+              {isLoggedIn ? (
+                <button
+                  onClick={() => navigate('/rest-record', { state: { fromDiagnosis: true, primaryRestType: result.primaryRestType } })}
+                  className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all"
+                >
+                  이 유형으로 기록하기
+                </button>
+              ) : (
+                <Link to="/login" className="flex-1 py-4 bg-primary text-white font-bold text-[15px] rounded-2xl text-center shadow-lg shadow-emerald-100 hover:bg-emerald-500 transition-all">
+                  로그인하기
+                </Link>
+              )}
             </div>
           </div>
         </div>
