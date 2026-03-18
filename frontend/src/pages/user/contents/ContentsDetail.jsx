@@ -37,7 +37,14 @@ function ContentsDetail() {
 
   const handleRecordClick = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
-    navigate('/records/rest');
+    navigate('/rest-record', {
+      state: {
+        fromContents: true,
+        contentCategory: content.category,
+        contentTitle: content.title,
+        contentDuration: content.duration,
+      }
+    });
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
