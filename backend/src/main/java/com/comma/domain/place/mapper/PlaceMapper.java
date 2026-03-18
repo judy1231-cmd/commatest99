@@ -31,6 +31,12 @@ public interface PlaceMapper {
 
     List<PlaceReview> findReviewsByPlaceId(@Param("placeId") Long placeId);
 
+    PlaceReview findReviewById(@Param("id") Long id);
+
+    void updateReview(PlaceReview review);
+
+    void deleteReview(@Param("id") Long id, @Param("쉼표번호") String 쉼표번호);
+
     // ==================== 북마크 ====================
 
     PlaceBookmark findBookmark(@Param("쉼표번호") String 쉼표번호,

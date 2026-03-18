@@ -79,6 +79,45 @@ public class PlaceController {
         }
     }
 
+    // PUT /api/places/{id}/reviews/{reviewId}  [JWT 필요]
+    @PutMapping("/{id}/reviews/{reviewId}")
+    public ResponseEntity<ApiResponse<PlaceReview>> updateReview(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @PathVariable Long reviewId,
+            @RequestBody Map<String, Object> body) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        if (쉼표번호 == null) return ResponseEntity.status(401).body(ApiResponse.fail("로그인이 필요합니다."));
+        try {
+            Integer rating = (Integer) body.get("rating");
+            String content = (String) body.get("content");
+            PlaceReview review = placeService.updateReview(쉼표번호, reviewId, rating, content);
+            return ResponseEntity.ok(ApiResponse.ok(review, "리뷰가 수정되었습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(ApiResponse.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    // DELETE /api/places/{id}/reviews/{reviewId}  [JWT 필요]
+    @DeleteMapping("/{id}/reviews/{reviewId}")
+    public ResponseEntity<ApiResponse<Void>> deleteReview(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @PathVariable Long reviewId) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        if (쉼표번호 == null) return ResponseEntity.status(401).body(ApiResponse.fail("로그인이 필요합니다."));
+        try {
+            placeService.deleteReview(쉼표번호, reviewId);
+            return ResponseEntity.ok(ApiResponse.ok(null, "리뷰가 삭제되었습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(ApiResponse.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // POST /api/places/{id}/bookmark  [JWT 필요]
     @PostMapping("/{id}/bookmark")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> toggleBookmark(

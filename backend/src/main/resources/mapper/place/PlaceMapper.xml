@@ -66,11 +66,30 @@
     </insert>
 
     <select id="findReviewsByPlaceId" resultType="com.comma.domain.place.model.PlaceReview">
+        SELECT r.id, r.`쉼표번호`, r.place_id, r.rating, r.content, r.verified, r.created_at,
+               u.nickname
+        FROM place_reviews r
+        LEFT JOIN users u ON r.`쉼표번호` = u.`쉼표번호`
+        WHERE r.place_id = #{placeId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findReviewById" resultType="com.comma.domain.place.model.PlaceReview">
         SELECT id, `쉼표번호`, place_id, rating, content, verified, created_at
         FROM place_reviews
-        WHERE place_id = #{placeId}
-        ORDER BY created_at DESC
+        WHERE id = #{id}
     </select>
+
+    <update id="updateReview" parameterType="com.comma.domain.place.model.PlaceReview">
+        UPDATE place_reviews
+        SET rating = #{rating}, content = #{content}
+        WHERE id = #{id} AND `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <delete id="deleteReview">
+        DELETE FROM place_reviews
+        WHERE id = #{id} AND `쉼표번호` = #{쉼표번호}
+    </delete>
 
     <!-- ==================== 북마크 ==================== -->
 

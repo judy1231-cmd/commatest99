@@ -18,4 +18,7 @@ public class PlaceReview {
     private String content;
     private Boolean verified;       // 방문 인증 여부
     private LocalDateTime createdAt;
+
+    // JOIN — users 테이블에서 채워짐
+    private String nickname;
 }

@@ -71,6 +71,27 @@ public class PlaceService {
         return placeMapper.findReviewsByPlaceId(placeId);
     }
 
+    @Transactional
+    public PlaceReview updateReview(String 쉼표번호, Long reviewId, Integer rating, String content) {
+        PlaceReview review = placeMapper.findReviewById(reviewId);
+        if (review == null) throw new IllegalArgumentException("존재하지 않는 리뷰입니다.");
+        if (!review.get쉼표번호().equals(쉼표번호)) throw new SecurityException("본인의 리뷰만 수정할 수 있습니다.");
+        if (rating < 1 || rating > 5) throw new IllegalArgumentException("별점은 1~5 사이여야 합니다.");
+
+        review.setRating(rating);
+        review.setContent(content);
+        placeMapper.updateReview(review);
+        return review;
+    }
+
+    @Transactional
+    public void deleteReview(String 쉼표번호, Long reviewId) {
+        PlaceReview review = placeMapper.findReviewById(reviewId);
+        if (review == null) throw new IllegalArgumentException("존재하지 않는 리뷰입니다.");
+        if (!review.get쉼표번호().equals(쉼표번호)) throw new SecurityException("본인의 리뷰만 삭제할 수 있습니다.");
+        placeMapper.deleteReview(reviewId, 쉼표번호);
+    }
+
     /**
      * 북마크 토글 — 이미 있으면 삭제, 없으면 추가
      * @return true면 추가됨, false면 삭제됨
