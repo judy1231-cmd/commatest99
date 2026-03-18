@@ -47,6 +47,20 @@ function FlyToPlace({ center }) {
   return null;
 }
 
+// 클릭 선택된 마커 (빨간 점)
+function createSelectedMarker() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #EF4444; border: 3px solid white;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.35), 0 3px 10px rgba(0,0,0,0.4);
+    "></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  });
+}
+
 // 강조 마커 (자연 연결 페이지에서 넘어온 장소)
 function createHighlightMarker(color = '#10B981') {
   return L.divIcon({
@@ -74,6 +88,7 @@ function MapPage() {
   const [keyword, setKeyword] = useState('');
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
+  const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [flyTarget, setFlyTarget] = useState(
     highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
   );
@@ -372,7 +387,8 @@ function MapPage() {
                 <Marker
                   key={place.id}
                   position={[place.latitude, place.longitude]}
-                  icon={createColorMarker(currentType.color)}
+                  icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
+                  eventHandlers={{ click: () => setSelectedPlaceId(place.id) }}
                 >
                   <Popup>
                     <div style={{ minWidth: '160px' }}>
