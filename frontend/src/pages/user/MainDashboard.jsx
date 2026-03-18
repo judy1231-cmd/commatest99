@@ -402,7 +402,7 @@ function MainDashboard() {
                   style={{ animationDelay: `${idx * 0.08}s` }}
                 >
                   {/* 사진 */}
-                  <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
+                  <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
                     <img
                       src={rec.placePhotoUrl || REST_TYPE_PHOTOS[rec.placeFirstRestType] || REST_TYPE_PHOTOS.default}
                       alt={rec.placeName}
@@ -501,7 +501,7 @@ function MainDashboard() {
                     style={{ animationDelay: `${idx * 0.08}s` }}
                   >
                     {/* 이미지 */}
-                    <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
+                    <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
                       <img
                         alt={place.name}
                         className="w-full h-full object-cover"
