@@ -335,13 +335,21 @@ function MainDashboard() {
             />
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
               {recommendations.slice(0, 5).map((rec) => (
-                <Link
+                <button
                   key={rec.id}
-                  to={`/places/${rec.placeId}`}
                   onClick={async () => {
                     try { await fetchWithAuth(`/api/recommendations/${rec.id}/click`, { method: 'PUT' }); } catch { /* 무시 */ }
+                    navigate('/map', {
+                      state: {
+                        highlightPlace: {
+                          name: rec.placeName,
+                          location: rec.placeAddress,
+                          placeId: rec.placeId,
+                        },
+                      },
+                    });
                   }}
-                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4"
+                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4 text-left"
                 >
                   <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
                     <span className="material-icons text-primary text-[18px]">location_on</span>
@@ -349,7 +357,7 @@ function MainDashboard() {
                   <p className="text-[14px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
                   <p className="text-[12px] text-slate-400 truncate mb-3">{rec.placeAddress}</p>
                   <p className="text-[11px] text-primary/80 bg-primary/5 rounded-lg px-3 py-1.5 leading-relaxed line-clamp-2">{rec.criteria}</p>
-                </Link>
+                </button>
               ))}
             </div>
           </section>
@@ -384,10 +392,22 @@ function MainDashboard() {
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
-                  <Link
+                  <button
                     key={place.id}
-                    to={`/places/${place.id}`}
-                    className="flex-shrink-0 w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+                    onClick={() =>
+                      navigate('/map', {
+                        state: {
+                          highlightPlace: {
+                            name: place.name,
+                            location: place.address,
+                            lat: place.latitude || null,
+                            lng: place.longitude || null,
+                            placeId: place.id,
+                          },
+                        },
+                      })
+                    }
+                    className="flex-shrink-0 w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group text-left"
                   >
                     {/* 이미지 */}
                     <div className="relative h-[140px] overflow-hidden bg-slate-100">
@@ -423,7 +443,7 @@ function MainDashboard() {
                         {place.address?.split(' ').slice(0, 2).join(' ')}
                       </p>
                     </div>
-                  </Link>
+                  </button>
                 );
               })}
 

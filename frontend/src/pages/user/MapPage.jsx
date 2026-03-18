@@ -73,6 +73,7 @@ function MapPage() {
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [myLocation, setMyLocation] = useState(null);
+  const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [flyTarget, setFlyTarget] = useState(
     highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
   );
@@ -80,6 +81,25 @@ function MapPage() {
   useEffect(() => {
     loadPlaces();
   }, [selectedType]);
+
+  // 맞춤 추천에서 넘어온 경우 placeId로 좌표 fetch
+  useEffect(() => {
+    if (!highlightPlace?.placeId || highlightPlace?.lat) return;
+    fetch(`/api/places/${highlightPlace.placeId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.latitude) {
+          const updated = {
+            ...highlightPlace,
+            lat: data.data.latitude,
+            lng: data.data.longitude,
+          };
+          setResolvedHighlight(updated);
+          setFlyTarget([data.data.latitude, data.data.longitude]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 내 주변 명소 찾기: 현재 위치로 flyTo
   useEffect(() => {
@@ -136,6 +156,19 @@ function MapPage() {
 
         {/* ===== 사이드바 ===== */}
         <aside className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+
+          {/* 뒤로가기 (추천에서 넘어온 경우) */}
+          {resolvedHighlight && (
+            <div className="px-4 pt-3 pb-1">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-1.5 text-[13px] font-bold text-slate-500 hover:text-primary transition-colors"
+              >
+                <span className="material-icons text-[18px]">arrow_back</span>
+                이전 페이지로
+              </button>
+            </div>
+          )}
 
           {/* 검색창 */}
           <form onSubmit={handleSearch} className="p-4 border-b border-slate-100">
@@ -214,16 +247,16 @@ function MapPage() {
           )}
 
           {/* 외부 페이지에서 넘어온 선택 장소 */}
-          {highlightPlace && (
+          {resolvedHighlight && (
             <div className="mx-3 my-2 p-3 rounded-xl border-2 border-green-400 bg-green-50">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">선택한 장소</span>
               </div>
-              <p className="font-bold text-slate-800 text-sm">{highlightPlace.name}</p>
-              <p className="text-xs text-slate-500">{highlightPlace.location}</p>
-              {!highlightPlace.lat && (
-                <p className="text-[10px] text-slate-400 mt-1">* 좌표 정보 없음 — 지도에 표시 불가</p>
+              <p className="font-bold text-slate-800 text-sm">{resolvedHighlight.name}</p>
+              <p className="text-xs text-slate-500">{resolvedHighlight.location}</p>
+              {!resolvedHighlight.lat && (
+                <p className="text-[10px] text-slate-400 mt-1">좌표를 불러오는 중...</p>
               )}
             </div>
           )}
@@ -330,17 +363,17 @@ function MapPage() {
             )}
 
             {/* 외부에서 선택된 장소 강조 마커 */}
-            {highlightPlace?.lat && (
+            {resolvedHighlight?.lat && (
               <Marker
-                position={[highlightPlace.lat, highlightPlace.lng]}
-                icon={createHighlightMarker(highlightPlace.color || '#10B981')}
+                position={[resolvedHighlight.lat, resolvedHighlight.lng]}
+                icon={createHighlightMarker(resolvedHighlight.color || '#10B981')}
               >
                 <Popup>
                   <div style={{ minWidth: '160px' }}>
-                    <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{highlightPlace.name}</p>
-                    <p style={{ fontSize: '12px', color: '#64748B' }}>{highlightPlace.location}</p>
-                    {highlightPlace.desc && (
-                      <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>{highlightPlace.desc}</p>
+                    <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{resolvedHighlight.name}</p>
+                    <p style={{ fontSize: '12px', color: '#64748B' }}>{resolvedHighlight.location}</p>
+                    {resolvedHighlight.desc && (
+                      <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>{resolvedHighlight.desc}</p>
                     )}
                   </div>
                 </Popup>
