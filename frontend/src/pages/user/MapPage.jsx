@@ -103,14 +103,15 @@ function MapPage() {
     fetch(`/api/places/${highlightPlace.placeId}`)
       .then(r => r.json())
       .then(data => {
-        if (data.success && data.data?.latitude) {
+        const place = data.data?.place;
+        if (data.success && place?.latitude) {
           const updated = {
             ...highlightPlace,
-            lat: data.data.latitude,
-            lng: data.data.longitude,
+            lat: place.latitude,
+            lng: place.longitude,
           };
           setResolvedHighlight(updated);
-          setFlyTarget([data.data.latitude, data.data.longitude]);
+          setFlyTarget([place.latitude, place.longitude]);
         }
       })
       .catch(() => {});
