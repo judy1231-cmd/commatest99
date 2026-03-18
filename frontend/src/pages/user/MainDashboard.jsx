@@ -371,26 +371,14 @@ function MainDashboard() {
             />
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
               {recommendations.slice(0, 5).map((rec) => (
-                <button
+                <div
                   key={rec.id}
-                  onClick={async () => {
-                    try { await fetchWithAuth(`/api/recommendations/${rec.id}/click`, { method: 'PUT' }); } catch { /* 무시 */ }
-                    navigate('/map', {
-                      state: {
-                        highlightPlace: {
-                          name: rec.placeName,
-                          location: rec.placeAddress,
-                          placeId: rec.placeId,
-                        },
-                      },
-                    });
-                  }}
-                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden text-left"
+                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col"
                 >
                   {/* 사진 */}
-                  <div className="relative h-[120px] overflow-hidden bg-slate-100">
+                  <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
                     {rec.placePhotoUrl ? (
-                      <img src={rec.placePhotoUrl} alt={rec.placeName} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      <img src={rec.placePhotoUrl} alt={rec.placeName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="material-icons text-slate-300 text-[36px]">landscape</span>
@@ -401,11 +389,12 @@ function MainDashboard() {
                     </div>
                   </div>
                   {/* 내용 */}
-                  <div className="p-3">
+                  <div className="p-3 flex flex-col flex-1">
                     <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
                     <p className="text-[11px] text-slate-400 truncate mb-2">{rec.placeAddress}</p>
                     <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-2">{rec.criteria}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                    {/* 통계 */}
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3">
                       <span className="flex items-center gap-0.5">
                         <span className="material-icons text-[13px] text-rose-400">favorite</span>
                         {rec.placeBookmarkCount ?? 0}
@@ -415,8 +404,26 @@ function MainDashboard() {
                         {rec.placeReviewCount ?? 0}
                       </span>
                     </div>
+                    {/* 액션 버튼 */}
+                    <div className="flex gap-1.5 mt-auto">
+                      <button
+                        onClick={async () => {
+                          try { await fetchWithAuth(`/api/recommendations/${rec.id}/click`, { method: 'PUT' }); } catch { /* 무시 */ }
+                          navigate('/map', { state: { highlightPlace: { name: rec.placeName, location: rec.placeAddress, placeId: rec.placeId } } });
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-[11px] font-bold text-slate-500 transition-colors"
+                      >
+                        <span className="material-icons text-[13px]">map</span>지도
+                      </button>
+                      <button
+                        onClick={() => navigate(`/places/${rec.placeId}`)}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-[11px] font-bold text-primary transition-colors"
+                      >
+                        <span className="material-icons text-[13px]">info</span>상세
+                      </button>
+                    </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </section>
@@ -450,71 +457,51 @@ function MainDashboard() {
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
-                  <button
+                  <div
                     key={place.id}
-                    onClick={() =>
-                      navigate('/map', {
-                        state: {
-                          highlightPlace: {
-                            name: place.name,
-                            location: place.address,
-                            lat: place.latitude || null,
-                            lng: place.longitude || null,
-                            placeId: place.id,
-                          },
-                        },
-                      })
-                    }
-                    className="flex-shrink-0 w-[240px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group text-left"
+                    className="flex-shrink-0 w-[220px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
                   >
                     {/* 이미지 */}
-                    <div className="relative h-[140px] overflow-hidden bg-slate-100">
+                    <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
                       {place.photoUrl ? (
-                        <img
-                          alt={place.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          src={place.photoUrl}
-                        />
+                        <img alt={place.name} className="w-full h-full object-cover" src={place.photoUrl} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="material-icons text-slate-300 text-[40px]">landscape</span>
+                          <span className="material-icons text-slate-300 text-[36px]">landscape</span>
                         </div>
                       )}
                       {firstTag && (
-                        <div className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-sm border ${tagColor}`}>
+                        <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-sm border ${tagColor}`}>
                           {firstTag.tagName}
                         </div>
                       )}
                       {place.aiScore != null && (
-                        <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
-                          <span className="material-icons text-amber-400 text-[12px]">star</span>
-                          <span className="text-[11px] font-bold text-white">{place.aiScore.toFixed(1)}</span>
+                        <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
+                          <span className="material-icons text-amber-400 text-[11px]">star</span>
+                          <span className="text-[10px] font-bold text-white">{place.aiScore.toFixed(1)}</span>
                         </div>
                       )}
                     </div>
 
                     {/* 텍스트 */}
-                    <div className="p-4">
-                      <p className="text-[14px] font-bold text-slate-900 truncate mb-1">{place.name}</p>
-                      <p className="text-[12px] text-slate-400 truncate flex items-center gap-1 mb-3">
-                        <span className="material-icons text-[12px]">location_on</span>
+                    <div className="p-3 flex flex-col flex-1">
+                      <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{place.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate flex items-center gap-0.5 mb-3">
+                        <span className="material-icons text-[11px]">location_on</span>
                         {place.address?.split(' ').slice(0, 2).join(' ')}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                          <span className="flex items-center gap-0.5">
-                            <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
-                            {place.reviewCount ?? 0}
-                          </span>
-                        </div>
+                      {/* 통계 */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="flex items-center gap-0.5 text-[11px] text-slate-400">
+                          <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
+                          {place.reviewCount ?? 0}
+                        </span>
                         <button
                           onClick={(e) => handleToggleBookmark(e, place.id)}
                           className="flex items-center gap-0.5 text-[11px] font-bold transition-colors"
                         >
-                          <span
-                            className="material-icons text-[18px] transition-colors"
-                            style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}
-                          >
+                          <span className="material-icons text-[16px] transition-colors"
+                            style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}>
                             {bookmarkedIds.has(place.id) ? 'favorite' : 'favorite_border'}
                           </span>
                           <span style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#94A3B8' }}>
@@ -522,8 +509,23 @@ function MainDashboard() {
                           </span>
                         </button>
                       </div>
+                      {/* 액션 버튼 */}
+                      <div className="flex gap-1.5 mt-auto">
+                        <button
+                          onClick={() => navigate('/map', { state: { highlightPlace: { name: place.name, location: place.address, lat: place.latitude || null, lng: place.longitude || null, placeId: place.id } } })}
+                          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-[11px] font-bold text-slate-500 transition-colors"
+                        >
+                          <span className="material-icons text-[13px]">map</span>지도
+                        </button>
+                        <button
+                          onClick={() => navigate(`/places/${place.id}`)}
+                          className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-[11px] font-bold text-primary transition-colors"
+                        >
+                          <span className="material-icons text-[13px]">info</span>상세
+                        </button>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
 
