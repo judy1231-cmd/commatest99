@@ -49,6 +49,12 @@ public interface PlaceMapper {
 
     List<Place> findBookmarkedPlaces(@Param("쉼표번호") String 쉼표번호);
 
+    void insertPhoto(PlacePhoto photo);
+
+    int countPhotosByPlaceId(@Param("placeId") Long placeId);
+
+    List<Place> findAllApproved();
+
     // ==================== 주변 검색 ====================
 
     List<Place> findNearbyPlaces(@Param("lat") double lat,

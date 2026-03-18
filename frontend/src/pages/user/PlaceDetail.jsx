@@ -241,12 +241,12 @@ function PlaceDetail() {
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : null}
-        {/* 오버레이 */}
+        {/* 오버레이 — 이미지 있으면 다크 그라디언트만, 없으면 색상 그라디언트 */}
         <div
           className="absolute inset-0"
           style={{
             background: heroImg
-              ? `linear-gradient(to bottom, ${heroColor}88 0%, ${heroColor}cc 100%)`
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%)'
               : `linear-gradient(145deg, ${heroColor}ee 0%, ${heroColor}99 60%, ${heroColor}55 100%)`,
           }}
         />

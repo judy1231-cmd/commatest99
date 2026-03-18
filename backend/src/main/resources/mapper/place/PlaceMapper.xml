@@ -118,6 +118,25 @@
         ORDER BY pb.created_at DESC
     </select>
 
+    <!-- ==================== 사진 ==================== -->
+
+    <insert id="insertPhoto" parameterType="com.comma.domain.place.model.PlacePhoto"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_photos (place_id, photo_url, source)
+        VALUES (#{placeId}, #{photoUrl}, #{source})
+    </insert>
+
+    <select id="countPhotosByPlaceId" resultType="int">
+        SELECT COUNT(*) FROM place_photos WHERE place_id = #{placeId}
+    </select>
+
+    <select id="findAllApproved" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        FROM places
+        WHERE status = 'approved'
+        ORDER BY id
+    </select>
+
     <!-- ==================== Seed (관리자) ==================== -->
 
     <select id="existsByNameAndAddress" resultType="boolean">

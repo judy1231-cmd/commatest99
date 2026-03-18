@@ -47,6 +47,17 @@ public class PlaceSeedController {
     }
 
     /**
+     * POST /api/admin/places/seed/media
+     * 모든 장소에 사진 + 리뷰 seed 데이터 삽입
+     */
+    @PostMapping("/seed/media")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> seedMedia() {
+        Map<String, Object> result = placeSeedService.seedMediaData();
+        return ResponseEntity.ok(ApiResponse.ok(result,
+            "미디어 seed 완료 — 사진 " + result.get("photoAdded") + "개, 리뷰 " + result.get("reviewAdded") + "개 추가"));
+    }
+
+    /**
      * DELETE /api/admin/places/cleanup/full
      * 아파트·화장실 등 휴식 무관 장소 + 이름 중복 장소 한꺼번에 정리
      */
