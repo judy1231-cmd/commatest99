@@ -326,7 +326,7 @@ function MainDashboard() {
           <div className="grid grid-cols-3 gap-4">
 
             {/* 심박수 체크 */}
-            <Link to="/heartrate" className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 flex flex-col gap-3">
+            <Link to="/heartrate" className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-3 transition-all duration-200 p-5 flex flex-col gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                 <span className="material-icons text-emerald-500 text-[20px]">favorite</span>
               </div>
@@ -344,7 +344,7 @@ function MainDashboard() {
             </Link>
 
             {/* 휴식유형 테스트 — 강조 */}
-            <Link to="/rest-test" className="group bg-primary rounded-2xl shadow-md shadow-emerald-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 p-5 flex flex-col gap-3 relative overflow-hidden">
+            <Link to="/rest-test" className="group bg-primary rounded-2xl shadow-md shadow-emerald-100 hover:shadow-lg hover:-translate-y-3 transition-all duration-200 p-5 flex flex-col gap-3 relative overflow-hidden">
               <div className="absolute top-3 right-3">
                 <span className="text-[10px] font-extrabold bg-white/20 text-white px-2 py-0.5 rounded-full">추천</span>
               </div>
@@ -362,7 +362,7 @@ function MainDashboard() {
             </Link>
 
             {/* 스트레스 진단 */}
-            <Link to="/stress-test" className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 flex flex-col gap-3">
+            <Link to="/stress-test" className="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-3 transition-all duration-200 p-5 flex flex-col gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
                 <span className="material-icons text-amber-500 text-[20px]">psychology_alt</span>
               </div>
