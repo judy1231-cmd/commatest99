@@ -304,11 +304,11 @@ function ContentsList() {
             <button
               key={cat.key}
               onClick={() => setActiveCategory(cat.key)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
-                activeCategory === cat.key
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
-              }`}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all"
+              style={activeCategory === cat.key
+                ? { backgroundColor: cat.color, color: '#fff', border: `1.5px solid ${cat.color}` }
+                : { backgroundColor: '#fff', color: cat.color, border: `1.5px solid ${cat.color}55` }
+              }
             >
               <span className="material-icons text-xs">{cat.icon}</span>
               {cat.label}
