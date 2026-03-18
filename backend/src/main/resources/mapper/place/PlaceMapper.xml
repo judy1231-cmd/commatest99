@@ -11,7 +11,8 @@
                p.operating_hours, p.ai_score, p.status, p.created_at,
                (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS photo_url,
                (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS review_count,
-               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS bookmark_count
+               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS bookmark_count,
+               (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS first_rest_type
         FROM places p
         <if test="restType != null and restType != ''">
             INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}

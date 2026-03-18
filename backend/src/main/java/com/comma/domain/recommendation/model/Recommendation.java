@@ -28,4 +28,5 @@ public class Recommendation {
     private String placePhotoUrl;
     private Integer placeReviewCount;
     private Integer placeBookmarkCount;
+    private String placeFirstRestType;
 }

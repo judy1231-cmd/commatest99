@@ -25,4 +25,5 @@ public class Place {
     private String photoUrl;        // 대표 사진 URL
     private Integer reviewCount;    // 리뷰 수
     private Integer bookmarkCount;  // 북마크(하트) 수
+    private String firstRestType;   // 대표 휴식 유형 (사진 fallback용)
 }

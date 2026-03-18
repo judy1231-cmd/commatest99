@@ -16,7 +16,8 @@
                p.latitude AS place_latitude, p.longitude AS place_longitude,
                (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS place_photo_url,
                (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS place_review_count,
-               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS place_bookmark_count
+               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS place_bookmark_count,
+               (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS place_first_rest_type
         FROM recommendations r
         LEFT JOIN places p ON r.place_id = p.id
         WHERE r.`쉼표번호` = #{쉼표번호}

@@ -40,6 +40,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/auth/naver/callback",
             "/api/auth/naver/confirm",
             "/api/places",
+            "/api/places/*",
             "/api/places/nearby",
             "/api/places/*/reviews",
             "/api/rest-types",

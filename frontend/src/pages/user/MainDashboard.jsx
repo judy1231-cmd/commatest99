@@ -13,6 +13,18 @@ const categories = [
   { icon: 'forest',         label: '자연의 연결', iconHex: '#2ECC9A', bgHex: '#F0FBF7', path: '/rest/nature'    },
 ];
 
+// 휴식 유형별 Pexels 대표 사진 (place_photos 없을 때 fallback)
+const REST_TYPE_PHOTOS = {
+  physical:  'https://images.pexels.com/photos/1578750/pexels-photo-1578750.jpeg?auto=compress&cs=tinysrgb&w=400',
+  mental:    'https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=400',
+  sensory:   'https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=400',
+  emotional: 'https://images.pexels.com/photos/1024984/pexels-photo-1024984.jpeg?auto=compress&cs=tinysrgb&w=400',
+  social:    'https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=400',
+  creative:  'https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=400',
+  nature:    'https://images.pexels.com/photos/1179229/pexels-photo-1179229.jpeg?auto=compress&cs=tinysrgb&w=400',
+  default:   'https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg?auto=compress&cs=tinysrgb&w=400',
+};
+
 const REST_TYPE_TAG_COLORS = {
   physical: 'text-emerald-600 border-emerald-50',
   mental: 'text-primary border-blue-50',
@@ -377,13 +389,11 @@ function MainDashboard() {
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
-                    {rec.placePhotoUrl ? (
-                      <img src={rec.placePhotoUrl} alt={rec.placeName} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-icons text-slate-300 text-[36px]">landscape</span>
-                      </div>
-                    )}
+                    <img
+                      src={rec.placePhotoUrl || REST_TYPE_PHOTOS[rec.placeFirstRestType] || REST_TYPE_PHOTOS.default}
+                      alt={rec.placeName}
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute top-2 left-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                       <span className="material-icons text-[10px]">auto_awesome</span>맞춤
                     </div>
@@ -392,13 +402,21 @@ function MainDashboard() {
                   <div className="p-3 flex flex-col flex-1">
                     <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
                     <p className="text-[11px] text-slate-400 truncate mb-2">{rec.placeAddress}</p>
-                    <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-2">{rec.criteria}</p>
-                    {/* 통계 */}
+                    <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-3">{rec.criteria}</p>
+                    {/* 통계 + 하트 토글 */}
                     <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3">
-                      <span className="flex items-center gap-0.5">
-                        <span className="material-icons text-[13px] text-rose-400">favorite</span>
-                        {rec.placeBookmarkCount ?? 0}
-                      </span>
+                      <button
+                        onClick={(e) => handleToggleBookmark(e, rec.placeId)}
+                        className="flex items-center gap-0.5 transition-colors"
+                      >
+                        <span className="material-icons text-[14px] transition-colors"
+                          style={{ color: bookmarkedIds.has(rec.placeId) ? '#EF4444' : '#CBD5E1' }}>
+                          {bookmarkedIds.has(rec.placeId) ? 'favorite' : 'favorite_border'}
+                        </span>
+                        <span style={{ color: bookmarkedIds.has(rec.placeId) ? '#EF4444' : '#94A3B8' }}>
+                          {rec.placeBookmarkCount ?? 0}
+                        </span>
+                      </button>
                       <span className="flex items-center gap-0.5">
                         <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
                         {rec.placeReviewCount ?? 0}
@@ -463,13 +481,11 @@ function MainDashboard() {
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
-                      {place.photoUrl ? (
-                        <img alt={place.name} className="w-full h-full object-cover" src={place.photoUrl} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="material-icons text-slate-300 text-[36px]">landscape</span>
-                        </div>
-                      )}
+                      <img
+                        alt={place.name}
+                        className="w-full h-full object-cover"
+                        src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
+                      />
                       {firstTag && (
                         <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-sm border ${tagColor}`}>
                           {firstTag.tagName}
@@ -490,17 +506,13 @@ function MainDashboard() {
                         <span className="material-icons text-[11px]">location_on</span>
                         {place.address?.split(' ').slice(0, 2).join(' ')}
                       </p>
-                      {/* 통계 */}
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="flex items-center gap-0.5 text-[11px] text-slate-400">
-                          <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
-                          {place.reviewCount ?? 0}
-                        </span>
+                      {/* 통계 + 하트 토글 */}
+                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3">
                         <button
                           onClick={(e) => handleToggleBookmark(e, place.id)}
-                          className="flex items-center gap-0.5 text-[11px] font-bold transition-colors"
+                          className="flex items-center gap-0.5 transition-colors"
                         >
-                          <span className="material-icons text-[16px] transition-colors"
+                          <span className="material-icons text-[14px] transition-colors"
                             style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}>
                             {bookmarkedIds.has(place.id) ? 'favorite' : 'favorite_border'}
                           </span>
@@ -508,6 +520,10 @@ function MainDashboard() {
                             {place.bookmarkCount ?? 0}
                           </span>
                         </button>
+                        <span className="flex items-center gap-0.5">
+                          <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
+                          {place.reviewCount ?? 0}
+                        </span>
                       </div>
                       {/* 액션 버튼 */}
                       <div className="flex gap-1.5 mt-auto">
