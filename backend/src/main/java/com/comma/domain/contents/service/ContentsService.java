@@ -29,6 +29,10 @@ public class ContentsService {
         return contentsMapper.findById(id);
     }
 
+    public void deactivate(Long id) {
+        contentsMapper.deactivateById(id);
+    }
+
     public void fixCategoryImages() {
         contentsMapper.updateImageUrlByCategory("mental",
             "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=800");

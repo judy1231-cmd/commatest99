@@ -38,6 +38,10 @@
         SELECT * FROM contents WHERE id = #{id} AND is_active = true
     </select>
 
+    <update id="deactivateById">
+        UPDATE contents SET is_active = false WHERE id = #{id}
+    </update>
+
     <update id="updateImageUrlByCategory">
         UPDATE contents SET image_url = #{imageUrl} WHERE category = #{category}
     </update>

@@ -33,6 +33,13 @@ public class ContentsController {
         return ResponseEntity.ok(ApiResponse.ok(content, "콘텐츠 조회 성공"));
     }
 
+    // DELETE /api/contents/{id}  [관리자용 — 콘텐츠 비활성화]
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deactivate(@PathVariable Long id) {
+        contentsService.deactivate(id);
+        return ResponseEntity.ok(ApiResponse.ok("완료", "콘텐츠 비활성화 완료"));
+    }
+
     // POST /api/contents/fix-images  [임시 — 카테고리별 image_url 일괄 업데이트]
     @PostMapping("/fix-images")
     public ResponseEntity<ApiResponse<String>> fixImages() {
