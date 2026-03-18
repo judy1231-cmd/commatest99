@@ -11,7 +11,7 @@ const TYPE = {
   desc: '생각의 소음을 잠재우고 내면의 평정심을 되찾는 시간',
   color: '#5B8DEF',
   chipBg: '#F0F5FF',
-  heroImg: 'https://images.pexels.com/photos/3560044/pexels-photo-3560044.jpeg?auto=compress&cs=tinysrgb&w=800',
+  heroImg: 'https://images.pexels.com/photos/1578750/pexels-photo-1578750.jpeg?auto=compress&cs=tinysrgb&w=800',
 };
 
 const TIME_OPTIONS = [
