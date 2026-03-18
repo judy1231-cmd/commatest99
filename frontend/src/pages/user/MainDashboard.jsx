@@ -393,7 +393,7 @@ function MainDashboard() {
                 </span>
               }
             />
-            <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
               {recommendations.slice(0, 5).map((rec, idx) => (
                 <div
                   key={rec.id}
@@ -488,7 +488,7 @@ function MainDashboard() {
               <Link to="/map" className="text-[13px] text-primary font-bold hover:underline">지도에서 탐색하기 →</Link>
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
               {places.map((place, idx) => {
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
