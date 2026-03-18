@@ -187,6 +187,8 @@
            OR name LIKE '%약국%'
            OR name LIKE '%은행%'
            OR name LIKE '%ATM%'
+           OR name LIKE '%치과%'
+           OR name LIKE '%택시%'
     </delete>
 
     <delete id="deleteTagsByUnrelatedFilter">
@@ -199,6 +201,8 @@
            OR p.name LIKE '%약국%'
            OR p.name LIKE '%은행%'
            OR p.name LIKE '%ATM%'
+           OR p.name LIKE '%치과%'
+           OR p.name LIKE '%택시%'
     </delete>
 
     <!-- 이름이 완전히 같은 중복 장소 제거 (id 가장 작은 것만 유지) -->

@@ -136,7 +136,7 @@ public class PlaceSeedService {
 
     @Transactional
     public Map<String, Integer> fullCleanup() {
-        // 1. 아파트·화장실 등 휴식 무관 장소 삭제
+        // 1. 아파트·화장실·치과·택시 등 휴식 무관 장소 삭제
         placeMapper.deleteTagsByUnrelatedFilter();
         int unrelated = placeMapper.deleteUnrelatedPlaces();
 
