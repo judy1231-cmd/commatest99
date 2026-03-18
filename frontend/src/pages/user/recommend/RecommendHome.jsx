@@ -4,7 +4,7 @@ import UserNavbar from '../../../components/user/UserNavbar';
 import { fetchWithAuth } from '../../../api/fetchWithAuth';
 
 const TYPE_INFO = {
-  physical:  { name: '신체적 이완', icon: 'fitness_center', color: '#EF4444', bg: 'from-red-400 to-rose-500' },
+  physical:  { name: '신체의 이완', icon: 'fitness_center', color: '#EF4444', bg: 'from-red-400 to-rose-500' },
   mental:    { name: '정신적 고요', icon: 'spa',            color: '#10B981', bg: 'from-emerald-400 to-teal-500' },
   sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#F59E0B', bg: 'from-amber-400 to-orange-500' },
   emotional: { name: '정서적 지지', icon: 'favorite',       color: '#EC4899', bg: 'from-pink-400 to-rose-500' },

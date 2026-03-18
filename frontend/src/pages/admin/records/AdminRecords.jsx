@@ -5,7 +5,7 @@ import AdminHeader from '../../../components/admin/AdminHeader';
 
 const TYPE_FILTERS = [
   { key: '', label: '전체' },
-  { key: 'physical',  label: '신체적 이완' },
+  { key: 'physical',  label: '신체의 이완' },
   { key: 'mental',    label: '정신적 고요' },
   { key: 'sensory',   label: '감각의 정화' },
   { key: 'emotional', label: '정서적 지지' },

@@ -3,7 +3,7 @@ import AdminSidebar from '../../../components/admin/AdminSidebar';
 import AdminHeader from '../../../components/admin/AdminHeader';
 
 const REST_TYPES = [
-  { key: 'physical',  label: '신체적 이완',   icon: 'fitness_center', color: '#EF4444', desc: '스트레칭, 산책, 가벼운 운동 등 신체 활동을 통한 이완' },
+  { key: 'physical',  label: '신체의 이완',   icon: 'fitness_center', color: '#EF4444', desc: '스트레칭, 산책, 가벼운 운동 등 신체 활동을 통한 이완' },
   { key: 'mental',    label: '정신적 고요',   icon: 'spa',            color: '#10B981', desc: '명상, 호흡, 마음챙김 등 정신적 안정을 위한 활동' },
   { key: 'sensory',   label: '감각의 정화',   icon: 'visibility_off', color: '#F59E0B', desc: '디지털 디톡스, 조용한 환경 등 감각 자극 최소화' },
   { key: 'emotional', label: '정서적 지지',   icon: 'favorite',       color: '#EC4899', desc: '일기 쓰기, 감사 나누기 등 감정 표현과 돌봄' },

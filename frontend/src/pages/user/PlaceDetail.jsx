@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const REST_TYPE_INFO = {
-  physical:  { label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82', path: '/rest/physical',
+  physical:  { label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', path: '/rest/physical',
                heroImg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=900&q=80',
                difficulty: '보통', conditions: ['운동복 착용 권장', '준비운동 필수', '신체 활동 포함'] },
   mental:    { label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', path: '/rest/mental',

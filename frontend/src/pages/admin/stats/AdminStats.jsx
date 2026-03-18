@@ -4,7 +4,7 @@ import AdminSidebar from '../../../components/admin/AdminSidebar';
 import AdminHeader from '../../../components/admin/AdminHeader';
 
 const REST_TYPE_KR = {
-  physical: '신체적 이완', mental: '정신적 고요', sensory: '감각의 정화',
+  physical: '신체의 이완', mental: '정신적 고요', sensory: '감각의 정화',
   emotional: '정서적 지지', social: '사회적 휴식', nature: '자연의 연결', creative: '창조적 몰입',
 };
 const TYPE_COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#F43F5E', '#8B5CF6', '#F97316', '#14B8A6'];

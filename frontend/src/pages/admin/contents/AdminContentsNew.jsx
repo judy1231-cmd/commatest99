@@ -4,7 +4,7 @@ import AdminSidebar from '../../../components/admin/AdminSidebar';
 import AdminHeader from '../../../components/admin/AdminHeader';
 
 const REST_TYPES = [
-  { key: 'physical', label: '신체적 이완' }, { key: 'mental', label: '정신적 고요' },
+  { key: 'physical', label: '신체의 이완' }, { key: 'mental', label: '정신적 고요' },
   { key: 'sensory', label: '감각의 정화' }, { key: 'emotional', label: '정서적 지지' },
   { key: 'social', label: '사회적 휴식' }, { key: 'nature', label: '자연의 연결' },
   { key: 'creative', label: '창조적 몰입' },

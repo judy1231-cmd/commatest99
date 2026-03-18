@@ -4,7 +4,7 @@ import UserNavbar from '../../../components/user/UserNavbar';
 
 const REST_TYPE_INFO = {
   physical: {
-    name: '신체적 이완',
+    name: '신체의 이완',
     icon: 'fitness_center',
     color: '#EF4444',
     bgColor: '#FFF5F5',

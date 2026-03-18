@@ -6,7 +6,7 @@ import { fetchWithAuth } from '../../../api/fetchWithAuth';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const TYPE_INFO = {
-  physical:  { name: '신체적 이완', color: '#4CAF82' },
+  physical:  { name: '신체의 이완', color: '#4CAF82' },
   mental:    { name: '정신적 고요', color: '#5B8DEF' },
   sensory:   { name: '감각의 정화', color: '#9B6DFF' },
   emotional: { name: '정서적 지지', color: '#FF7BAC' },

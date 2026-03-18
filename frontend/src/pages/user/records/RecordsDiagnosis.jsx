@@ -3,7 +3,7 @@ import { fetchWithAuth } from '../../../api/fetchWithAuth';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const REST_TYPE_INFO = {
-  physical:  { name: '신체적 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5' },
+  physical:  { name: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5' },
   mental:    { name: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF' },
   sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF' },
   emotional: { name: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5' },

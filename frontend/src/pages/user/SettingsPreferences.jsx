@@ -5,7 +5,7 @@ import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
 
 const REST_TYPES = [
-  { key: 'physical',  label: '신체적 이완', icon: 'fitness_center', color: '#4CAF82' },
+  { key: 'physical',  label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82' },
   { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF' },
   { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
   { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },

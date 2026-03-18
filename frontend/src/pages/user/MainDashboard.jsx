@@ -4,7 +4,7 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
-  { icon: 'fitness_center', label: '신체적 이완', iconHex: '#4CAF82', bgHex: '#F0FAF5', path: '/rest/physical'  },
+  { icon: 'fitness_center', label: '신체의 이완', iconHex: '#4CAF82', bgHex: '#F0FAF5', path: '/rest/physical'  },
   { icon: 'spa',            label: '정신적 고요', iconHex: '#5B8DEF', bgHex: '#F0F5FF', path: '/rest/mental'    },
   { icon: 'visibility_off', label: '감각의 정화', iconHex: '#9B6DFF', bgHex: '#F5F0FF', path: '/rest/sensory'   },
   { icon: 'favorite',       label: '정서적 지지', iconHex: '#FF7BAC', bgHex: '#FFF0F5', path: '/rest/emotional' },
@@ -38,7 +38,7 @@ const REST_TYPE_TAG_COLORS = {
 const STAT_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400'];
 
 const REST_TYPE_LABELS = {
-  physical:  '신체적 이완',
+  physical:  '신체의 이완',
   mental:    '정신적 고요',
   sensory:   '감각의 정화',
   emotional: '정서적 지지',
@@ -48,7 +48,7 @@ const REST_TYPE_LABELS = {
 };
 
 const REST_TYPE_MAP = {
-  physical:  { icon: 'fitness_center', label: '신체적 이완', color: '#4CAF82', bg: 'rgba(76,207,130,0.18)' },
+  physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,207,130,0.18)' },
   mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)' },
   sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)' },
   emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)' },

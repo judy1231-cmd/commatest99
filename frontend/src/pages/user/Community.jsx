@@ -4,7 +4,7 @@ import UserNavbar from '../../components/user/UserNavbar';
 
 const CATEGORIES = [
   { key: 'all',      label: '전체',       icon: 'grid_view' },
-  { key: '신체적 휴식', label: '신체적 이완', icon: 'fitness_center' },
+  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center' },
   { key: '정신적 휴식', label: '정신적 고요', icon: 'spa' },
   { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off' },
   { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite' },

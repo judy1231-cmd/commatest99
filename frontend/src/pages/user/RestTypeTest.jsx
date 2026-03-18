@@ -6,7 +6,7 @@ import Toast from '../../components/common/Toast';
 
 const REST_TYPE_INFO = {
   physical: {
-    name: '신체적 이완',
+    name: '신체의 이완',
     icon: 'fitness_center',
     color: '#4CAF82',
     chipBg: '#F0FDF4',

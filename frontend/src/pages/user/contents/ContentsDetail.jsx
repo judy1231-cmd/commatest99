@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
 
 const CATEGORY_INFO = {
-  physical:  { name: '신체적 이완', icon: 'fitness_center', color: '#4CAF82' },
+  physical:  { name: '신체의 이완', icon: 'fitness_center', color: '#4CAF82' },
   mental:    { name: '정신적 고요', icon: 'spa',            color: '#5B8DEF' },
   sensory:   { name: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF' },
   emotional: { name: '정서적 지지', icon: 'favorite',       color: '#FF7BAC' },

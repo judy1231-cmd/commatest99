@@ -20,7 +20,7 @@ const TYPE_COLORS = {
 };
 
 const TYPE_LABELS = {
-  physical: '신체적 이완', mental: '정신적 고요', sensory: '감각의 정화',
+  physical: '신체의 이완', mental: '정신적 고요', sensory: '감각의 정화',
   emotional: '정서적 지지', social: '사회적 휴식', nature: '자연의 연결', creative: '창조적 몰입',
 };
 

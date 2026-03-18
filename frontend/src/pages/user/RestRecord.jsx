@@ -5,7 +5,7 @@ import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
 
 const TYPE_INFO = {
-  physical:  { label: '신체적 이완', icon: 'fitness_center', bg: 'bg-red-50 text-red-600' },
+  physical:  { label: '신체의 이완', icon: 'fitness_center', bg: 'bg-red-50 text-red-600' },
   mental:    { label: '정신적 고요', icon: 'spa', bg: 'bg-emerald-50 text-emerald-600' },
   sensory:   { label: '감각의 정화', icon: 'visibility_off', bg: 'bg-amber-50 text-amber-600' },
   emotional: { label: '정서적 지지', icon: 'favorite', bg: 'bg-pink-50 text-pink-600' },

@@ -5,7 +5,7 @@ import { useRestActivities } from '../../api/useRestActivities';
 
 const TYPE = {
   key: 'physical',
-  name: '신체적 이완',
+  name: '신체의 이완',
   engName: 'Body Rest',
   icon: 'fitness_center',
   desc: '쌓인 근육 긴장을 풀고 몸이 보내는 신호에 귀 기울이는 시간',
@@ -233,7 +233,7 @@ function RestPhysical() {
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">※ 3개 이상 해당된다면 오늘은 신체적 이완에 집중하세요.</p>
+                  <p className="text-xs text-slate-400">※ 3개 이상 해당된다면 오늘은 신체의 이완에 집중하세요.</p>
                 </div>
               </div>
             </section>
