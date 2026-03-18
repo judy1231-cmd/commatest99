@@ -384,10 +384,11 @@ function MainDashboard() {
               }
             />
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-              {recommendations.slice(0, 5).map((rec) => (
+              {recommendations.slice(0, 5).map((rec, idx) => (
                 <div
                   key={rec.id}
-                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col"
+                  className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col"
+                  style={{ animationDelay: `${idx * 0.08}s` }}
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
@@ -472,14 +473,15 @@ function MainDashboard() {
             </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-              {places.map((place) => {
+              {places.map((place, idx) => {
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
                   <div
                     key={place.id}
-                    className="flex-shrink-0 w-[220px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
+                    className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
+                    style={{ animationDelay: `${idx * 0.08}s` }}
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0">
