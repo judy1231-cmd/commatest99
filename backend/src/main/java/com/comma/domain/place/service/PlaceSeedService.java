@@ -170,9 +170,9 @@ public class PlaceSeedService {
         // 해외 유명 자연 — Pexels (직접 확인된 URL)
         new String[]{"오로라",      "https://images.pexels.com/photos/1434608/pexels-photo-1434608.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"마추픽추",    "https://images.pexels.com/photos/2929906/pexels-photo-2929906.jpeg?auto=compress&cs=tinysrgb&w=800"},
-        new String[]{"루이스",      "https://images.pexels.com/photos/2775196/pexels-photo-2775196.jpeg?auto=compress&cs=tinysrgb&w=800"},
-        new String[]{"밴프",        "https://images.pexels.com/photos/2775196/pexels-photo-2775196.jpeg?auto=compress&cs=tinysrgb&w=800"},
-        new String[]{"융프라우",    "https://images.pexels.com/photos/290452/pexels-photo-290452.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"루이스",      "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=800&q=80"},
+        new String[]{"밴프",        "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=800&q=80"},
+        new String[]{"융프라우",    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80"},
         new String[]{"피요르드",    "https://images.pexels.com/photos/1559699/pexels-photo-1559699.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"나팔리",      "https://images.pexels.com/photos/1268855/pexels-photo-1268855.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"하와이",      "https://images.pexels.com/photos/1268855/pexels-photo-1268855.jpeg?auto=compress&cs=tinysrgb&w=800"},
@@ -183,14 +183,14 @@ public class PlaceSeedService {
         new String[]{"싱가포르",    "https://images.pexels.com/photos/777059/pexels-photo-777059.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"홍콩",        "https://images.pexels.com/photos/2385210/pexels-photo-2385210.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"타이베이",    "https://images.pexels.com/photos/3408354/pexels-photo-3408354.jpeg?auto=compress&cs=tinysrgb&w=800"},
-        new String[]{"방콕",        "https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"방콕",        "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80"},
         new String[]{"도쿄",        "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"교토",        "https://images.pexels.com/photos/1440476/pexels-photo-1440476.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"발리",        "https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"따나롯",      "https://images.pexels.com/photos/2474690/pexels-photo-2474690.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"마카오",      "https://images.pexels.com/photos/3889843/pexels-photo-3889843.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"뉴욕",        "https://images.pexels.com/photos/802024/pexels-photo-802024.jpeg?auto=compress&cs=tinysrgb&w=800"},
-        new String[]{"파리",        "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"파리",        "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80"},
         new String[]{"바르셀로나",  "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"사그라다",    "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800"},
         new String[]{"루브르",      "https://images.pexels.com/photos/2363/france-landmark-lights-night.jpg?auto=compress&cs=tinysrgb&w=800"},
@@ -375,12 +375,42 @@ public class PlaceSeedService {
             }
         }
 
+        // ─ 태그 누락 장소 보정 (이름 기반)
+        fixMissingTags(places);
+
         log.info("[PlaceSeed] 미디어 seed 완료 — 사진: {}, 리뷰: {}", photoAdded, reviewAdded);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("photoAdded", photoAdded);
         result.put("reviewAdded", reviewAdded);
         result.put("totalPlaces", places.size());
         return result;
+    }
+
+    // 이름 키워드 → {restType, tagName} 보정 목록
+    private static final List<String[]> TAG_FIX_MAP = List.of(
+        new String[]{"마추픽추", "nature",   "트레킹"},
+        new String[]{"사하라",  "nature",   "자연탐방"},
+        new String[]{"에베레스트","nature",  "트레킹"},
+        new String[]{"킬리만자로","nature",  "트레킹"}
+    );
+
+    private void fixMissingTags(List<Place> places) {
+        for (Place place : places) {
+            List<PlaceTag> existing = placeMapper.findTagsByPlaceId(place.getId());
+            if (!existing.isEmpty()) continue; // 이미 태그 있으면 스킵
+
+            for (String[] fix : TAG_FIX_MAP) {
+                if (place.getName() != null && place.getName().contains(fix[0])) {
+                    PlaceTag tag = new PlaceTag();
+                    tag.setPlaceId(place.getId());
+                    tag.setTagName(fix[2]);
+                    tag.setRestType(fix[1]);
+                    placeMapper.insertPlaceTag(tag);
+                    log.info("[PlaceSeed] 태그 보정: {} → restType={}", place.getName(), fix[1]);
+                    break;
+                }
+            }
+        }
     }
 
     private String resolvePhotoUrl(String name) {

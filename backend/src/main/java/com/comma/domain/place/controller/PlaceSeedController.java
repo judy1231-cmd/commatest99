@@ -1,5 +1,7 @@
 package com.comma.domain.place.controller;
 
+import com.comma.domain.place.mapper.PlaceMapper;
+import com.comma.domain.place.model.PlaceTag;
 import com.comma.domain.place.service.PlaceSeedService;
 import com.comma.global.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import java.util.Map;
 public class PlaceSeedController {
 
     private final PlaceSeedService placeSeedService;
+    private final PlaceMapper placeMapper;
 
     /**
      * POST /api/admin/places/seed
@@ -55,6 +58,22 @@ public class PlaceSeedController {
         Map<String, Object> result = placeSeedService.seedMediaData();
         return ResponseEntity.ok(ApiResponse.ok(result,
             "미디어 seed 완료 — 사진 " + result.get("photoAdded") + "개, 리뷰 " + result.get("reviewAdded") + "개 추가"));
+    }
+
+    /**
+     * POST /api/admin/places/{id}/tag
+     * 특정 장소에 태그 추가 (미분류 장소 수동 분류용)
+     */
+    @PostMapping("/{id}/tag")
+    public ResponseEntity<ApiResponse<Void>> addTag(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        PlaceTag tag = new PlaceTag();
+        tag.setPlaceId(id);
+        tag.setTagName(body.get("tagName"));
+        tag.setRestType(body.get("restType"));
+        placeMapper.insertPlaceTag(tag);
+        return ResponseEntity.ok(ApiResponse.ok(null, "태그 추가 완료"));
     }
 
     /**
