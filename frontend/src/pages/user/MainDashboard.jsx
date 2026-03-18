@@ -160,9 +160,11 @@ function MainDashboard() {
           if (data.data?.bookmarked) {
             next.add(placeId);
             setPlaces(ps => ps.map(p => p.id === placeId ? { ...p, bookmarkCount: (p.bookmarkCount || 0) + 1 } : p));
+            setRecommendations(rs => rs.map(r => r.placeId === placeId ? { ...r, placeBookmarkCount: (r.placeBookmarkCount || 0) + 1 } : r));
           } else {
             next.delete(placeId);
             setPlaces(ps => ps.map(p => p.id === placeId ? { ...p, bookmarkCount: Math.max((p.bookmarkCount || 1) - 1, 0) } : p));
+            setRecommendations(rs => rs.map(r => r.placeId === placeId ? { ...r, placeBookmarkCount: Math.max((r.placeBookmarkCount || 1) - 1, 0) } : r));
           }
           return next;
         });
