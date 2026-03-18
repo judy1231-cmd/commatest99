@@ -20,4 +20,9 @@ public class Place {
     private Double aiScore;
     private String status;          // pending / approved / rejected
     private LocalDateTime createdAt;
+
+    // 목록 조회 시 JOIN으로 채워지는 부가 정보
+    private String photoUrl;        // 대표 사진 URL
+    private Integer reviewCount;    // 리뷰 수
+    private Integer bookmarkCount;  // 북마크(하트) 수
 }

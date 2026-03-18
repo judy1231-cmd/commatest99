@@ -25,4 +25,7 @@ public class Recommendation {
     private String placeAddress;
     private Double placeLatitude;
     private Double placeLongitude;
+    private String placePhotoUrl;
+    private Integer placeReviewCount;
+    private Integer placeBookmarkCount;
 }

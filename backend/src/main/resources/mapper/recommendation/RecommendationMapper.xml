@@ -13,7 +13,10 @@
     <select id="findBy쉼표번호" resultType="com.comma.domain.recommendation.model.Recommendation">
         SELECT r.id, r.`쉼표번호`, r.diagnosis_result_id, r.place_id, r.criteria, r.clicked, r.saved, r.recommended_at,
                p.name AS place_name, p.address AS place_address,
-               p.latitude AS place_latitude, p.longitude AS place_longitude
+               p.latitude AS place_latitude, p.longitude AS place_longitude,
+               (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS place_photo_url,
+               (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS place_review_count,
+               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS place_bookmark_count
         FROM recommendations r
         LEFT JOIN places p ON r.place_id = p.id
         WHERE r.`쉼표번호` = #{쉼표번호}

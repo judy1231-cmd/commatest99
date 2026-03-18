@@ -81,12 +81,14 @@ function MainDashboard() {
   const [recommendations, setRecommendations] = useState([]);
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
 
   useEffect(() => {
     loadPlaces();
     if (isLoggedIn) {
       loadMonthlyStats();
       loadRecommendations();
+      loadMyBookmarks();
     }
   }, [isLoggedIn]);
 
@@ -118,6 +120,40 @@ function MainDashboard() {
       const data = await fetchWithAuth('/api/recommendations');
       if (data.success && Array.isArray(data.data)) {
         setRecommendations(data.data.filter(r => r.placeName));
+      }
+    } catch {
+      // 무시
+    }
+  };
+
+  const loadMyBookmarks = async () => {
+    try {
+      const data = await fetchWithAuth('/api/places/bookmarks');
+      if (data.success && Array.isArray(data.data)) {
+        setBookmarkedIds(new Set(data.data.map(p => p.id)));
+      }
+    } catch {
+      // 무시
+    }
+  };
+
+  const handleToggleBookmark = async (e, placeId) => {
+    e.stopPropagation();
+    if (!isLoggedIn) { navigate('/login'); return; }
+    try {
+      const data = await fetchWithAuth(`/api/places/${placeId}/bookmark`, { method: 'POST' });
+      if (data.success) {
+        setBookmarkedIds(prev => {
+          const next = new Set(prev);
+          if (data.data?.bookmarked) {
+            next.add(placeId);
+            setPlaces(ps => ps.map(p => p.id === placeId ? { ...p, bookmarkCount: (p.bookmarkCount || 0) + 1 } : p));
+          } else {
+            next.delete(placeId);
+            setPlaces(ps => ps.map(p => p.id === placeId ? { ...p, bookmarkCount: Math.max((p.bookmarkCount || 1) - 1, 0) } : p));
+          }
+          return next;
+        });
       }
     } catch {
       // 무시
@@ -349,14 +385,37 @@ function MainDashboard() {
                       },
                     });
                   }}
-                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4 text-left"
+                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden text-left"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-                    <span className="material-icons text-primary text-[18px]">location_on</span>
+                  {/* 사진 */}
+                  <div className="relative h-[120px] overflow-hidden bg-slate-100">
+                    {rec.placePhotoUrl ? (
+                      <img src={rec.placePhotoUrl} alt={rec.placeName} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-icons text-slate-300 text-[36px]">landscape</span>
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                      <span className="material-icons text-[10px]">auto_awesome</span>맞춤
+                    </div>
                   </div>
-                  <p className="text-[14px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
-                  <p className="text-[12px] text-slate-400 truncate mb-3">{rec.placeAddress}</p>
-                  <p className="text-[11px] text-primary/80 bg-primary/5 rounded-lg px-3 py-1.5 leading-relaxed line-clamp-2">{rec.criteria}</p>
+                  {/* 내용 */}
+                  <div className="p-3">
+                    <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
+                    <p className="text-[11px] text-slate-400 truncate mb-2">{rec.placeAddress}</p>
+                    <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-2">{rec.criteria}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                      <span className="flex items-center gap-0.5">
+                        <span className="material-icons text-[13px] text-rose-400">favorite</span>
+                        {rec.placeBookmarkCount ?? 0}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
+                        {rec.placeReviewCount ?? 0}
+                      </span>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -387,7 +446,6 @@ function MainDashboard() {
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
               {places.map((place) => {
-                const firstPhoto = place.photos?.[0]?.photoUrl;
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
@@ -411,11 +469,11 @@ function MainDashboard() {
                   >
                     {/* 이미지 */}
                     <div className="relative h-[140px] overflow-hidden bg-slate-100">
-                      {firstPhoto ? (
+                      {place.photoUrl ? (
                         <img
                           alt={place.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          src={firstPhoto}
+                          src={place.photoUrl}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -438,10 +496,32 @@ function MainDashboard() {
                     {/* 텍스트 */}
                     <div className="p-4">
                       <p className="text-[14px] font-bold text-slate-900 truncate mb-1">{place.name}</p>
-                      <p className="text-[12px] text-slate-400 truncate flex items-center gap-1">
+                      <p className="text-[12px] text-slate-400 truncate flex items-center gap-1 mb-3">
                         <span className="material-icons text-[12px]">location_on</span>
                         {place.address?.split(' ').slice(0, 2).join(' ')}
                       </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                          <span className="flex items-center gap-0.5">
+                            <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
+                            {place.reviewCount ?? 0}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => handleToggleBookmark(e, place.id)}
+                          className="flex items-center gap-0.5 text-[11px] font-bold transition-colors"
+                        >
+                          <span
+                            className="material-icons text-[18px] transition-colors"
+                            style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}
+                          >
+                            {bookmarkedIds.has(place.id) ? 'favorite' : 'favorite_border'}
+                          </span>
+                          <span style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#94A3B8' }}>
+                            {place.bookmarkCount ?? 0}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   </button>
                 );
