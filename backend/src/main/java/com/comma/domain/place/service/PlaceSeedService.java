@@ -160,88 +160,90 @@ public class PlaceSeedService {
         return result;
     }
 
-    // ===== 사진 키워드 → Unsplash URL 매핑 (순서 중요 — 먼저 매칭되는 것 사용) =====
+    // ===== 사진 키워드 → Pexels URL 매핑 (검증된 URL만 사용) =====
     private static final List<String[]> PHOTO_MAP = List.of(
-        // 해외 유명 자연
-        new String[]{"오로라",      "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"마추픽추",    "https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"루이스",      "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"밴프",        "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"융프라우",    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"피요르드",    "https://images.unsplash.com/photo-1531186806760-249a850e4fd7?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"나팔리",      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"하와이",      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"밀포드",      "https://images.unsplash.com/photo-1589802829985-817e51171b92?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"후지산",      "https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"퀸스타운",    "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"몬세라트",    "https://images.unsplash.com/photo-1568625365131-079e026a927d?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"싱가포르",    "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"홍콩",        "https://images.unsplash.com/photo-1506125840744-167167210587?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"타이베이",    "https://images.unsplash.com/photo-1570171558569-2f24a7ea5fea?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"방콕",        "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"도쿄",        "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"교토",        "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"발리",        "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"따나롯",      "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"마카오",      "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"뉴욕",        "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"파리",        "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"바르셀로나",  "https://images.unsplash.com/photo-1583779457094-ab6f77f7bf57?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"사그라다",    "https://images.unsplash.com/photo-1583779457094-ab6f77f7bf57?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"루브르",      "https://images.unsplash.com/photo-1564399580075-5dfe19c205f3?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"멜버른",      "https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"상하이",      "https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=800&q=80"},
+        // 해외 유명 자연 — Pexels (직접 확인된 URL)
+        new String[]{"오로라",      "https://images.pexels.com/photos/1434608/pexels-photo-1434608.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"마추픽추",    "https://images.pexels.com/photos/2929906/pexels-photo-2929906.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"루이스",      "https://images.pexels.com/photos/2775196/pexels-photo-2775196.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"밴프",        "https://images.pexels.com/photos/2775196/pexels-photo-2775196.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"융프라우",    "https://images.pexels.com/photos/290452/pexels-photo-290452.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"피요르드",    "https://images.pexels.com/photos/1559699/pexels-photo-1559699.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"나팔리",      "https://images.pexels.com/photos/1268855/pexels-photo-1268855.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"하와이",      "https://images.pexels.com/photos/1268855/pexels-photo-1268855.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"밀포드",      "https://images.pexels.com/photos/3225517/pexels-photo-3225517.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"후지산",      "https://images.pexels.com/photos/1108701/pexels-photo-1108701.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"퀸스타운",    "https://images.pexels.com/photos/2422259/pexels-photo-2422259.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"몬세라트",    "https://images.pexels.com/photos/1174732/pexels-photo-1174732.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"싱가포르",    "https://images.pexels.com/photos/777059/pexels-photo-777059.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"홍콩",        "https://images.pexels.com/photos/2385210/pexels-photo-2385210.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"타이베이",    "https://images.pexels.com/photos/3408354/pexels-photo-3408354.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"방콕",        "https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"도쿄",        "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"교토",        "https://images.pexels.com/photos/1440476/pexels-photo-1440476.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"발리",        "https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"따나롯",      "https://images.pexels.com/photos/2474690/pexels-photo-2474690.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"마카오",      "https://images.pexels.com/photos/3889843/pexels-photo-3889843.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"뉴욕",        "https://images.pexels.com/photos/802024/pexels-photo-802024.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"파리",        "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"바르셀로나",  "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"사그라다",    "https://images.pexels.com/photos/1388030/pexels-photo-1388030.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"루브르",      "https://images.pexels.com/photos/2363/france-landmark-lights-night.jpg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"멜버른",      "https://images.pexels.com/photos/2193300/pexels-photo-2193300.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"상하이",      "https://images.pexels.com/photos/2120058/pexels-photo-2120058.jpeg?auto=compress&cs=tinysrgb&w=800"},
         // 한국 유명 장소
-        new String[]{"경복궁",      "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"북촌",        "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"성산일출봉",  "https://images.unsplash.com/photo-1562768393-45c45afb2b76?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"한라산",      "https://images.unsplash.com/photo-1562768393-45c45afb2b76?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"불국사",      "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"해인사",      "https://images.unsplash.com/photo-1542361345-89e58247f2d5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"보문",        "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"보성",        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"녹차",        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"한강",        "https://images.unsplash.com/photo-1601621915196-2621bfb0cd6e?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"서울숲",      "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"올레길",      "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"제주",        "https://images.unsplash.com/photo-1562768393-45c45afb2b76?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"팀랩",        "https://images.unsplash.com/photo-1559628233-100c798642d0?auto=format&fit=crop&w=800&q=80"},
+        new String[]{"경복궁",      "https://images.pexels.com/photos/237211/pexels-photo-237211.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"북촌",        "https://images.pexels.com/photos/237211/pexels-photo-237211.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"성산일출봉",  "https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"한라산",      "https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"불국사",      "https://images.pexels.com/photos/1108117/pexels-photo-1108117.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"해인사",      "https://images.pexels.com/photos/1108117/pexels-photo-1108117.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"보문",        "https://images.pexels.com/photos/1574843/pexels-photo-1574843.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"보성",        "https://images.pexels.com/photos/3310691/pexels-photo-3310691.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"녹차",        "https://images.pexels.com/photos/3310691/pexels-photo-3310691.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"한강",        "https://images.pexels.com/photos/237211/pexels-photo-237211.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"서울숲",      "https://images.pexels.com/photos/1598073/pexels-photo-1598073.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"올레길",      "https://images.pexels.com/photos/1578750/pexels-photo-1578750.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"제주",        "https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"팀랩",        "https://images.pexels.com/photos/1671324/pexels-photo-1671324.jpeg?auto=compress&cs=tinysrgb&w=800"},
         // 장소 유형별
-        new String[]{"대나무",      "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"사찰",        "https://images.unsplash.com/photo-1542361345-89e58247f2d5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"템플",        "https://images.unsplash.com/photo-1542361345-89e58247f2d5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"힐링카페",    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"명상",        "https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"요가",        "https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"수영",        "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"헬스",        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"스포츠",      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"스파",        "https://images.unsplash.com/photo-1540555700478-4be290a303f5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"온천",        "https://images.unsplash.com/photo-1540555700478-4be290a303f5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"찜질",        "https://images.unsplash.com/photo-1540555700478-4be290a303f5?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"미술관",      "https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"갤러리",      "https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"박물관",      "https://images.unsplash.com/photo-1518998053901-5348d3961a04?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"도서관",      "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"서점",        "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"공방",        "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"도예",        "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"드로잉",      "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"루프탑",      "https://images.unsplash.com/photo-1514565131-fce0801e6175?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"카페",        "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"공원",        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"산책",        "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"식물원",      "https://images.unsplash.com/photo-1558618047-b94e98636424?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"수목원",      "https://images.unsplash.com/photo-1558618047-b94e98636424?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"숲",          "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"산",          "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"피크닉",      "https://images.unsplash.com/photo-1501200291289-c5a76c232e5f?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"벽화",        "https://images.unsplash.com/photo-1557838923-2985c318be48?auto=format&fit=crop&w=800&q=80"},
-        new String[]{"야경",        "https://images.unsplash.com/photo-1478827536114-da961b7f86d2?auto=format&fit=crop&w=800&q=80"}
+        new String[]{"대나무",      "https://images.pexels.com/photos/1440476/pexels-photo-1440476.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"사찰",        "https://images.pexels.com/photos/1108117/pexels-photo-1108117.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"템플",        "https://images.pexels.com/photos/1108117/pexels-photo-1108117.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"힐링카페",    "https://images.pexels.com/photos/1579739/pexels-photo-1579739.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"명상",        "https://images.pexels.com/photos/1978628/pexels-photo-1978628.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"요가",        "https://images.pexels.com/photos/1812964/pexels-photo-1812964.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"수영",        "https://images.pexels.com/photos/1263349/pexels-photo-1263349.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"헬스",        "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"스포츠",      "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"스파",        "https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"온천",        "https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"찜질",        "https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"미술관",      "https://images.pexels.com/photos/1674049/pexels-photo-1674049.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"갤러리",      "https://images.pexels.com/photos/1674049/pexels-photo-1674049.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"박물관",      "https://images.pexels.com/photos/1674049/pexels-photo-1674049.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"도서관",      "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"서점",        "https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"공방",        "https://images.pexels.com/photos/1267363/pexels-photo-1267363.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"도예",        "https://images.pexels.com/photos/1267363/pexels-photo-1267363.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"드로잉",      "https://images.pexels.com/photos/1047540/pexels-photo-1047540.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"루프탑",      "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"카페",        "https://images.pexels.com/photos/1579739/pexels-photo-1579739.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"공원",        "https://images.pexels.com/photos/1598073/pexels-photo-1598073.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"산책",        "https://images.pexels.com/photos/1598073/pexels-photo-1598073.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"식물원",      "https://images.pexels.com/photos/1407305/pexels-photo-1407305.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"수목원",      "https://images.pexels.com/photos/1407305/pexels-photo-1407305.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"숲",          "https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"산",          "https://images.pexels.com/photos/1574843/pexels-photo-1574843.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"트레킹",      "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"등산",        "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"피크닉",      "https://images.pexels.com/photos/1208777/pexels-photo-1208777.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"벽화",        "https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&cs=tinysrgb&w=800"},
+        new String[]{"야경",        "https://images.pexels.com/photos/1105766/pexels-photo-1105766.jpeg?auto=compress&cs=tinysrgb&w=800"}
     );
 
     private static final String DEFAULT_PHOTO =
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80";
+        "https://images.pexels.com/photos/167698/pexels-photo-167698.jpeg?auto=compress&cs=tinysrgb&w=800";
 
     // 테스트 유저 쉼표번호 목록
     private static final List<String> TEST_USERS = List.of(
@@ -324,13 +326,16 @@ public class PlaceSeedService {
             }
         }
 
+        // 기존 seed 사진 전체 삭제 후 재삽입 (URL 오류 수정 시 재실행 가능)
+        placeMapper.deleteAllSeedPhotos();
+
         int photoAdded = 0;
         int reviewAdded = 0;
         Random random = new Random(42);
 
         for (Place place : places) {
-            // ─ 사진 seed (없는 경우만)
-            if (placeMapper.countPhotosByPlaceId(place.getId()) == 0) {
+            // ─ 사진 seed (항상 재삽입)
+            if (true) {
                 String photoUrl = resolvePhotoUrl(place.getName());
                 PlacePhoto photo = new PlacePhoto();
                 photo.setPlaceId(place.getId());

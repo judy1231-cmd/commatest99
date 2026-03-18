@@ -53,6 +53,8 @@ public interface PlaceMapper {
 
     int countPhotosByPlaceId(@Param("placeId") Long placeId);
 
+    void deleteAllSeedPhotos();
+
     List<Place> findAllApproved();
 
     // ==================== 주변 검색 ====================

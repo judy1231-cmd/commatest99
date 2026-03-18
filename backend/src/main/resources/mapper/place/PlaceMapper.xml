@@ -130,6 +130,10 @@
         SELECT COUNT(*) FROM place_photos WHERE place_id = #{placeId}
     </select>
 
+    <delete id="deleteAllSeedPhotos">
+        DELETE FROM place_photos WHERE source = 'seed'
+    </delete>
+
     <select id="findAllApproved" resultType="com.comma.domain.place.model.Place">
         SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
         FROM places
