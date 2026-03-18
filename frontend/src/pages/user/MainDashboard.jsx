@@ -407,8 +407,8 @@ function MainDashboard() {
                     <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
                     <p className="text-[11px] text-slate-400 truncate mb-2">{rec.placeAddress}</p>
                     <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-3">{rec.criteria}</p>
-                    {/* 통계 + 하트 토글 */}
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3">
+                    {/* 하트 · 후기 · 지도 한 줄 */}
+                    <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-auto">
                       <button
                         onClick={(e) => handleToggleBookmark(e, rec.placeId)}
                         className="flex items-center gap-0.5 transition-colors"
@@ -425,18 +425,16 @@ function MainDashboard() {
                         <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
                         {rec.placeReviewCount ?? 0}
                       </span>
-                    </div>
-                    {/* 액션 버튼 */}
-                    <div className="flex gap-1.5 mt-auto">
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
                           try { await fetchWithAuth(`/api/recommendations/${rec.id}/click`, { method: 'PUT' }); } catch { /* 무시 */ }
                           navigate('/map', { state: { highlightPlace: { name: rec.placeName, location: rec.placeAddress, placeId: rec.placeId } } });
                         }}
-                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-[11px] font-bold text-slate-500 transition-colors"
+                        className="ml-auto flex items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold transition-colors"
                       >
-                        <span className="material-icons text-[13px]">map</span>지도
+                        <span className="material-icons text-[13px]">map</span>
+                        <span className="text-[10px]">지도</span>
                       </button>
                     </div>
                   </div>
@@ -507,8 +505,8 @@ function MainDashboard() {
                         <span className="material-icons text-[11px]">location_on</span>
                         {place.address?.split(' ').slice(0, 2).join(' ')}
                       </p>
-                      {/* 통계 + 하트 토글 */}
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3">
+                      {/* 하트 · 후기 · 지도 한 줄 */}
+                      <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-auto">
                         <button
                           onClick={(e) => handleToggleBookmark(e, place.id)}
                           className="flex items-center gap-0.5 transition-colors"
@@ -525,17 +523,15 @@ function MainDashboard() {
                           <span className="material-icons text-[13px] text-slate-300">chat_bubble</span>
                           {place.reviewCount ?? 0}
                         </span>
-                      </div>
-                      {/* 액션 버튼 */}
-                      <div className="flex gap-1.5 mt-auto">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate('/map', { state: { highlightPlace: { name: place.name, location: place.address, lat: place.latitude || null, lng: place.longitude || null, placeId: place.id } } });
                           }}
-                          className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-[11px] font-bold text-slate-500 transition-colors"
+                          className="ml-auto flex items-center gap-0.5 px-2 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 font-bold transition-colors"
                         >
-                          <span className="material-icons text-[13px]">map</span>지도
+                          <span className="material-icons text-[13px]">map</span>
+                          <span className="text-[10px]">지도</span>
                         </button>
                       </div>
                     </div>
