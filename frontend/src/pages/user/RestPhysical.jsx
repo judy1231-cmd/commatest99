@@ -65,10 +65,7 @@ function RestPhysical() {
         {/* 사진 영역 */}
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-          {/* 브랜드 컬러 그린 오버레이 — 검정 대신 앱 색으로 물들임 */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(22,101,52,0.75) 0%, rgba(34,197,94,0.25) 60%, rgba(0,0,0,0.05) 100%)' }} />
-          {/* 텍스트 */}
-          <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">
+          <div className="absolute bottom-0 left-0 right-0 px-8 pb-6" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white/90">
                 {TYPE.engName}

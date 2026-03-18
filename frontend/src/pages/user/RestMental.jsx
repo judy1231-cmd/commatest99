@@ -62,9 +62,7 @@ function RestMental() {
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-          {/* 블루 계열 브랜드 오버레이 */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(30,58,138,0.72) 0%, rgba(59,130,246,0.22) 60%, rgba(0,0,0,0.05) 100%)' }} />
-          <div className="absolute bottom-0 left-0 right-0 px-8 pb-6">
+          <div className="absolute bottom-0 left-0 right-0 px-8 pb-6" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
             <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-2 bg-white/20 backdrop-blur-sm text-white/90">
               {TYPE.engName}
             </span>
