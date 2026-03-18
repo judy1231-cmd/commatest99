@@ -70,4 +70,12 @@ public interface PlaceMapper {
     void deleteTagsByPlaceNameFilter();
 
     int deleteInappropriatePlaces();
+
+    int deleteUnrelatedPlaces();
+
+    void deleteTagsByUnrelatedFilter();
+
+    int deleteDuplicatesByName();
+
+    void deleteTagsForDuplicates();
 }

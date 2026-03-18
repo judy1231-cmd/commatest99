@@ -132,6 +132,32 @@ public class PlaceSeedService {
         return removed;
     }
 
+    @Transactional
+    public Map<String, Integer> fullCleanup() {
+        // 1. 아파트·화장실 등 휴식 무관 장소 삭제
+        placeMapper.deleteTagsByUnrelatedFilter();
+        int unrelated = placeMapper.deleteUnrelatedPlaces();
+
+        // 2. 기존 화장실·주차 필터도 함께 실행
+        placeMapper.deleteTagsByPlaceNameFilter();
+        int inappropriate = placeMapper.deleteInappropriatePlaces();
+
+        // 3. 이름 완전 중복 제거 (id 작은 것 유지)
+        placeMapper.deleteTagsForDuplicates();
+        int duplicates = placeMapper.deleteDuplicatesByName();
+
+        int total = unrelated + inappropriate + duplicates;
+        log.info("[PlaceCleanup] 완료 — 휴식무관: {}, 부적절: {}, 중복: {}, 합계: {}",
+                 unrelated, inappropriate, duplicates, total);
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        result.put("unrelated", unrelated);
+        result.put("inappropriate", inappropriate);
+        result.put("duplicates", duplicates);
+        result.put("total", total);
+        return result;
+    }
+
     /**
      * VWorld POI 검색 API 호출
      * https://api.vworld.kr/req/search?service=search&request=search&version=2.0

@@ -45,4 +45,20 @@ public class PlaceSeedController {
         int removed = placeSeedService.removeInappropriatePlaces();
         return ResponseEntity.ok(ApiResponse.ok(Map.of("removed", removed), "부적절한 장소 " + removed + "개 삭제 완료"));
     }
+
+    /**
+     * DELETE /api/admin/places/cleanup/full
+     * 아파트·화장실 등 휴식 무관 장소 + 이름 중복 장소 한꺼번에 정리
+     */
+    @DeleteMapping("/cleanup/full")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> fullCleanup() {
+        Map<String, Integer> result = placeSeedService.fullCleanup();
+        return ResponseEntity.ok(ApiResponse.ok(
+            Map.of("unrelated", result.get("unrelated"),
+                   "inappropriate", result.get("inappropriate"),
+                   "duplicates", result.get("duplicates"),
+                   "total", result.get("total")),
+            "정리 완료 — 총 " + result.get("total") + "개 삭제"
+        ));
+    }
 }

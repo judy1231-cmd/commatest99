@@ -154,6 +154,56 @@
         WHERE p.name LIKE '%화장실%' OR p.name LIKE '%주차장%' OR p.name LIKE '%주차%'
     </delete>
 
+    <!-- 아파트·화장실 등 휴식과 무관한 장소 삭제 -->
+    <delete id="deleteUnrelatedPlaces">
+        DELETE FROM places
+        WHERE name LIKE '%아파트%'
+           OR name LIKE '%화장실%'
+           OR name LIKE '%주차%'
+           OR name LIKE '%편의점%'
+           OR name LIKE '%약국%'
+           OR name LIKE '%은행%'
+           OR name LIKE '%ATM%'
+    </delete>
+
+    <delete id="deleteTagsByUnrelatedFilter">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name LIKE '%아파트%'
+           OR p.name LIKE '%화장실%'
+           OR p.name LIKE '%주차%'
+           OR p.name LIKE '%편의점%'
+           OR p.name LIKE '%약국%'
+           OR p.name LIKE '%은행%'
+           OR p.name LIKE '%ATM%'
+    </delete>
+
+    <!-- 이름이 완전히 같은 중복 장소 제거 (id 가장 작은 것만 유지) -->
+    <delete id="deleteDuplicatesByName">
+        DELETE p FROM places p
+        INNER JOIN (
+            SELECT name, MIN(id) AS keep_id
+            FROM places
+            GROUP BY name
+            HAVING COUNT(*) > 1
+        ) dup ON p.name = dup.name AND p.id != dup.keep_id
+    </delete>
+
+    <delete id="deleteTagsForDuplicates">
+        DELETE pt FROM place_tags pt
+        WHERE pt.place_id IN (
+            SELECT id FROM (
+                SELECT p.id FROM places p
+                INNER JOIN (
+                    SELECT name, MIN(id) AS keep_id
+                    FROM places
+                    GROUP BY name
+                    HAVING COUNT(*) > 1
+                ) dup ON p.name = dup.name AND p.id != dup.keep_id
+            ) tmp
+        )
+    </delete>
+
     <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
     <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
         SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,
