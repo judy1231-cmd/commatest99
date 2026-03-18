@@ -47,6 +47,16 @@ const REST_TYPE_LABELS = {
   nature:    '자연의 연결',
 };
 
+const REST_TYPE_MAP = {
+  physical:  { icon: 'fitness_center', label: '신체적 이완', color: '#4CAF82', bg: 'rgba(76,207,130,0.18)' },
+  mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)' },
+  sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)' },
+  emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)' },
+  social:    { icon: 'groups',         label: '사회적 휴식', color: '#FF9A3C', bg: 'rgba(255,154,60,0.18)' },
+  creative:  { icon: 'brush',          label: '창조적 몰입', color: '#FFB830', bg: 'rgba(255,184,48,0.18)' },
+  nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)' },
+};
+
 function formatMinutes(minutes) {
   if (!minutes) return '0시간';
   if (minutes < 60) return `${minutes}분`;
@@ -398,7 +408,19 @@ function MainDashboard() {
                       alt={rec.placeName}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute top-2 left-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                    {/* 좌상단 — 휴식유형 로고 */}
+                    {REST_TYPE_MAP[rec.placeFirstRestType] && (() => {
+                      const t = REST_TYPE_MAP[rec.placeFirstRestType];
+                      return (
+                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
+                          style={{ background: 'rgba(0,0,0,0.45)' }}>
+                          <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
+                          <span className="text-[9px] font-bold text-white">{t.label}</span>
+                        </div>
+                      );
+                    })()}
+                    {/* 우상단 — 맞춤 배지 */}
+                    <div className="absolute top-2 right-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                       <span className="material-icons text-[10px]">auto_awesome</span>맞춤
                     </div>
                   </div>
@@ -485,11 +507,20 @@ function MainDashboard() {
                         className="w-full h-full object-cover"
                         src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
                       />
-                      {firstTag && (
-                        <div className={`absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-sm border ${tagColor}`}>
-                          {firstTag.tagName}
-                        </div>
-                      )}
+                      {/* 좌상단 — 휴식유형 아이콘 + 라벨 */}
+                      {(() => {
+                        const restType = place.firstRestType || firstTag?.restType;
+                        const t = REST_TYPE_MAP[restType];
+                        if (!t) return null;
+                        return (
+                          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
+                            style={{ background: 'rgba(0,0,0,0.45)' }}>
+                            <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
+                            <span className="text-[9px] font-bold text-white">{t.label}</span>
+                          </div>
+                        );
+                      })()}
+                      {/* 우상단 — AI 별점 */}
                       {place.aiScore != null && (
                         <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
                           <span className="material-icons text-amber-400 text-[11px]">star</span>
