@@ -397,9 +397,9 @@ function PlaceDetail() {
         </div>
       )}
 
-      {/* ===== 미니 지도 (#5 — 크기 키움) ===== */}
+      {/* ===== 지도 ===== */}
       {place.latitude && place.longitude && (
-        <div className="mb-2 overflow-hidden shadow-sm" style={{ height: '300px' }}>
+        <div className="mb-2 overflow-hidden shadow-sm" style={{ height: '450px' }}>
           <MapContainer
             center={[place.latitude, place.longitude]}
             zoom={15}
