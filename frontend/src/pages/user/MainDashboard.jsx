@@ -398,7 +398,7 @@ function MainDashboard() {
                 <div
                   key={rec.id}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
-                  className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:-translate-y-3 hover:scale-[1.03] transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
+                  className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-md hover:scale-[1.05] transition-all duration-200 overflow-hidden flex flex-col cursor-pointer"
                   style={{ animationDelay: `${idx * 0.08}s` }}
                 >
                   {/* 사진 */}
@@ -497,7 +497,7 @@ function MainDashboard() {
                   <div
                     key={place.id}
                     onClick={() => navigate(`/places/${place.id}`)}
-                    className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-3 hover:scale-[1.03] transition-all duration-200 flex flex-col cursor-pointer"
+                    className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md hover:scale-[1.05] transition-all duration-200 flex flex-col cursor-pointer"
                     style={{ animationDelay: `${idx * 0.08}s` }}
                   >
                     {/* 이미지 */}
