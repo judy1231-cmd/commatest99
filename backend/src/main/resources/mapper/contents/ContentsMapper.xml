@@ -38,4 +38,8 @@
         SELECT * FROM contents WHERE id = #{id} AND is_active = true
     </select>
 
+    <update id="updateImageUrlByCategory">
+        UPDATE contents SET image_url = #{imageUrl} WHERE category = #{category}
+    </update>
+
 </mapper>

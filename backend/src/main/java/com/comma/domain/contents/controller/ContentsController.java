@@ -33,6 +33,13 @@ public class ContentsController {
         return ResponseEntity.ok(ApiResponse.ok(content, "콘텐츠 조회 성공"));
     }
 
+    // POST /api/contents/fix-images  [임시 — 카테고리별 image_url 일괄 업데이트]
+    @PostMapping("/fix-images")
+    public ResponseEntity<ApiResponse<String>> fixImages() {
+        contentsService.fixCategoryImages();
+        return ResponseEntity.ok(ApiResponse.ok("완료", "이미지 URL 업데이트 완료"));
+    }
+
     // GET /api/contents/recommend  [JWT 필요]
     @GetMapping("/recommend")
     public ResponseEntity<ApiResponse<List<Contents>>> getRecommended(HttpServletRequest request) {
