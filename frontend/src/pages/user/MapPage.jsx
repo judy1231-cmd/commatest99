@@ -157,19 +157,6 @@ function MapPage() {
         {/* ===== 사이드바 ===== */}
         <aside className="w-full md:w-96 bg-white border-r border-slate-200 flex flex-col overflow-hidden">
 
-          {/* 뒤로가기 (추천에서 넘어온 경우) */}
-          {resolvedHighlight && (
-            <div className="px-4 pt-3 pb-1">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-1.5 text-[13px] font-bold text-slate-500 hover:text-primary transition-colors"
-              >
-                <span className="material-icons text-[18px]">arrow_back</span>
-                이전 페이지로
-              </button>
-            </div>
-          )}
-
           {/* 검색창 */}
           <form onSubmit={handleSearch} className="p-4 border-b border-slate-100">
             <div className="relative">
