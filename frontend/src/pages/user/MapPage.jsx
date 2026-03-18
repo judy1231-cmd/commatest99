@@ -373,7 +373,6 @@ function MapPage() {
                   key={place.id}
                   position={[place.latitude, place.longitude]}
                   icon={createColorMarker(currentType.color)}
-                  eventHandlers={{ click: () => handleMarkerClick(place) }}
                 >
                   <Popup>
                     <div style={{ minWidth: '160px' }}>
