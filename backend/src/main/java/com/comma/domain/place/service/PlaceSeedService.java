@@ -144,7 +144,10 @@ public class PlaceSeedService {
         placeMapper.deleteTagsByPlaceNameFilter();
         int inappropriate = placeMapper.deleteInappropriatePlaces();
 
-        // 3. 이름이 잘못된 특정 장소 삭제
+        // 3. 이름이 잘못된 특정 장소 삭제 (FK 순서: reviews → photos → bookmarks → tags → places)
+        placeMapper.deleteReviewsForBadNamedPlaces();
+        placeMapper.deletePhotosForBadNamedPlaces();
+        placeMapper.deleteBookmarksForBadNamedPlaces();
         placeMapper.deleteTagsForBadNamedPlaces();
         int badNamed = placeMapper.deleteBadNamedPlaces();
 

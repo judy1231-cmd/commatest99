@@ -89,5 +89,11 @@ public interface PlaceMapper {
 
     void deleteTagsForBadNamedPlaces();
 
+    void deleteReviewsForBadNamedPlaces();
+
+    void deletePhotosForBadNamedPlaces();
+
+    void deleteBookmarksForBadNamedPlaces();
+
     int deleteBadNamedPlaces();
 }
