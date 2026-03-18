@@ -86,4 +86,8 @@ public interface PlaceMapper {
     int deleteDuplicatesByName();
 
     void deleteTagsForDuplicates();
+
+    void deleteTagsForBadNamedPlaces();
+
+    int deleteBadNamedPlaces();
 }

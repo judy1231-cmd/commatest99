@@ -231,6 +231,28 @@
         )
     </delete>
 
+    <!-- 이름이 잘못된 특정 장소 삭제 (정확한 이름 매칭) -->
+    <delete id="deleteTagsForBadNamedPlaces">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name IN (
+            '주-이수역헬스장영자',
+            '사찰몰',
+            '사찰식품',
+            '사찰음식도반'
+        )
+    </delete>
+
+    <delete id="deleteBadNamedPlaces">
+        DELETE FROM places
+        WHERE name IN (
+            '주-이수역헬스장영자',
+            '사찰몰',
+            '사찰식품',
+            '사찰음식도반'
+        )
+    </delete>
+
     <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
     <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
         SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,

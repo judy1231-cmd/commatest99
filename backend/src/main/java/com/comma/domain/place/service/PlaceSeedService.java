@@ -144,17 +144,22 @@ public class PlaceSeedService {
         placeMapper.deleteTagsByPlaceNameFilter();
         int inappropriate = placeMapper.deleteInappropriatePlaces();
 
-        // 3. 이름 완전 중복 제거 (id 작은 것 유지)
+        // 3. 이름이 잘못된 특정 장소 삭제
+        placeMapper.deleteTagsForBadNamedPlaces();
+        int badNamed = placeMapper.deleteBadNamedPlaces();
+
+        // 4. 이름 완전 중복 제거 (id 작은 것 유지)
         placeMapper.deleteTagsForDuplicates();
         int duplicates = placeMapper.deleteDuplicatesByName();
 
-        int total = unrelated + inappropriate + duplicates;
-        log.info("[PlaceCleanup] 완료 — 휴식무관: {}, 부적절: {}, 중복: {}, 합계: {}",
-                 unrelated, inappropriate, duplicates, total);
+        int total = unrelated + inappropriate + badNamed + duplicates;
+        log.info("[PlaceCleanup] 완료 — 휴식무관: {}, 부적절: {}, 잘못된이름: {}, 중복: {}, 합계: {}",
+                 unrelated, inappropriate, badNamed, duplicates, total);
 
         Map<String, Integer> result = new LinkedHashMap<>();
         result.put("unrelated", unrelated);
         result.put("inappropriate", inappropriate);
+        result.put("badNamed", badNamed);
         result.put("duplicates", duplicates);
         result.put("total", total);
         return result;
