@@ -63,10 +63,25 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         String path = request.getServletPath();
 
+        boolean isPublic = false;
         for (String pattern : PUBLIC_PATHS) {
             if (pathMatcher.match(pattern, path)) {
-                return true;
+                isPublic = true;
+                break;
             }
+        }
+
+        if (isPublic) {
+            // 공개 경로라도 토큰이 있으면 사용자 정보를 추출해 둠 (리뷰 작성 등 선택적 인증 지원)
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtil.isTokenValid(token)) {
+                    request.setAttribute("쉼표번호", jwtUtil.extract쉼표번호(token));
+                    request.setAttribute("role", jwtUtil.extractRole(token));
+                }
+            }
+            return true;
         }
 
         String header = request.getHeader("Authorization");
