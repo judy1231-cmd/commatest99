@@ -3,7 +3,6 @@ package com.comma.domain.admin.mapper;
 import com.comma.domain.admin.model.AuditLog;
 import com.comma.domain.admin.model.BlockedKeyword;
 import com.comma.domain.place.model.Place;
-import com.comma.domain.rest.model.RestActivity;
 import com.comma.domain.user.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

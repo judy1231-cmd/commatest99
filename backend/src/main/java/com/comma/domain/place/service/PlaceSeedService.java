@@ -323,7 +323,6 @@ public class PlaceSeedService {
     @Transactional
     public Map<String, Object> seedMediaData() {
         List<Place> places = placeMapper.findAllApproved();
-        List<PlaceTag> allTags = new ArrayList<>();
 
         // 각 place의 restType 미리 조회
         Map<Long, String> placeRestTypeMap = new HashMap<>();
