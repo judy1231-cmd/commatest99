@@ -595,20 +595,18 @@ function MainDashboard() {
                         <span className="text-[10px] font-bold" style={{ color: t?.color }}>{t?.label}</span>
                       </div>
                       <p className="text-[13px] font-bold text-slate-900 leading-tight mb-1 line-clamp-2">{content.title}</p>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                        <span>{content.duration}분 소요</span>
-                        {content.likeCount > 0 && (
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <div className="flex items-center gap-2">
                           <span className="flex items-center gap-0.5">
                             <span className="material-icons text-[11px] text-rose-400">favorite</span>
-                            {content.likeCount}
+                            {content.likeCount ?? 0}
                           </span>
-                        )}
-                        {content.reviewCount > 0 && (
                           <span className="flex items-center gap-0.5">
                             <span className="material-icons text-[11px] text-slate-300">chat_bubble</span>
-                            {content.reviewCount}
+                            {content.reviewCount ?? 0}
                           </span>
-                        )}
+                        </div>
+                        <span>{content.duration}분 소요</span>
                       </div>
                     </div>
                   </Link>
