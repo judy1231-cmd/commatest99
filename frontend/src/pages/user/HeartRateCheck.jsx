@@ -289,7 +289,6 @@ function HeartRateCheck() {
             <div className="grid grid-cols-3 gap-3">
               {[
                 { value: 'apple_watch', label: 'Apple Watch', icon: 'watch', sub: 'iPhone 단축어' },
-                { value: 'galaxy_watch', label: 'Galaxy Watch', icon: 'watch', sub: '시뮬레이션' },
                 { value: 'manual', label: '시뮬레이션', icon: 'computer', sub: '테스트용' },
               ].map((d) => (
                 <button
@@ -306,6 +305,12 @@ function HeartRateCheck() {
                   <span className="text-[10px] opacity-50">{d.sub}</span>
                 </button>
               ))}
+              {/* Galaxy Watch — 준비 중 */}
+              <div className="flex flex-col items-center gap-1.5 p-3.5 rounded-xl border border-slate-700/50 opacity-40 cursor-not-allowed select-none">
+                <span className="material-icons text-xl text-slate-500">watch</span>
+                <span className="text-xs text-center leading-tight text-slate-500">Galaxy Watch</span>
+                <span className="text-[10px] text-slate-600 bg-slate-700/60 px-1.5 py-0.5 rounded-full">준비 중</span>
+              </div>
             </div>
 
             {!isLoggedIn && (
