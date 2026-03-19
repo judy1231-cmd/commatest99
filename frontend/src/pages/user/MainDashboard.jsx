@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -190,10 +191,11 @@ function MainDashboard() {
       const parsed = JSON.parse(monthlyStats.typeRatioJson);
       typeRatios = Object.entries(parsed)
         .map(([type, pct]) => ({ type, pct }))
-        .sort((a, b) => b.pct - a.pct)
-        .slice(0, 4);
+        .filter((s) => s.pct > 0)
+        .sort((a, b) => b.pct - a.pct);
     } catch { /* 무시 */ }
   }
+  const topType = typeRatios[0];
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
@@ -295,23 +297,72 @@ function MainDashboard() {
               </div>
             </div>
 
-            {/* 유형별 비율 바 */}
+            {/* 유형별 분포 도넛 차트 */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
               <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-4">유형별 분포</p>
               {typeRatios.length > 0 ? (
-                <div className="space-y-3">
-                  {typeRatios.map((s, i) => (
-                    <div key={s.type} className="flex items-center gap-3">
-                      <span className="text-[13px] font-semibold text-slate-600 w-20 flex-shrink-0">{REST_TYPE_LABELS[s.type] || s.type}</span>
-                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${STAT_COLORS[i]}`} style={{ width: `${s.pct}%` }} />
-                      </div>
-                      <span className="text-[13px] font-bold text-slate-500 w-9 text-right">{s.pct}%</span>
+                <div className="flex items-center gap-6">
+                  {/* 도넛 차트 */}
+                  <div className="relative flex-shrink-0 w-[140px] h-[140px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={typeRatios}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={42}
+                          outerRadius={65}
+                          paddingAngle={2}
+                          dataKey="pct"
+                          startAngle={90}
+                          endAngle={-270}
+                        >
+                          {typeRatios.map((entry) => (
+                            <Cell
+                              key={entry.type}
+                              fill={REST_TYPE_MAP[entry.type]?.color || '#94a3b8'}
+                              stroke="none"
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name, props) => [`${value}%`, REST_TYPE_LABELS[props.payload.type] || props.payload.type]}
+                          contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* 도넛 중앙 — 1위 유형 */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span
+                        className="material-icons text-[18px]"
+                        style={{ color: REST_TYPE_MAP[topType.type]?.color || '#94a3b8' }}
+                      >
+                        {REST_TYPE_MAP[topType.type]?.icon || 'spa'}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-500 mt-0.5 leading-tight text-center px-1">
+                        {REST_TYPE_LABELS[topType.type] || topType.type}
+                      </span>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* 범례 */}
+                  <div className="flex-1 space-y-2">
+                    {typeRatios.map((s) => (
+                      <div key={s.type} className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: REST_TYPE_MAP[s.type]?.color || '#94a3b8' }}
+                        />
+                        <span className="text-[12px] text-slate-600 flex-1 truncate">
+                          {REST_TYPE_LABELS[s.type] || s.type}
+                        </span>
+                        <span className="text-[12px] font-bold text-slate-500">{s.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-4">
+                <div className="text-center py-6">
                   <p className="text-[13px] text-slate-400 mb-2">아직 기록이 없어요</p>
                   <Link to="/rest-record" className="text-[13px] text-primary font-bold hover:underline">첫 휴식 기록하기 →</Link>
                 </div>
