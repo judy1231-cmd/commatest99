@@ -81,12 +81,14 @@ function MapPage() {
   // 자연 연결 등 다른 페이지에서 클릭해 넘어온 장소
   const highlightPlace = location.state?.highlightPlace || null;
   const flyToMyLocation = location.state?.flyToMyLocation || false;
+  const incomingRestType = location.state?.restType || '';
+  const incomingLocationTab = location.state?.locationTab || 'all';
 
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedType, setSelectedType] = useState(incomingRestType);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const [locationTab, setLocationTab] = useState('all');
+  const [locationTab, setLocationTab] = useState(incomingLocationTab);
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);

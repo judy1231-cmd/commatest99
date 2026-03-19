@@ -306,7 +306,11 @@ function ContentsDetail() {
                   ))}
                 </div>
               </div>
-              <Link to="/map" className="text-xs text-slate-400 hover:text-primary transition-colors">
+              <Link
+                to="/map"
+                state={{ restType: content.category, locationTab: placeTab === 'all' ? 'all' : placeTab }}
+                className="text-xs text-slate-400 hover:text-primary transition-colors"
+              >
                 지도에서 보기
               </Link>
             </div>
