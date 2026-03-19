@@ -105,6 +105,7 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [likedContentIds, setLikedContentIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [suggestedContents, setSuggestedContents] = useState([]);
 
@@ -192,6 +193,30 @@ function MainDashboard() {
       const data = await fetchWithAuth('/api/places/bookmarks');
       if (data.success && Array.isArray(data.data)) {
         setBookmarkedIds(new Set(data.data.map(p => p.id)));
+      }
+    } catch {
+      // 무시
+    }
+  };
+
+  const handleToggleContentLike = async (e, contentId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLoggedIn) { navigate('/login'); return; }
+    try {
+      const data = await fetchWithAuth(`/api/contents/${contentId}/like`, { method: 'POST' });
+      if (data.success) {
+        const liked = data.data?.liked;
+        setLikedContentIds(prev => {
+          const next = new Set(prev);
+          liked ? next.add(contentId) : next.delete(contentId);
+          return next;
+        });
+        setSuggestedContents(prev => prev.map(c =>
+          c.id === contentId
+            ? { ...c, likeCount: liked ? (c.likeCount || 0) + 1 : Math.max((c.likeCount || 1) - 1, 0) }
+            : c
+        ));
       }
     } catch {
       // 무시
@@ -597,10 +622,18 @@ function MainDashboard() {
                       <p className="text-[13px] font-bold text-slate-900 leading-tight mb-1 line-clamp-2">{content.title}</p>
                       <div className="flex items-center justify-between text-[11px] text-slate-400">
                         <div className="flex items-center gap-2">
-                          <span className="flex items-center gap-0.5">
-                            <span className="material-icons text-[11px] text-rose-400">favorite</span>
-                            {content.likeCount ?? 0}
-                          </span>
+                          <button
+                            onClick={(e) => handleToggleContentLike(e, content.id)}
+                            className="flex items-center gap-0.5 transition-colors"
+                          >
+                            <span className="material-icons text-[11px] transition-colors"
+                              style={{ color: likedContentIds.has(content.id) ? '#F43F5E' : '#CBD5E1' }}>
+                              {likedContentIds.has(content.id) ? 'favorite' : 'favorite_border'}
+                            </span>
+                            <span style={{ color: likedContentIds.has(content.id) ? '#F43F5E' : '#94A3B8' }}>
+                              {content.likeCount ?? 0}
+                            </span>
+                          </button>
                           <span className="flex items-center gap-0.5">
                             <span className="material-icons text-[11px] text-slate-300">chat_bubble</span>
                             {content.reviewCount ?? 0}
