@@ -35,6 +35,13 @@ function ContentsDetail() {
   const [error, setError] = useState(null);
   const [relatedContents, setRelatedContents] = useState([]);
   const [relatedPlaces, setRelatedPlaces] = useState([]);
+  const [placeTab, setPlaceTab] = useState('all');
+
+  const isDomestic = (address) =>
+    ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종',
+     '강원', '충청', '전라', '경상', '제주', '대한민국', '충북', '충남',
+     '전북', '전남', '경북', '경남']
+    .some(k => address?.includes(k));
 
   const handleRecordClick = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
@@ -253,14 +260,38 @@ function ContentsDetail() {
         {/* 이 활동을 할 수 있는 장소 */}
         {relatedPlaces.length > 0 && (
           <div className="mb-5">
+            {/* 헤더: 제목 + 탭 + 지도 링크 */}
             <div className="flex items-center justify-between mb-3 px-0.5">
-              <p className="text-sm font-extrabold text-slate-700">이 활동을 할 수 있는 장소</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-extrabold text-slate-700">이 활동을 할 수 있는 장소</p>
+                <div className="flex gap-1">
+                  {[{ key: 'all', label: '전체' }, { key: 'domestic', label: '국내' }, { key: 'foreign', label: '해외' }].map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setPlaceTab(tab.key)}
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                        placeTab === tab.key
+                          ? 'bg-primary text-white'
+                          : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <Link to="/map" className="text-xs text-slate-400 hover:text-primary transition-colors">
                 지도에서 보기
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              {relatedPlaces.map((place) => (
+              {relatedPlaces
+                .filter(p =>
+                  placeTab === 'all' ? true :
+                  placeTab === 'domestic' ? isDomestic(p.address) :
+                  !isDomestic(p.address)
+                )
+                .map((place) => (
                 <Link
                   key={place.id}
                   to={`/places/${place.id}`}

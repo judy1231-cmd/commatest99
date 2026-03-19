@@ -86,9 +86,22 @@ function MapPage() {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
+  const [locationTab, setLocationTab] = useState('all');
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+
+  const isDomestic = (address) =>
+    ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종',
+     '강원', '충청', '전라', '경상', '제주', '대한민국', '충북', '충남',
+     '전북', '전남', '경북', '경남']
+    .some(k => address?.includes(k));
+
+  const filteredPlaces = places.filter(p =>
+    locationTab === 'all' ? true :
+    locationTab === 'domestic' ? isDomestic(p.address) :
+    !isDomestic(p.address)
+  );
   const [flyTarget, setFlyTarget] = useState(
     highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
   );
@@ -195,6 +208,23 @@ function MapPage() {
             </div>
           </form>
 
+          {/* 국내/해외 필터 탭 */}
+          <div className="px-4 py-2.5 border-b border-slate-100 flex gap-2">
+            {[{ key: 'all', label: '전체' }, { key: 'domestic', label: '국내' }, { key: 'foreign', label: '해외' }].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setLocationTab(tab.key)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  locationTab === tab.key
+                    ? 'bg-primary text-white'
+                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           {/* 휴식유형 필터 */}
           <div className="p-3 border-b border-slate-100">
             <div className="grid grid-cols-4 gap-1.5">
@@ -267,7 +297,7 @@ function MapPage() {
           {/* 결과 수 */}
           <div className="px-4 py-2 border-b border-slate-50">
             <p className="text-xs text-slate-400">
-              {loading ? '검색 중...' : `${places.length}개 장소`}
+              {loading ? '검색 중...' : `${filteredPlaces.length}개 장소`}
             </p>
           </div>
 
@@ -277,16 +307,13 @@ function MapPage() {
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
               </div>
-            ) : places.length === 0 ? (
+            ) : filteredPlaces.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-slate-400 px-4 text-center">
                 <span className="material-icons text-4xl mb-2">location_off</span>
-                <p className="text-sm font-medium">등록된 장소가 없어요</p>
-                <p className="text-xs mt-1 leading-relaxed">
-                  학원에서 공공데이터 크롤링 스크립트를<br />실행하면 장소가 표시돼요
-                </p>
+                <p className="text-sm font-medium">해당하는 장소가 없어요</p>
               </div>
             ) : (
-              places.map(place => (
+              filteredPlaces.map(place => (
                 <div
                   key={place.id}
                   onClick={() => {
@@ -383,7 +410,7 @@ function MapPage() {
               </Marker>
             )}
 
-            {places.map(place =>
+            {filteredPlaces.map(place =>
               place.latitude && place.longitude ? (
                 <Marker
                   key={place.id}
