@@ -127,10 +127,13 @@ function MainDashboard() {
         loadPlaces(data.data.primaryRestType);
         loadSuggestedContents(data.data.primaryRestType);
       } else {
+        // 진단 이력 없어도 콘텐츠 섹션은 표시 (전체 콘텐츠)
         loadPlaces(null);
+        loadSuggestedContents(null);
       }
     } catch {
       loadPlaces(null);
+      loadSuggestedContents(null);
     }
   };
 
@@ -153,7 +156,8 @@ function MainDashboard() {
 
   const loadSuggestedContents = async (category) => {
     try {
-      const res = await fetch(`/api/contents?category=${category}`);
+      const url = category ? `/api/contents?category=${category}` : '/api/contents';
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data) {
         setSuggestedContents(data.data.slice(0, 3));
@@ -551,15 +555,21 @@ function MainDashboard() {
         )}
 
         {/* ── 진단 기반 추천 콘텐츠 ──────────────────────────────────────────── */}
-        {isLoggedIn && latestDiagnosis && suggestedContents.length > 0 && (
+        {isLoggedIn && suggestedContents.length > 0 && (
           <section>
             <SectionHeader
               title="이런 휴식 활동 어떠세요?"
               action={
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                  <span className="material-icons text-[12px]">auto_awesome</span>
-                  {REST_TYPE_LABELS[latestDiagnosis.primaryRestType]} 추천
-                </span>
+                latestDiagnosis ? (
+                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                    <span className="material-icons text-[12px]">auto_awesome</span>
+                    {REST_TYPE_LABELS[latestDiagnosis.primaryRestType]} 추천
+                  </span>
+                ) : (
+                  <Link to="/contents" className="flex items-center gap-0.5 hover:text-primary transition-colors">
+                    더보기 <span className="material-icons text-[14px]">chevron_right</span>
+                  </Link>
+                )
               }
             />
             <div className="flex gap-4 overflow-x-auto py-2 hide-scrollbar">
