@@ -70,13 +70,39 @@ function ContentsDetail() {
     }
   };
 
+  // 콘텐츠 카테고리별 함께 보여줄 보조 장소 유형
+  // creative → 혼자 조용히 하는 창작활동은 카페·도서관(mental)과 잘 맞음
+  const SECONDARY_PLACE_TYPES = {
+    creative: 'mental',
+  };
+
   const loadRelatedPlaces = async (category) => {
     try {
-      const res = await fetch(`/api/places?restType=${category}&size=6&status=approved`);
-      const data = await res.json();
-      if (data.success && data.data?.places) {
-        setRelatedPlaces(data.data.places);
+      const secondary = SECONDARY_PLACE_TYPES[category];
+
+      const [primaryRes, secondaryRes] = await Promise.all([
+        fetch(`/api/places?restType=${category}&size=6&status=approved`),
+        secondary ? fetch(`/api/places?restType=${secondary}&size=6&status=approved`) : Promise.resolve(null),
+      ]);
+
+      const primaryData = await primaryRes.json();
+      const primaryPlaces = primaryData.success ? (primaryData.data?.places || []) : [];
+
+      let secondaryPlaces = [];
+      if (secondaryRes) {
+        const secondaryData = await secondaryRes.json();
+        secondaryPlaces = secondaryData.success ? (secondaryData.data?.places || []) : [];
       }
+
+      // 합치고 중복 제거 (id 기준), 최대 8개
+      const seen = new Set();
+      const merged = [...primaryPlaces, ...secondaryPlaces].filter(p => {
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      }).slice(0, 8);
+
+      setRelatedPlaces(merged);
     } catch {
       // 장소 로드 실패는 무시
     }
