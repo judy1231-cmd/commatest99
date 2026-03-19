@@ -70,19 +70,16 @@ function ContentsDetail() {
     }
   };
 
-  // 콘텐츠 카테고리별 함께 보여줄 보조 장소 유형
-  // creative → 혼자 조용히 하는 창작활동은 카페·도서관(mental)과 잘 맞음
-  const SECONDARY_PLACE_TYPES = {
-    creative: 'mental',
-  };
+  // creative 보조 장소: mental 중 실내 앉아서 활동 가능한 곳만 (카페·도서관·북카페)
+  const INDOOR_KEYWORDS = ['카페', '도서관', '북카페', '서점', '책방', '스터디'];
 
   const loadRelatedPlaces = async (category) => {
     try {
-      const secondary = SECONDARY_PLACE_TYPES[category];
-
       const [primaryRes, secondaryRes] = await Promise.all([
-        fetch(`/api/places?restType=${category}&size=6&status=approved`),
-        secondary ? fetch(`/api/places?restType=${secondary}&size=6&status=approved`) : Promise.resolve(null),
+        fetch(`/api/places?restType=${category}&size=8&status=approved`),
+        category === 'creative'
+          ? fetch(`/api/places?restType=mental&size=20&status=approved`)
+          : Promise.resolve(null),
       ]);
 
       const primaryData = await primaryRes.json();
@@ -91,7 +88,11 @@ function ContentsDetail() {
       let secondaryPlaces = [];
       if (secondaryRes) {
         const secondaryData = await secondaryRes.json();
-        secondaryPlaces = secondaryData.success ? (secondaryData.data?.places || []) : [];
+        const all = secondaryData.success ? (secondaryData.data?.places || []) : [];
+        // 실내 앉아서 활동 가능한 장소만 필터
+        secondaryPlaces = all.filter(p =>
+          INDOOR_KEYWORDS.some(k => p.name?.includes(k))
+        );
       }
 
       // 합치고 중복 제거 (id 기준), 최대 8개
