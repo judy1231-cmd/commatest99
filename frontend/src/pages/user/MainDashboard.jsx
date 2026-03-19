@@ -585,17 +585,45 @@ function MainDashboard() {
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-slate-100 py-10 bg-white">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
-              <img src="/logo_comma.png" alt="쉼표" className="w-3.5 h-3.5 object-contain" />
+      <footer className="border-t border-slate-100 bg-white">
+        {/* 링크 영역 */}
+        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-center gap-1 flex-wrap">
+          {[
+            { label: '서비스 소개', href: '#' },
+            { label: '이용약관', href: '#' },
+            { label: '개인정보처리방침', href: '#', bold: true },
+            { label: '이용안내', href: '#' },
+            { label: '고객센터', href: '#' },
+          ].map((item, i, arr) => (
+            <span key={item.label} className="flex items-center gap-1">
+              <a
+                href={item.href}
+                className={`text-[12px] transition-colors hover:text-primary ${item.bold ? 'font-bold text-slate-600' : 'text-slate-400'}`}
+              >
+                {item.label}
+              </a>
+              {i < arr.length - 1 && (
+                <span className="text-slate-200 text-[11px] select-none">|</span>
+              )}
+            </span>
+          ))}
+        </div>
+
+        {/* 회사 정보 영역 */}
+        <div className="border-t border-slate-50 py-5">
+          <div className="max-w-5xl mx-auto px-6 flex flex-col items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-primary rounded-md flex items-center justify-center overflow-hidden">
+                <img src="/logo_comma.png" alt="쉼표" className="w-2.5 h-2.5 object-contain" />
+              </div>
+              <span className="text-[12px] font-semibold text-slate-500">쉼표(,)</span>
             </div>
-            <p className="text-[12px] text-slate-400">© 2026 쉼표 · 완벽한 휴식을 선사합니다.</p>
-          </div>
-          <div className="flex gap-6 text-[12px] font-semibold text-slate-400">
-            <button className="hover:text-primary transition-colors">이용약관</button>
-            <button className="hover:text-primary transition-colors">개인정보처리방침</button>
+            <p className="text-[11px] text-slate-300 text-center leading-relaxed">
+              대표: 강민정 &nbsp;|&nbsp; 이메일: contact@comma.kr &nbsp;|&nbsp; 주소: 서울특별시
+            </p>
+            <p className="text-[11px] text-slate-300">
+              © 2026 쉼표(,) Corp. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
