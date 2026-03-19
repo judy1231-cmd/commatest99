@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
@@ -105,6 +105,28 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+
+  const recommendRef = useRef(null);
+  const placesRef = useRef(null);
+
+  const observeSection = useCallback((el) => {
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+  }, []);
+
+  useEffect(() => {
+    observeSection(recommendRef.current);
+    observeSection(placesRef.current);
+  }, [observeSection, recommendations, places]);
 
   useEffect(() => {
     loadPlaces();
@@ -435,7 +457,7 @@ function MainDashboard() {
 
         {/* ── 맞춤 추천 (로그인 + 데이터 있을 때) ──────────────────────────── */}
         {isLoggedIn && recommendations.length > 0 && (
-          <section>
+          <section ref={recommendRef} className="scroll-section">
             <SectionHeader
               title="나를 위한 맞춤 추천"
               action={
@@ -449,8 +471,8 @@ function MainDashboard() {
                 <div
                   key={rec.id}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
-                  className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-lg hover:scale-[1.08] hover:border-primary/40 transition-all duration-150 flex flex-col cursor-pointer"
-                  style={{ animationDelay: `${idx * 0.08}s` }}
+                  className="scroll-card flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-lg hover:-translate-y-1.5 hover:border-primary/40 transition-all duration-200 flex flex-col cursor-pointer"
+                  style={{ transitionDelay: `${idx * 0.08}s` }}
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
@@ -518,7 +540,7 @@ function MainDashboard() {
         )}
 
         {/* ── 추천 장소 가로 스크롤 ────────────────────────────────────────── */}
-        <section>
+        <section ref={placesRef} className="scroll-section">
           <SectionHeader
             title="추천 장소"
             action={
@@ -548,8 +570,8 @@ function MainDashboard() {
                   <div
                     key={place.id}
                     onClick={() => navigate(`/places/${place.id}`)}
-                    className="card-fade-up flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:scale-[1.08] hover:border-slate-300 transition-all duration-150 flex flex-col cursor-pointer"
-                    style={{ animationDelay: `${idx * 0.08}s` }}
+                    className="scroll-card flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1.5 hover:border-slate-300 transition-all duration-200 flex flex-col cursor-pointer"
+                    style={{ transitionDelay: `${idx * 0.08}s` }}
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
