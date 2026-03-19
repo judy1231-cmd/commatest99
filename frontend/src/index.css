@@ -63,28 +63,4 @@
     }
   }
 
-  /* 스크롤 진입 애니메이션 */
-  .scroll-section {
-    opacity: 0;
-    transform: translateY(36px);
-    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .scroll-section.in-view {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .scroll-card {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .scroll-section.in-view .scroll-card {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
