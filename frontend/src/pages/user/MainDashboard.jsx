@@ -105,20 +105,41 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
-
+  const [latestDiagnosis, setLatestDiagnosis] = useState(null);
+  const [suggestedContents, setSuggestedContents] = useState([]);
 
   useEffect(() => {
-    loadPlaces();
     if (isLoggedIn) {
       loadMonthlyStats();
       loadRecommendations();
       loadMyBookmarks();
+      loadLatestDiagnosis();
+    } else {
+      loadPlaces(null);
     }
   }, [isLoggedIn]);
 
-  const loadPlaces = async () => {
+  const loadLatestDiagnosis = async () => {
     try {
-      const res = await fetch('/api/places?page=1&size=6&status=approved');
+      const data = await fetchWithAuth('/api/diagnosis/latest');
+      if (data.success && data.data?.primaryRestType) {
+        setLatestDiagnosis(data.data);
+        loadPlaces(data.data.primaryRestType);
+        loadSuggestedContents(data.data.primaryRestType);
+      } else {
+        loadPlaces(null);
+      }
+    } catch {
+      loadPlaces(null);
+    }
+  };
+
+  const loadPlaces = async (restType) => {
+    try {
+      const url = restType
+        ? `/api/places?page=1&size=6&restType=${restType}`
+        : '/api/places?page=1&size=6&status=approved';
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data?.places) {
         setPlaces(data.data.places);
@@ -127,6 +148,18 @@ function MainDashboard() {
       // 장소 API 실패 시 빈 배열 유지
     } finally {
       setPlacesLoading(false);
+    }
+  };
+
+  const loadSuggestedContents = async (category) => {
+    try {
+      const res = await fetch(`/api/contents?category=${category}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSuggestedContents(data.data.slice(0, 3));
+      }
+    } catch {
+      // 무시
     }
   };
 
@@ -517,14 +550,77 @@ function MainDashboard() {
           </section>
         )}
 
+        {/* ── 진단 기반 추천 콘텐츠 ──────────────────────────────────────────── */}
+        {isLoggedIn && latestDiagnosis && suggestedContents.length > 0 && (
+          <section>
+            <SectionHeader
+              title="이런 휴식 활동 어떠세요?"
+              action={
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                  <span className="material-icons text-[12px]">auto_awesome</span>
+                  {REST_TYPE_LABELS[latestDiagnosis.primaryRestType]} 추천
+                </span>
+              }
+            />
+            <div className="flex gap-4 overflow-x-auto py-2 hide-scrollbar">
+              {suggestedContents.map((content) => {
+                const t = REST_TYPE_MAP[content.category];
+                return (
+                  <Link
+                    key={content.id}
+                    to={`/contents/${content.id}`}
+                    className="group flex-shrink-0 w-[200px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="h-[110px] overflow-hidden bg-slate-100">
+                      <img
+                        src={content.imageUrl}
+                        alt={content.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    </div>
+                    <div className="p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="material-icons text-[12px]" style={{ color: t?.color }}>{t?.icon}</span>
+                        <span className="text-[10px] font-bold" style={{ color: t?.color }}>{t?.label}</span>
+                      </div>
+                      <p className="text-[13px] font-bold text-slate-900 leading-tight mb-1 line-clamp-2">{content.title}</p>
+                      <p className="text-[11px] text-slate-400">{content.duration}분 소요</p>
+                    </div>
+                  </Link>
+                );
+              })}
+              <Link
+                to="/contents"
+                className="flex-shrink-0 w-[120px] bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
+              >
+                <span className="material-icons text-slate-300 text-[28px] group-hover:text-primary transition-colors">article</span>
+                <p className="text-[12px] font-bold text-slate-400 group-hover:text-primary transition-colors text-center leading-tight px-2">콘텐츠<br/>더 보기</p>
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* ── 추천 장소 가로 스크롤 ────────────────────────────────────────── */}
         <section>
           <SectionHeader
             title="추천 장소"
             action={
-              <Link to="/map" className="flex items-center gap-0.5 hover:text-primary transition-colors">
-                지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
-              </Link>
+              latestDiagnosis ? (
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                    <span className="material-icons text-[12px]">auto_awesome</span>
+                    {REST_TYPE_LABELS[latestDiagnosis.primaryRestType]} 기반
+                  </span>
+                  <Link to="/map" className="flex items-center gap-0.5 text-[13px] text-slate-400 font-semibold hover:text-primary transition-colors">
+                    지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
+                  </Link>
+                </div>
+              ) : (
+                <Link to="/map" className="flex items-center gap-0.5 hover:text-primary transition-colors">
+                  지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
+                </Link>
+              )
             }
           />
 
