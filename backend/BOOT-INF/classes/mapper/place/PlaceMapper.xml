@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.place.mapper.PlaceMapper">
+
+    <!-- ==================== 장소 조회 ==================== -->
+
+    <select id="findPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude,
+               p.operating_hours, p.ai_score, p.status, p.created_at,
+               (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS photo_url,
+               (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS review_count,
+               (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS bookmark_count,
+               (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS first_rest_type
+        FROM places p
+        <if test="restType != null and restType != ''">
+            INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}
+        </if>
+        WHERE p.status = 'approved'
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.address LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY p.ai_score DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countPlaces" resultType="int">
+        SELECT COUNT(DISTINCT p.id)
+        FROM places p
+        <if test="restType != null and restType != ''">
+            INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}
+        </if>
+        WHERE p.status = 'approved'
+        <if test="keyword != null and keyword != ''">
+            AND (p.name LIKE CONCAT('%', #{keyword}, '%')
+                 OR p.address LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <select id="findById" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        FROM places
+        WHERE id = #{id}
+    </select>
+
+    <select id="findTagsByPlaceId" resultType="com.comma.domain.place.model.PlaceTag">
+        SELECT id, place_id, tag_name, rest_type
+        FROM place_tags
+        WHERE place_id = #{placeId}
+    </select>
+
+    <select id="findPhotosByPlaceId" resultType="com.comma.domain.place.model.PlacePhoto">
+        SELECT id, place_id, photo_url, source
+        FROM place_photos
+        WHERE place_id = #{placeId}
+    </select>
+
+    <!-- ==================== 리뷰 ==================== -->
+
+    <insert id="insertReview" parameterType="com.comma.domain.place.model.PlaceReview"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_reviews (`쉼표번호`, place_id, rating, content, verified, created_at)
+        VALUES (#{쉼표번호}, #{placeId}, #{rating}, #{content}, #{verified}, #{createdAt})
+    </insert>
+
+    <select id="findReviewsByPlaceId" resultType="com.comma.domain.place.model.PlaceReview">
+        SELECT r.id, r.`쉼표번호`, r.place_id, r.rating, r.content, r.verified, r.created_at,
+               u.nickname
+        FROM place_reviews r
+        LEFT JOIN users u ON r.`쉼표번호` = u.`쉼표번호`
+        WHERE r.place_id = #{placeId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findReviewById" resultType="com.comma.domain.place.model.PlaceReview">
+        SELECT id, `쉼표번호`, place_id, rating, content, verified, created_at
+        FROM place_reviews
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateReview" parameterType="com.comma.domain.place.model.PlaceReview">
+        UPDATE place_reviews
+        SET rating = #{rating}, content = #{content}
+        WHERE id = #{id} AND `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <delete id="deleteReview">
+        DELETE FROM place_reviews
+        WHERE id = #{id} AND `쉼표번호` = #{쉼표번호}
+    </delete>
+
+    <!-- ==================== 북마크 ==================== -->
+
+    <select id="findBookmark" resultType="com.comma.domain.place.model.PlaceBookmark">
+        SELECT id, `쉼표번호`, place_id, created_at
+        FROM place_bookmarks
+        WHERE `쉼표번호` = #{쉼표번호} AND place_id = #{placeId}
+    </select>
+
+    <insert id="insertBookmark" parameterType="com.comma.domain.place.model.PlaceBookmark"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_bookmarks (`쉼표번호`, place_id, created_at)
+        VALUES (#{쉼표번호}, #{placeId}, #{createdAt})
+    </insert>
+
+    <delete id="deleteBookmark">
+        DELETE FROM place_bookmarks WHERE `쉼표번호` = #{쉼표번호} AND place_id = #{placeId}
+    </delete>
+
+    <select id="findBookmarkedPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude,
+               p.operating_hours, p.ai_score, p.status, p.created_at
+        FROM places p
+        INNER JOIN place_bookmarks pb ON p.id = pb.place_id
+        WHERE pb.`쉼표번호` = #{쉼표번호}
+        ORDER BY pb.created_at DESC
+    </select>
+
+    <!-- ==================== 사진 ==================== -->
+
+    <insert id="insertPhoto" parameterType="com.comma.domain.place.model.PlacePhoto"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO place_photos (place_id, photo_url, source)
+        VALUES (#{placeId}, #{photoUrl}, #{source})
+    </insert>
+
+    <select id="countPhotosByPlaceId" resultType="int">
+        SELECT COUNT(*) FROM place_photos WHERE place_id = #{placeId}
+    </select>
+
+    <delete id="deleteAllSeedPhotos">
+        DELETE FROM place_photos WHERE source = 'seed'
+    </delete>
+
+    <select id="findAllApproved" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        FROM places
+        WHERE status = 'approved'
+        ORDER BY id
+    </select>
+
+    <!-- ==================== Seed (관리자) ==================== -->
+
+    <select id="existsByNameAndAddress" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM places WHERE name = #{name} AND address = #{address}
+    </select>
+
+    <insert id="insertPlace" parameterType="com.comma.domain.place.model.Place"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO places (name, address, latitude, longitude, ai_score, status, created_at)
+        VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{aiScore}, #{status}, #{createdAt})
+    </insert>
+
+    <insert id="insertPlaceTag" parameterType="com.comma.domain.place.model.PlaceTag">
+        INSERT INTO place_tags (place_id, tag_name, rest_type)
+        VALUES (#{placeId}, #{tagName}, #{restType})
+    </insert>
+
+    <delete id="deleteAllPlaceTags">
+        DELETE FROM place_tags
+    </delete>
+
+    <delete id="deleteAllPlaces">
+        DELETE FROM places
+    </delete>
+
+    <!-- 부적절한 장소명 삭제 (화장실, 주차장 등) -->
+    <delete id="deleteInappropriatePlaces">
+        DELETE FROM places WHERE name LIKE '%화장실%' OR name LIKE '%주차장%' OR name LIKE '%주차%'
+    </delete>
+
+    <delete id="deleteTagsByPlaceNameFilter">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name LIKE '%화장실%' OR p.name LIKE '%주차장%' OR p.name LIKE '%주차%'
+    </delete>
+
+    <!-- 아파트·화장실 등 휴식과 무관한 장소 삭제 -->
+    <delete id="deleteUnrelatedPlaces">
+        DELETE FROM places
+        WHERE name LIKE '%아파트%'
+           OR name LIKE '%화장실%'
+           OR name LIKE '%주차%'
+           OR name LIKE '%편의점%'
+           OR name LIKE '%약국%'
+           OR name LIKE '%은행%'
+           OR name LIKE '%ATM%'
+           OR name LIKE '%치과%'
+           OR name LIKE '%택시%'
+    </delete>
+
+    <delete id="deleteTagsByUnrelatedFilter">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name LIKE '%아파트%'
+           OR p.name LIKE '%화장실%'
+           OR p.name LIKE '%주차%'
+           OR p.name LIKE '%편의점%'
+           OR p.name LIKE '%약국%'
+           OR p.name LIKE '%은행%'
+           OR p.name LIKE '%ATM%'
+           OR p.name LIKE '%치과%'
+           OR p.name LIKE '%택시%'
+    </delete>
+
+    <!-- 이름이 완전히 같은 중복 장소 제거 (id 가장 작은 것만 유지) -->
+    <delete id="deleteDuplicatesByName">
+        DELETE p FROM places p
+        INNER JOIN (
+            SELECT name, MIN(id) AS keep_id
+            FROM places
+            GROUP BY name
+            HAVING COUNT(*) > 1
+        ) dup ON p.name = dup.name AND p.id != dup.keep_id
+    </delete>
+
+    <delete id="deleteTagsForDuplicates">
+        DELETE pt FROM place_tags pt
+        WHERE pt.place_id IN (
+            SELECT id FROM (
+                SELECT p.id FROM places p
+                INNER JOIN (
+                    SELECT name, MIN(id) AS keep_id
+                    FROM places
+                    GROUP BY name
+                    HAVING COUNT(*) > 1
+                ) dup ON p.name = dup.name AND p.id != dup.keep_id
+            ) tmp
+        )
+    </delete>
+
+    <!-- 이름이 잘못된 특정 장소 삭제 (정확한 이름 매칭) -->
+    <delete id="deleteTagsForBadNamedPlaces">
+        DELETE pt FROM place_tags pt
+        INNER JOIN places p ON pt.place_id = p.id
+        WHERE p.name IN (
+            '주-이수역헬스장영자',
+            '사찰몰',
+            '사찰식품',
+            '사찰음식도반',
+            '전통사찰식품제조협회',
+            '주식회사찰랑',
+            '주식회사찰리앤초콜릿팩토리(CharlieandChocolateFactoryInc.)',
+            '주식회사찰스일렉트로닉스',
+            '주식회사찰스푸드홍대지점',
+            '태광빌딩잠실고박사찰떡생고기'
+        )
+    </delete>
+
+    <delete id="deleteBadNamedPlaces">
+        DELETE FROM places
+        WHERE name IN (
+            '주-이수역헬스장영자',
+            '사찰몰',
+            '사찰식품',
+            '사찰음식도반',
+            '전통사찰식품제조협회',
+            '주식회사찰랑',
+            '주식회사찰리앤초콜릿팩토리(CharlieandChocolateFactoryInc.)',
+            '주식회사찰스일렉트로닉스',
+            '주식회사찰스푸드홍대지점',
+            '태광빌딩잠실고박사찰떡생고기'
+        )
+    </delete>
+
+    <!-- Haversine 공식으로 반경 내 장소 검색 (단위: km) -->
+    <select id="findNearbyPlaces" resultType="com.comma.domain.place.model.Place">
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at,
+               (6371 * ACOS(
+                   COS(RADIANS(#{lat})) * COS(RADIANS(latitude))
+                   * COS(RADIANS(longitude) - RADIANS(#{lng}))
+                   + SIN(RADIANS(#{lat})) * SIN(RADIANS(latitude))
+               )) AS distance
+        FROM places
+        WHERE status = 'approved'
+        HAVING distance &lt;= #{radius}
+        ORDER BY distance
+        LIMIT 20
+    </select>
+
+</mapper>

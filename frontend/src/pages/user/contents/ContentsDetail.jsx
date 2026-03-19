@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
+import { fetchWithAuth } from '../../../api/fetchWithAuth';
 
 const CATEGORY_INFO = {
   physical:  { name: '신체의 이완', icon: 'fitness_center', color: '#4CAF82' },
@@ -36,6 +37,12 @@ function ContentsDetail() {
   const [relatedContents, setRelatedContents] = useState([]);
   const [relatedPlaces, setRelatedPlaces] = useState([]);
   const [placeTab, setPlaceTab] = useState('all');
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const isDomestic = (address) =>
     ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종',
@@ -113,12 +120,18 @@ function ContentsDetail() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/contents/${id}`);
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/contents/${id}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       if (data.success && data.data) {
         setContent(data.data);
+        setLiked(data.data.liked || false);
+        setLikeCount(data.data.likeCount || 0);
         loadRelated(data.data.category, Number(id));
         loadRelatedPlaces(data.data.category);
+        loadReviews();
       } else {
         setError('콘텐츠를 찾을 수 없어요.');
       }
@@ -127,6 +140,51 @@ function ContentsDetail() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const res = await fetch(`/api/contents/${id}/reviews`);
+      const data = await res.json();
+      if (data.success) setReviews(data.data);
+    } catch { /* 무시 */ }
+  };
+
+  const handleToggleLike = async () => {
+    if (!isLoggedIn) { navigate('/login'); return; }
+    try {
+      const data = await fetchWithAuth(`/api/contents/${id}/like`, { method: 'POST' });
+      if (data.success) {
+        setLiked(data.data.liked);
+        setLikeCount(data.data.likeCount);
+      }
+    } catch { /* 무시 */ }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!isLoggedIn) { navigate('/login'); return; }
+    setReviewSubmitting(true);
+    try {
+      const data = await fetchWithAuth(`/api/contents/${id}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify({ rating: reviewRating, body: reviewText }),
+      });
+      if (data.success) {
+        setReviewText('');
+        setReviewRating(5);
+        loadReviews();
+      }
+    } catch { /* 무시 */ } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await fetchWithAuth(`/api/contents/${id}/reviews/${reviewId}`, { method: 'DELETE' });
+      loadReviews();
+    } catch { /* 무시 */ }
   };
 
   if (loading) {
@@ -283,6 +341,108 @@ function ContentsDetail() {
             ))}
           </div>
         )}
+
+        {/* 좋아요 */}
+        <div className="flex items-center justify-center my-5">
+          <button
+            onClick={handleToggleLike}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl border-2 font-bold text-sm transition-all duration-200 ${
+              liked
+                ? 'bg-rose-50 border-rose-300 text-rose-500'
+                : 'bg-white border-slate-200 text-slate-400 hover:border-rose-300 hover:text-rose-400'
+            }`}
+          >
+            <span className="material-icons text-[20px]">{liked ? 'favorite' : 'favorite_border'}</span>
+            도움이 됐어요 {likeCount > 0 && <span className="font-extrabold">{likeCount}</span>}
+          </button>
+        </div>
+
+        {/* 후기 섹션 */}
+        <div className="mb-5">
+          <p className="text-sm font-extrabold text-slate-700 mb-3 px-0.5">후기</p>
+
+          {/* 후기 작성 폼 */}
+          {isLoggedIn ? (
+            <form onSubmit={handleSubmitReview} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-4">
+              {/* 별점 */}
+              <div className="flex items-center gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(star)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <span className="material-icons text-[22px]" style={{ color: star <= reviewRating ? '#F59E0B' : '#E2E8F0' }}>
+                      star
+                    </span>
+                  </button>
+                ))}
+                <span className="text-xs text-slate-400 ml-1">{reviewRating}점</span>
+              </div>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="이 활동을 해보셨나요? 솔직한 후기를 남겨주세요."
+                rows={3}
+                className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 bg-slate-50 resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+              />
+              <button
+                type="submit"
+                disabled={reviewSubmitting || !reviewText.trim()}
+                className="mt-2 w-full py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary/90 transition-all disabled:opacity-40"
+              >
+                {reviewSubmitting ? '등록 중...' : '후기 등록'}
+              </button>
+            </form>
+          ) : (
+            <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4 mb-4 text-center">
+              <p className="text-sm text-slate-400 mb-2">로그인하면 후기를 남길 수 있어요</p>
+              <Link to="/login" className="text-sm font-bold text-primary hover:underline">로그인하기</Link>
+            </div>
+          )}
+
+          {/* 후기 목록 */}
+          {reviews.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-4">아직 후기가 없어요. 첫 번째 후기를 남겨보세요!</p>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((review) => {
+                const myNickname = JSON.parse(localStorage.getItem('user') || '{}').nickname;
+                const isMine = myNickname && review.nickname === myNickname;
+                return (
+                  <div key={review.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-700">{review.nickname || '익명'}</span>
+                        <div className="flex items-center gap-0.5">
+                          {[1,2,3,4,5].map(s => (
+                            <span key={s} className="material-icons text-[13px]"
+                              style={{ color: s <= review.rating ? '#F59E0B' : '#E2E8F0' }}>star</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-400">
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('ko-KR') : ''}
+                        </span>
+                        {isMine && (
+                          <button
+                            onClick={() => handleDeleteReview(review.id)}
+                            className="text-[11px] text-slate-300 hover:text-rose-400 transition-colors"
+                          >
+                            삭제
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {review.body && <p className="text-sm text-slate-600 leading-relaxed">{review.body}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* 이 활동을 할 수 있는 장소 */}
         {relatedPlaces.length > 0 && (

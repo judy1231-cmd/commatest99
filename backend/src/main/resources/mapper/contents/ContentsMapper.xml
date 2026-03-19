@@ -5,37 +5,50 @@
 <mapper namespace="com.comma.domain.contents.mapper.ContentsMapper">
 
     <resultMap id="ContentsMap" type="com.comma.domain.contents.model.Contents">
-        <id     property="id"        column="id"/>
-        <result property="category"  column="category"/>
-        <result property="title"     column="title"/>
-        <result property="summary"   column="summary"/>
-        <result property="body"      column="body"/>
-        <result property="duration"  column="duration"/>
-        <result property="difficulty" column="difficulty"/>
-        <result property="imageUrl"  column="image_url"/>
-        <result property="isActive"  column="is_active"/>
-        <result property="createdAt" column="created_at"/>
+        <id     property="id"          column="id"/>
+        <result property="category"    column="category"/>
+        <result property="title"       column="title"/>
+        <result property="summary"     column="summary"/>
+        <result property="body"        column="body"/>
+        <result property="duration"    column="duration"/>
+        <result property="difficulty"  column="difficulty"/>
+        <result property="imageUrl"    column="image_url"/>
+        <result property="isActive"    column="is_active"/>
+        <result property="createdAt"   column="created_at"/>
+        <result property="likeCount"   column="like_count"/>
+        <result property="reviewCount" column="review_count"/>
     </resultMap>
 
+    <sql id="selectWithCounts">
+        SELECT c.*,
+               (SELECT COUNT(*) FROM content_likes   WHERE content_id = c.id) AS like_count,
+               (SELECT COUNT(*) FROM content_reviews WHERE content_id = c.id) AS review_count
+        FROM contents c
+    </sql>
+
     <select id="findAll" resultMap="ContentsMap">
-        SELECT * FROM contents WHERE is_active = true ORDER BY category, id
+        <include refid="selectWithCounts"/>
+        WHERE c.is_active = true ORDER BY c.category, c.id
     </select>
 
     <select id="findByCategory" resultMap="ContentsMap">
-        SELECT * FROM contents WHERE is_active = true AND category = #{category} ORDER BY id
+        <include refid="selectWithCounts"/>
+        WHERE c.is_active = true AND c.category = #{category} ORDER BY c.id
     </select>
 
     <select id="findByCategories" resultMap="ContentsMap">
-        SELECT * FROM contents WHERE is_active = true
-        AND category IN
+        <include refid="selectWithCounts"/>
+        WHERE c.is_active = true
+        AND c.category IN
         <foreach item="cat" collection="categories" open="(" separator="," close=")">
             #{cat}
         </foreach>
-        ORDER BY category, id
+        ORDER BY c.category, c.id
     </select>
 
     <select id="findById" resultMap="ContentsMap">
-        SELECT * FROM contents WHERE id = #{id} AND is_active = true
+        <include refid="selectWithCounts"/>
+        WHERE c.id = #{id} AND c.is_active = true
     </select>
 
     <update id="deactivateById">
@@ -45,5 +58,55 @@
     <update id="updateImageUrlByCategory">
         UPDATE contents SET image_url = #{imageUrl} WHERE category = #{category}
     </update>
+
+    <!-- ==================== 좋아요 ==================== -->
+
+    <select id="findLike" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM content_likes
+        WHERE `쉼표번호` = #{쉼표번호} AND content_id = #{contentId}
+    </select>
+
+    <insert id="insertLike">
+        INSERT IGNORE INTO content_likes (`쉼표번호`, content_id)
+        VALUES (#{쉼표번호}, #{contentId})
+    </insert>
+
+    <delete id="deleteLike">
+        DELETE FROM content_likes WHERE `쉼표번호` = #{쉼표번호} AND content_id = #{contentId}
+    </delete>
+
+    <select id="countLikes" resultType="int">
+        SELECT COUNT(*) FROM content_likes WHERE content_id = #{contentId}
+    </select>
+
+    <!-- ==================== 후기 ==================== -->
+
+    <select id="findReviewsByContentId" resultType="com.comma.domain.contents.model.ContentReview">
+        SELECT r.id, r.`쉼표번호`, r.content_id, r.rating, r.body, r.created_at,
+               u.nickname
+        FROM content_reviews r
+        LEFT JOIN users u ON r.`쉼표번호` = u.`쉼표번호`
+        WHERE r.content_id = #{contentId}
+        ORDER BY r.created_at DESC
+    </select>
+
+    <insert id="insertReview" parameterType="com.comma.domain.contents.model.ContentReview"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO content_reviews (`쉼표번호`, content_id, rating, body, created_at)
+        VALUES (#{쉼표번호}, #{contentId}, #{rating}, #{body}, NOW())
+    </insert>
+
+    <select id="findReviewById" resultType="com.comma.domain.contents.model.ContentReview">
+        SELECT id, `쉼표번호`, content_id, rating, body, created_at
+        FROM content_reviews WHERE id = #{id}
+    </select>
+
+    <delete id="deleteReview">
+        DELETE FROM content_reviews WHERE id = #{id} AND `쉼표번호` = #{쉼표번호}
+    </delete>
+
+    <select id="countReviews" resultType="int">
+        SELECT COUNT(*) FROM content_reviews WHERE content_id = #{contentId}
+    </select>
 
 </mapper>

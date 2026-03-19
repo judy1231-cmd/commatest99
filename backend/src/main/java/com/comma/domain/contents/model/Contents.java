@@ -20,4 +20,7 @@ public class Contents {
     private String imageUrl;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private Integer likeCount;
+    private Integer reviewCount;
+    private Boolean liked; // 현재 로그인 사용자의 좋아요 여부
 }

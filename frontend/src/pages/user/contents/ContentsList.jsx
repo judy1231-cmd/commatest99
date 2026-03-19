@@ -168,6 +168,18 @@ function ListCard({ content, onBookmark, isLoggedIn }) {
               {content.duration}분 소요
             </span>
           )}
+          {content.likeCount > 0 && (
+            <span className="flex items-center gap-0.5">
+              <span className="material-icons text-xs text-rose-400">favorite</span>
+              {content.likeCount}
+            </span>
+          )}
+          {content.reviewCount > 0 && (
+            <span className="flex items-center gap-0.5">
+              <span className="material-icons text-xs text-slate-300">chat_bubble</span>
+              {content.reviewCount}
+            </span>
+          )}
           {content.createdAt && <span>{formatDate(content.createdAt)}</span>}
         </div>
       </div>

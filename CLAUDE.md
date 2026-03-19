@@ -485,9 +485,13 @@ chore: MyBatis 의존성 추가
 ### Phase 4 — 장소 / 기록 (진행 중)
 - rest_logs CRUD, RestRecord.jsx 완성 ✅
 - StatsMapper.xml year_month 버그 수정 ✅
+- Galaxy Watch → 준비 중 UI 처리 완료 ✅ (HeartRateCheck.jsx)
+- place_photos DB 사진 교체 완료 ✅ (나팔리 코스트 트레일 place_id=545)
 - **공공데이터 크롤링 실행 (장소 Seed)** → 미완
 - 장소 CRUD, Leaflet 지도 + 공공데이터포털 API 연동 → 미완
 - recommendations 저장 로직 → 미완
+
+> 📅 마지막 작업: 2026-03-19
 
 ### Phase 5 — 통계 / 마이페이지 / 알림
 - monthly_stats 집계 로직
