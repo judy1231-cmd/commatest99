@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import UserNavbar from '../../../components/user/UserNavbar';
 import { fetchWithAuth } from '../../../api/fetchWithAuth';
@@ -43,6 +43,8 @@ function ContentsDetail() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const placesScrollRef = useRef(null);
+  const autoScrollPaused = useRef(false);
 
   const isDomestic = (address) =>
     ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종',
@@ -64,6 +66,21 @@ function ContentsDetail() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadContent(); }, [id]);
+
+  useEffect(() => {
+    const el = placesScrollRef.current;
+    if (!el) return;
+    const interval = setInterval(() => {
+      if (autoScrollPaused.current) return;
+      const cardWidth = 176 + 12; // w-44(176px) + gap-3(12px)
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [relatedPlaces]);
 
   const loadRelated = async (category, currentId) => {
     try {
@@ -475,7 +492,13 @@ function ContentsDetail() {
                 지도에서 보기
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div
+              ref={placesScrollRef}
+              className="flex gap-3 overflow-x-auto pb-1"
+              style={{ scrollbarWidth: 'none' }}
+              onMouseEnter={() => { autoScrollPaused.current = true; }}
+              onMouseLeave={() => { autoScrollPaused.current = false; }}
+            >
               {relatedPlaces
                 .filter(p =>
                   placeTab === 'all' ? true :
