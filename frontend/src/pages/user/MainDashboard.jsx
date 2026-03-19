@@ -450,14 +450,14 @@ function MainDashboard() {
                 <div
                   key={rec.id}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
-                  className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-primary/40 transition-all duration-200 flex flex-col cursor-pointer"
+                  className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer"
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
                     <img
                       src={rec.placePhotoUrl || REST_TYPE_PHOTOS[rec.placeFirstRestType] || REST_TYPE_PHOTOS.default}
                       alt={rec.placeName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {/* 좌상단 — 휴식유형 로고 */}
                     {REST_TYPE_MAP[rec.placeFirstRestType] && (() => {
@@ -548,13 +548,13 @@ function MainDashboard() {
                   <div
                     key={place.id}
                     onClick={() => navigate(`/places/${place.id}`)}
-                    className="flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-slate-300 transition-all duration-200 flex flex-col cursor-pointer"
+                    className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer"
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
                       <img
                         alt={place.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
                       />
                       {/* 좌상단 — 휴식유형 아이콘 + 라벨 */}
