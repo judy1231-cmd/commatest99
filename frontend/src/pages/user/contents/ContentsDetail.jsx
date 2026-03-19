@@ -187,7 +187,7 @@ function ContentsDetail() {
             <img
               src={content.imageUrl}
               alt={content.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-72 object-cover"
               onError={(e) => { e.target.style.display = 'none'; }}
             />
           )}
@@ -393,12 +393,12 @@ function ContentsDetail() {
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="w-full h-20 object-cover"
+                    className="w-full h-28 object-cover"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
                 ) : (
                   <div
-                    className="h-20 flex items-center justify-center"
+                    className="h-28 flex items-center justify-center"
                     style={{ backgroundColor: `${cat.color}15` }}
                   >
                     <span
