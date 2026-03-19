@@ -34,6 +34,7 @@ function ContentsDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [relatedContents, setRelatedContents] = useState([]);
+  const [relatedPlaces, setRelatedPlaces] = useState([]);
 
   const handleRecordClick = () => {
     if (!isLoggedIn) { navigate('/login'); return; }
@@ -62,6 +63,18 @@ function ContentsDetail() {
     }
   };
 
+  const loadRelatedPlaces = async (category) => {
+    try {
+      const res = await fetch(`/api/places?restType=${category}&size=6&status=approved`);
+      const data = await res.json();
+      if (data.success && data.data?.places) {
+        setRelatedPlaces(data.data.places);
+      }
+    } catch {
+      // 장소 로드 실패는 무시
+    }
+  };
+
   const loadContent = async () => {
     setLoading(true);
     setError(null);
@@ -71,6 +84,7 @@ function ContentsDetail() {
       if (data.success && data.data) {
         setContent(data.data);
         loadRelated(data.data.category, Number(id));
+        loadRelatedPlaces(data.data.category);
       } else {
         setError('콘텐츠를 찾을 수 없어요.');
       }
@@ -233,6 +247,59 @@ function ContentsDetail() {
                 #{tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* 이 활동을 할 수 있는 장소 */}
+        {relatedPlaces.length > 0 && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-3 px-0.5">
+              <p className="text-sm font-extrabold text-slate-700">이 활동을 할 수 있는 장소</p>
+              <Link to="/map" className="text-xs text-slate-400 hover:text-primary transition-colors">
+                지도에서 보기
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {relatedPlaces.map((place) => (
+                <Link
+                  key={place.id}
+                  to={`/places/${place.id}`}
+                  className="group shrink-0 w-44 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md hover:border-slate-200 transition-all"
+                >
+                  {/* 썸네일 */}
+                  <div className="h-24 overflow-hidden bg-slate-100">
+                    {place.photoUrl ? (
+                      <img
+                        src={place.photoUrl}
+                        alt={place.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div
+                        className="h-full flex items-center justify-center"
+                        style={{ backgroundColor: `${cat.color}15` }}
+                      >
+                        <span className="material-icons text-3xl opacity-50" style={{ color: cat.color }}>
+                          location_on
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* 정보 */}
+                  <div className="px-3 py-2.5">
+                    <p className="text-xs font-bold text-slate-800 truncate mb-0.5">{place.name}</p>
+                    <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
+                    {place.aiScore != null && (
+                      <div className="flex items-center gap-0.5 mt-1">
+                        <span className="material-icons text-amber-400 text-[11px]">star</span>
+                        <span className="text-[11px] font-bold text-slate-500">{place.aiScore.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
