@@ -145,8 +145,8 @@ function MainDashboard() {
   const loadPlaces = async (restType) => {
     try {
       const url = restType
-        ? `/api/places?page=1&size=6&restType=${restType}`
-        : '/api/places?page=1&size=6&status=approved';
+        ? `/api/places?page=1&size=20&restType=${restType}`
+        : '/api/places?page=1&size=20&status=approved';
       const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data?.places) {
@@ -252,34 +252,32 @@ function MainDashboard() {
     }
   };
 
-  // 맞춤추천 자동 스크롤
+  // 맞춤추천 무한 자동 스크롤
   useEffect(() => {
     const el = recScrollRef.current;
-    if (!el) return;
-    const cardWidth = 220 + 16; // w-[220px] + gap-4(16px)
+    if (!el || recommendations.length === 0) return;
+    const cardWidth = 220 + 16;
     const interval = setInterval(() => {
       if (recScrollPaused.current) return;
-      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft -= el.scrollWidth / 2;
       }
+      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
     }, 2500);
     return () => clearInterval(interval);
   }, [recommendations]);
 
-  // 추천장소 자동 스크롤
+  // 추천장소 무한 자동 스크롤
   useEffect(() => {
     const el = placeScrollRef.current;
-    if (!el) return;
-    const cardWidth = 220 + 16; // w-[220px] + gap-4(16px)
+    if (!el || places.length === 0) return;
+    const cardWidth = 220 + 16;
     const interval = setInterval(() => {
       if (placeScrollPaused.current) return;
-      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      if (el.scrollLeft >= el.scrollWidth / 2) {
+        el.scrollLeft -= el.scrollWidth / 2;
       }
+      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
     }, 2500);
     return () => clearInterval(interval);
   }, [places]);
@@ -549,9 +547,9 @@ function MainDashboard() {
               onMouseEnter={() => { recScrollPaused.current = true; }}
               onMouseLeave={() => { recScrollPaused.current = false; }}
             >
-              {recommendations.slice(0, 5).map((rec, idx) => (
+              {[...recommendations, ...recommendations].map((rec, idx) => (
                 <div
-                  key={rec.id}
+                  key={`rec-${idx}`}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
                   className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                 >
@@ -737,13 +735,13 @@ function MainDashboard() {
               onMouseEnter={() => { placeScrollPaused.current = true; }}
               onMouseLeave={() => { placeScrollPaused.current = false; }}
             >
-              {places.map((place, idx) => {
+              {[...places, ...places].map((place, idx) => {
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
                   <div
-                    key={place.id}
+                    key={`place-${idx}`}
                     onClick={() => navigate(`/places/${place.id}`)}
                     className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                   >
