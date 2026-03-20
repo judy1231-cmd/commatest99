@@ -322,20 +322,17 @@ function MyPage() {
         <div className="h-3" />
 
         {/* ── 이번 달 요약 ── */}
-        {monthlyStats && (
-          <>
-            <div className="px-4">
-              <div className="bg-white rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm font-bold text-slate-700">이번 달 휴식 요약</p>
-                  <button
-                    onClick={() => navigate('/rest-record')}
-                    className="text-xs text-primary font-bold"
-                  >
-                    전체 보기
-                  </button>
-                </div>
+        <div className="px-4">
+          <div className="bg-white rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-bold text-slate-700">이번 달 휴식 요약</p>
+              <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                전체 보기
+              </button>
+            </div>
 
+            {monthlyStats ? (
+              <>
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   {[
                     { label: '기록', value: monthlyStats.recordCount || 0, unit: '회' },
@@ -349,62 +346,99 @@ function MyPage() {
                   ))}
                 </div>
 
-                {typeRatios.length > 0 && (
+                {typeRatios.length > 0 ? (
                   <div className="space-y-2.5">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">휴식 유형 비율</p>
                     {typeRatios.map((item, i) => (
                       <div key={item.type}>
                         <div className="flex justify-between text-xs mb-1">
-                          <span className="font-medium text-slate-600">{item.label}</span>
-                          <span className="font-bold" style={{ color: TYPE_RATIO_COLORS[i] }}>{item.pct}%</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="material-icons text-[13px]" style={{ color: item.color }}>{item.icon}</span>
+                            <span className="font-medium text-slate-600">{item.label}</span>
+                          </div>
+                          <span className="font-bold" style={{ color: item.color }}>{item.pct}%</span>
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${item.pct}%`, backgroundColor: TYPE_RATIO_COLORS[i] }}
+                            style={{ width: `${item.pct}%`, backgroundColor: item.color }}
                           />
                         </div>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <span className="material-icons text-2xl text-slate-200 block mb-1">pie_chart</span>
+                    <p className="text-xs text-slate-400">유형별 비율 데이터가 없어요</p>
+                  </div>
                 )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <span className="material-icons text-3xl text-slate-200 block mb-2">insert_chart</span>
+                <p className="text-sm font-semibold text-slate-400">아직 이번 달 기록이 없어요</p>
+                <p className="text-xs text-slate-300 mt-1">휴식을 기록하면 통계가 나타나요</p>
+                <button
+                  onClick={() => navigate('/rest-record')}
+                  className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
+                >
+                  첫 기록 남기기
+                </button>
               </div>
-            </div>
-            <div className="h-3" />
-          </>
-        )}
+            )}
+          </div>
+        </div>
+
+        <div className="h-3" />
 
         {/* ── 최근 활동 ── */}
-        {recentLogs.length > 0 && (
-          <>
-            <div className="px-4">
-              <div className="bg-white rounded-2xl overflow-hidden">
-                <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                  <p className="text-sm font-bold text-slate-700">최근 휴식 기록</p>
-                  <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
-                    전체 보기
-                  </button>
-                </div>
-                <div className="divide-y divide-slate-50">
-                  {recentLogs.map((log) => (
+        <div className="px-4">
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+              <p className="text-sm font-bold text-slate-700">최근 휴식 기록</p>
+              <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                전체 보기
+              </button>
+            </div>
+            {recentLogs.length > 0 ? (
+              <div className="divide-y divide-slate-50">
+                {recentLogs.map((log) => {
+                  const typeInfo = log.restType ? REST_TYPE_NAMES[log.restType] : null;
+                  return (
                     <div key={log.id} className="flex items-center gap-3 px-5 py-3.5">
-                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="material-icons text-primary text-sm">self_improvement</span>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: typeInfo ? typeInfo.color + '18' : '#ECFDF5' }}>
+                        <span className="material-icons text-sm"
+                          style={{ color: typeInfo ? typeInfo.color : '#10b981' }}>
+                          {typeInfo ? typeInfo.icon : 'self_improvement'}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-700 truncate">{log.memo || '휴식 기록'}</p>
-                        {log.emotionAfter != null && (
-                          <p className="text-xs text-slate-400">기분 {log.emotionAfter}/10</p>
-                        )}
+                        <p className="text-sm font-semibold text-slate-700 truncate">{log.memo || (typeInfo?.label || '휴식 기록')}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {typeInfo && <span className="text-[10px] font-bold" style={{ color: typeInfo.color }}>{typeInfo.label}</span>}
+                          {log.emotionAfter != null && (
+                            <p className="text-xs text-slate-400">기분 {log.emotionAfter}/10</p>
+                          )}
+                        </div>
                       </div>
                       <span className="text-xs text-slate-400 shrink-0">{formatDate(log.startTime)}</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            </div>
-            <div className="h-3" />
-          </>
-        )}
+            ) : (
+              <div className="text-center py-8 px-5">
+                <span className="material-icons text-3xl text-slate-200 block mb-2">history</span>
+                <p className="text-sm font-semibold text-slate-400">아직 기록이 없어요</p>
+                <p className="text-xs text-slate-300 mt-1">오늘 휴식을 기록해보세요</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="h-3" />
 
         {/* ── 메뉴 그룹: 기록 ── */}
         <MenuGroup title="기록">
