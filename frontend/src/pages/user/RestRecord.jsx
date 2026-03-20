@@ -83,6 +83,25 @@ function RestRecord() {
             setShowModal(true);
           }
         }
+        // 휴식유형 활동 모달에서 넘어온 경우 폼 자동 세팅
+        if (location.state?.prefill) {
+          const { restType, activityName, duration } = location.state.prefill;
+          const matched = data.data.find((t) => t.typeName === restType);
+          const now = new Date();
+          const end = new Date(now.getTime() + (duration || 30) * 60000);
+          const toLocal = (d) => {
+            const p = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+          };
+          setForm((prev) => ({
+            ...prev,
+            restTypeId: matched ? String(matched.id) : prev.restTypeId,
+            memo: activityName || '',
+            startTime: toLocal(now),
+            endTime: toLocal(end),
+          }));
+          setShowModal(true);
+        }
         // 콘텐츠 상세에서 넘어온 경우 폼 자동 세팅
         if (location.state?.fromContents && location.state?.contentCategory) {
           const matched = data.data.find((t) => t.typeName === location.state.contentCategory);

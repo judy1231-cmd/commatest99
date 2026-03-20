@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
+import ActivityModal from '../../components/user/ActivityModal';
 
 const TYPE = {
   key: 'mental',
@@ -69,6 +70,7 @@ function RestMental() {
   const navigate = useNavigate();
   const [timeOpt, setTimeOpt] = useState('short');
   const [withOpt, setWithOpt] = useState('alone');
+  const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('mental');
 
   const filteredPlaces = MENTAL_PLACES.filter(
@@ -137,7 +139,7 @@ function RestMental() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {activities.map((act) => (
-                    <div key={act.id} onClick={() => navigate('/rest-record')}
+                    <div key={act.id} onClick={() => setSelectedActivity(act)}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: TYPE.color + '18' }}>
                         <span className="material-icons text-lg" style={{ color: TYPE.color }}>{TYPE.icon}</span>
@@ -314,6 +316,15 @@ function RestMental() {
         </div>
       </div>
     </div>
+
+    {selectedActivity && (
+      <ActivityModal
+        activity={selectedActivity}
+        typeColor={TYPE.color}
+        typeName={TYPE.key}
+        onClose={() => setSelectedActivity(null)}
+      />
+    )}
   );
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
+import ActivityModal from '../../components/user/ActivityModal';
 
 const TYPE = {
   key: 'emotional',
@@ -70,6 +71,7 @@ function RestEmotional() {
   const navigate = useNavigate();
   const [companion, setCompanion] = useState('alone');
   const [method, setMethod] = useState('activity');
+  const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('emotional');
 
   const filteredPlaces = EMOTIONAL_PLACES.filter(
@@ -138,7 +140,7 @@ function RestEmotional() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {activities.map((act) => (
-                    <div key={act.id} onClick={() => navigate('/rest-record')}
+                    <div key={act.id} onClick={() => setSelectedActivity(act)}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-pink-200 transition-all">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: TYPE.color + '18' }}>
                         <span className="material-icons text-lg" style={{ color: TYPE.color }}>{TYPE.icon}</span>
@@ -315,6 +317,15 @@ function RestEmotional() {
         </div>
       </div>
     </div>
+
+    {selectedActivity && (
+      <ActivityModal
+        activity={selectedActivity}
+        typeColor={TYPE.color}
+        typeName={TYPE.key}
+        onClose={() => setSelectedActivity(null)}
+      />
+    )}
   );
 }
 
