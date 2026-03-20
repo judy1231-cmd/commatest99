@@ -536,9 +536,14 @@ function MainDashboard() {
             <SectionHeader
               title="나를 위한 맞춤 추천"
               action={
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                  <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                    <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
+                  </span>
+                  <Link to="/map" className="flex items-center gap-0.5 text-[13px] text-slate-400 font-semibold hover:text-primary transition-colors">
+                    지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
+                  </Link>
+                </div>
               }
             />
             <div
