@@ -156,9 +156,15 @@ function RestCreative() {
                         )}
                       </div>
                       <p className="text-xs text-slate-500 leading-relaxed">{act.guideContent}</p>
-                      <div className="mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: TYPE.color }}>
-                        <span className="material-icons text-sm">edit_note</span>
-                        <span className="text-xs font-bold">기록하기</span>
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate('/rest-record', { state: { prefill: { restType: TYPE.key, activityName: act.activityName, duration: act.durationMinutes } } }); }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-white text-[11px] font-bold hover:opacity-80 transition-opacity"
+                          style={{ backgroundColor: TYPE.color }}
+                        >
+                          <span className="material-icons text-[13px]">edit_note</span>
+                          기록
+                        </button>
                       </div>
                     </div>
                   ))}
