@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
@@ -105,6 +105,10 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const recScrollRef = useRef(null);
+  const placeScrollRef = useRef(null);
+  const recScrollPaused = useRef(false);
+  const placeScrollPaused = useRef(false);
   const [likedContentIds, setLikedContentIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [suggestedContents, setSuggestedContents] = useState([]);
@@ -247,6 +251,38 @@ function MainDashboard() {
       // 무시
     }
   };
+
+  // 맞춤추천 자동 스크롤
+  useEffect(() => {
+    const el = recScrollRef.current;
+    if (!el) return;
+    const cardWidth = 220 + 16; // w-[220px] + gap-4(16px)
+    const interval = setInterval(() => {
+      if (recScrollPaused.current) return;
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [recommendations]);
+
+  // 추천장소 자동 스크롤
+  useEffect(() => {
+    const el = placeScrollRef.current;
+    if (!el) return;
+    const cardWidth = 220 + 16; // w-[220px] + gap-4(16px)
+    const interval = setInterval(() => {
+      if (placeScrollPaused.current) return;
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 1) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [places]);
 
   let typeRatios = [];
   if (monthlyStats?.typeRatioJson) {
@@ -507,7 +543,12 @@ function MainDashboard() {
                 </span>
               }
             />
-            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+            <div
+              ref={recScrollRef}
+              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
+              onMouseEnter={() => { recScrollPaused.current = true; }}
+              onMouseLeave={() => { recScrollPaused.current = false; }}
+            >
               {recommendations.slice(0, 5).map((rec, idx) => (
                 <div
                   key={rec.id}
@@ -690,7 +731,12 @@ function MainDashboard() {
               <Link to="/map" className="text-[13px] text-primary font-bold hover:underline">지도에서 탐색하기 →</Link>
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+            <div
+              ref={placeScrollRef}
+              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
+              onMouseEnter={() => { placeScrollPaused.current = true; }}
+              onMouseLeave={() => { placeScrollPaused.current = false; }}
+            >
               {places.map((place, idx) => {
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
