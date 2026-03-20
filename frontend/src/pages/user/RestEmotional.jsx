@@ -245,7 +245,9 @@ function RestEmotional() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredPlaces.map((place, i) => (
-                    <div key={i} onClick={() => navigate('/rest-record')}
+                    <a key={i}
+                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(place.name + ' 힐링')}`}
+                      target="_blank" rel="noopener noreferrer"
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-pink-200 transition-all">
                       <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
                         <span className="material-icons text-2xl text-white/90">{place.icon}</span>
@@ -264,9 +266,9 @@ function RestEmotional() {
                         </div>
                       </div>
                       <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-icons text-slate-300">chevron_right</span>
+                        <span className="material-icons text-red-400 text-[20px]">play_circle</span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               )}
