@@ -250,11 +250,19 @@ function RestMental() {
                     <div key={place.id}
                       onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
-                      <div className="w-16 shrink-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
-                        <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
+                      <div className="w-24 shrink-0 relative overflow-hidden" style={{ minHeight: '90px', background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
+                        </div>
+                        {place.photoUrl && (
+                          <img src={place.photoUrl} alt={place.name} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0 p-4">
-                        <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
+                        <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                          <span className="material-icons text-[14px] shrink-0" style={{ color: TYPE.color }}>{TYPE.icon}</span>
+                          {place.name}
+                        </h4>
                         <div className="flex items-center gap-1 mt-0.5 mb-2">
                           <span className="material-icons text-[11px] text-slate-300">location_on</span>
                           <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
