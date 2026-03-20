@@ -78,6 +78,7 @@ function RestMental() {
   );
 
   return (
+    <>
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
@@ -325,6 +326,7 @@ function RestMental() {
         onClose={() => setSelectedActivity(null)}
       />
     )}
+    </>
   );
 }
 
