@@ -48,7 +48,7 @@ const CHECKLIST = [
 const EFFECTS = [
   { icon: 'psychology', stat: '35% ↓', label: '과각성 상태 감소' },
   { icon: 'center_focus_strong', stat: '집중력 ↑', label: '전두엽 활성화' },
-  { icon: 'sentiment_calm', stat: '불안 완화', label: '편도체 반응 안정' },
+  { icon: 'self_improvement', stat: '불안 완화', label: '편도체 반응 안정' },
 ];
 
 const ROUTINE = {
