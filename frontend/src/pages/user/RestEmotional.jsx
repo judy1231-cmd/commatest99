@@ -280,6 +280,13 @@ function RestEmotional() {
                             <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
                           </div>
                         )}
+                        {place.tags && place.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {place.tags.slice(0, 3).map((tag, j) => (
+                              <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="material-icons text-slate-300">chevron_right</span>
