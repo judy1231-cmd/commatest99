@@ -43,7 +43,6 @@ function ActivityModal({ activity, typeColor, typeName, onClose }) {
   }, []);
 
   const query = YOUTUBE_QUERIES[activity.id] || `${activity.activityName} relaxation guide`;
-  const embedUrl = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(query)}&index=0`;
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 
   const handleRecord = () => {
@@ -94,17 +93,30 @@ function ActivityModal({ activity, typeColor, typeName, onClose }) {
           </button>
         </div>
 
-        {/* 유튜브 iframe */}
-        <div className="relative w-full bg-black" style={{ paddingTop: '56.25%' }}>
-          <iframe
-            className="absolute inset-0 w-full h-full"
-            src={embedUrl}
-            title={activity.activityName}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
+        {/* YouTube 검색 카드 */}
+        <a
+          href={searchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block mx-5 mb-1 rounded-2xl overflow-hidden relative group"
+          style={{ background: `linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)` }}
+        >
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
+            <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <svg viewBox="0 0 24 24" className="w-8 h-8 fill-white">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-bold text-[15px] mb-1">{activity.activityName} 영상 보기</p>
+              <p className="text-white/50 text-[12px]">YouTube에서 관련 영상 검색 열기 →</p>
+            </div>
+          </div>
+          <div
+            className="absolute bottom-0 left-0 right-0 h-1"
+            style={{ backgroundColor: typeColor }}
           />
-        </div>
+        </a>
 
         {/* 가이드 내용 + 버튼 */}
         <div className="px-5 py-4">
@@ -117,17 +129,6 @@ function ActivityModal({ activity, typeColor, typeName, onClose }) {
               <p className="text-[13px] text-slate-600 leading-relaxed">{activity.guideContent}</p>
             </div>
           )}
-
-          {/* YouTube 직접 보기 링크 */}
-          <a
-            href={searchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2.5 mb-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-semibold hover:bg-slate-50 transition-colors"
-          >
-            <span className="material-icons text-[18px] text-red-500">play_circle</span>
-            YouTube에서 더 보기
-          </a>
 
           {/* 기록하기 */}
           <button
