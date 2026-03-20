@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
@@ -105,10 +105,6 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
-  const recScrollRef = useRef(null);
-  const placeScrollRef = useRef(null);
-  const recScrollPaused = useRef(false);
-  const placeScrollPaused = useRef(false);
   const [likedContentIds, setLikedContentIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [suggestedContents, setSuggestedContents] = useState([]);
@@ -145,8 +141,8 @@ function MainDashboard() {
   const loadPlaces = async (restType) => {
     try {
       const url = restType
-        ? `/api/places?page=1&size=20&restType=${restType}`
-        : '/api/places?page=1&size=20&status=approved';
+        ? `/api/places?page=1&size=6&restType=${restType}`
+        : '/api/places?page=1&size=6&status=approved';
       const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data?.places) {
@@ -251,36 +247,6 @@ function MainDashboard() {
       // 무시
     }
   };
-
-  // 맞춤추천 무한 자동 스크롤
-  useEffect(() => {
-    const el = recScrollRef.current;
-    if (!el || recommendations.length === 0) return;
-    const cardWidth = 220 + 16;
-    const interval = setInterval(() => {
-      if (recScrollPaused.current) return;
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft -= el.scrollWidth / 2;
-      }
-      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [recommendations]);
-
-  // 추천장소 무한 자동 스크롤
-  useEffect(() => {
-    const el = placeScrollRef.current;
-    if (!el || places.length === 0) return;
-    const cardWidth = 220 + 16;
-    const interval = setInterval(() => {
-      if (placeScrollPaused.current) return;
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft -= el.scrollWidth / 2;
-      }
-      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [places]);
 
   let typeRatios = [];
   if (monthlyStats?.typeRatioJson) {
@@ -536,25 +502,15 @@ function MainDashboard() {
             <SectionHeader
               title="나를 위한 맞춤 추천"
               action={
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                    <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
-                  </span>
-                  <Link to="/map" className="flex items-center gap-0.5 text-[13px] text-slate-400 font-semibold hover:text-primary transition-colors">
-                    지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
-                  </Link>
-                </div>
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                  <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
+                </span>
               }
             />
-            <div
-              ref={recScrollRef}
-              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
-              onMouseEnter={() => { recScrollPaused.current = true; }}
-              onMouseLeave={() => { recScrollPaused.current = false; }}
-            >
-              {[...recommendations, ...recommendations].map((rec, idx) => (
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+              {recommendations.slice(0, 5).map((rec, idx) => (
                 <div
-                  key={`rec-${idx}`}
+                  key={rec.id}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
                   className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                 >
@@ -734,19 +690,14 @@ function MainDashboard() {
               <Link to="/map" className="text-[13px] text-primary font-bold hover:underline">지도에서 탐색하기 →</Link>
             </div>
           ) : (
-            <div
-              ref={placeScrollRef}
-              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
-              onMouseEnter={() => { placeScrollPaused.current = true; }}
-              onMouseLeave={() => { placeScrollPaused.current = false; }}
-            >
-              {[...places, ...places].map((place, idx) => {
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+              {places.map((place, idx) => {
                 const firstTag = place.tags?.[0];
                 const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
                   <div
-                    key={`place-${idx}`}
+                    key={place.id}
                     onClick={() => navigate(`/places/${place.id}`)}
                     className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                   >
