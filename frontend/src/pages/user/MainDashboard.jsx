@@ -512,7 +512,7 @@ function MainDashboard() {
                 <div
                   key={rec.id}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
-                  className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer"
+                  className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
@@ -699,7 +699,7 @@ function MainDashboard() {
                   <div
                     key={place.id}
                     onClick={() => navigate(`/places/${place.id}`)}
-                    className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer"
+                    className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
