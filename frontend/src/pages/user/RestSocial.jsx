@@ -121,10 +121,52 @@ function RestSocial() {
               </div>
             </section>
 
+            {/* 체크리스트 */}
+            <section className="mb-10">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                    <span className="material-icons text-sm" style={{ color: TYPE.color }}>checklist</span>
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-800 text-sm">사회적 휴식이 필요한 신호</h3>
+                    <p className="text-xs text-slate-400">해당하는 항목을 체크해보세요</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {CHECKLIST.map((item, i) => (
+                    <label key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all">
+                      <input type="checkbox" className="w-4 h-4 rounded shrink-0" style={{ accentColor: TYPE.color }} />
+                      <span className="text-sm text-slate-600 font-medium">{item}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 사회적 휴식이 필요합니다.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
+            </section>
+
             {/* 추천 활동 */}
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[17px] font-extrabold text-slate-800">추천 활동</h2>
+                <h2 className="text-[17px] font-extrabold text-slate-800">지금 바로 해봐요</h2>
                 <span className="text-xs text-slate-400">탭하면 기록할 수 있어요</span>
               </div>
               {activitiesLoading ? (
@@ -201,7 +243,10 @@ function RestSocial() {
 
             {/* 필터 + 장소 */}
             <section className="mb-10">
-              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 어떻게 쉬고 싶어요?</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
+                <span className="text-xs text-slate-400">조건에 맞게 직접 골라봐요</span>
+              </div>
 
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
                 <div>
@@ -276,48 +321,6 @@ function RestSocial() {
                 <span className="material-icons text-base">map</span>
                 지도에서 내 주변 사회적 휴식 공간 찾기
               </Link>
-            </section>
-
-            {/* 전문가 팁 */}
-            <section className="mb-10">
-              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
-                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
-                    <span className="material-icons text-sm text-white">psychology</span>
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
-                </div>
-                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
-                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
-                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
-              </div>
-            </section>
-
-            {/* 체크리스트 */}
-            <section className="mb-10">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
-                    <span className="material-icons text-sm" style={{ color: TYPE.color }}>checklist</span>
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-slate-800 text-sm">사회적 휴식이 필요한 신호</h3>
-                    <p className="text-xs text-slate-400">해당하는 항목을 체크해보세요</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {CHECKLIST.map((item, i) => (
-                    <label key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all">
-                      <input type="checkbox" className="w-4 h-4 rounded shrink-0" style={{ accentColor: TYPE.color }} />
-                      <span className="text-sm text-slate-600 font-medium">{item}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 사회적 휴식이 필요합니다.</p>
-                </div>
-              </div>
             </section>
 
           </main>
