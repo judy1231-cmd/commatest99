@@ -76,6 +76,18 @@ public class ContentsController {
         return ResponseEntity.ok(ApiResponse.ok("완료", "후기 삭제 완료"));
     }
 
+    // PUT /api/contents/{id}  [관리자용 — 콘텐츠 수정]
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> updateContent(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        String title = body.getOrDefault("title", "").toString();
+        String summary = body.getOrDefault("summary", "").toString();
+        String contentBody = body.getOrDefault("body", "").toString();
+        contentsService.updateContent(id, title, summary, contentBody);
+        return ResponseEntity.ok(ApiResponse.ok("완료", "콘텐츠 수정 완료"));
+    }
+
     // DELETE /api/contents/{id}  [관리자용 — 콘텐츠 비활성화]
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deactivate(@PathVariable Long id) {

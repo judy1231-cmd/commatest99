@@ -55,6 +55,10 @@
         UPDATE contents SET is_active = false WHERE id = #{id}
     </update>
 
+    <update id="updateContent">
+        UPDATE contents SET title = #{title}, summary = #{summary}, body = #{body} WHERE id = #{id}
+    </update>
+
     <update id="updateImageUrlByCategory">
         UPDATE contents SET image_url = #{imageUrl} WHERE category = #{category}
     </update>
