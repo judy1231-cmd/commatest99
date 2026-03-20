@@ -1,10 +1,12 @@
 package com.comma.domain.place.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -26,4 +28,9 @@ public class Place {
     private Integer reviewCount;    // 리뷰 수
     private Integer bookmarkCount;  // 북마크(하트) 수
     private String firstRestType;   // 대표 휴식 유형 (사진 fallback용)
+
+    // 태그 목록 (place_tags JOIN)
+    @JsonIgnore
+    private String tagsStr;         // MyBatis: GROUP_CONCAT → 서비스에서 tags로 변환
+    private List<String> tags;      // API 응답으로 내려가는 태그 배열
 }
