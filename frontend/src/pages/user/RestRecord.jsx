@@ -96,7 +96,7 @@ function RestRecord() {
           setForm((prev) => ({
             ...prev,
             restTypeId: matched ? String(matched.id) : prev.restTypeId,
-            memo: activityName || '',
+            memo: activityName ? `${activityName}${duration ? ` · ${duration}분` : ''}` : '',
             startTime: toLocal(now),
             endTime: toLocal(end),
           }));
