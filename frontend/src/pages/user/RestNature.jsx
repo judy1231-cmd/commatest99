@@ -59,6 +59,27 @@ const CHECKLIST = [
   '계절의 변화를 감각하지 못한다.',
 ];
 
+const EFFECTS = [
+  { icon: 'air', stat: '21% ↓', label: '코르티솔 수치 감소' },
+  { icon: 'visibility', stat: '20% ↑', label: '집중력 향상' },
+  { icon: 'favorite', stat: '혈압 안정', label: '심박수·혈압 정상화' },
+];
+
+const ROUTINE = {
+  totalTime: '약 30분',
+  steps: [
+    { title: '디지털 기기 주머니에 넣기', time: '1분', desc: '스마트폰 화면 끄고 주머니에. 사진 찍고 싶어도 처음 10분만 참기' },
+    { title: '자연 속 천천히 걷기', time: '20분', desc: '빠르게 걷지 않기. 발바닥으로 땅을 느끼며. 보이는 색과 들리는 소리에 집중' },
+    { title: '한 곳에 앉아 멈추기', time: '5분', desc: '벤치나 잔디에 앉아 아무것도 하지 않기. 자연이 주는 소리를 그냥 듣기' },
+  ],
+};
+
+const TIP = {
+  quote: '나무가 많은 곳에 20분만 있어도 뇌가 달라집니다',
+  body: '일본의 "신린요쿠(숲욕)" 연구에 따르면 20~30분의 숲 산책 후 NK(자연살해)세포가 50% 증가하고 코르티솔이 21% 감소합니다. 피톤치드를 들이마시는 것만으로도 면역력이 올라가요.',
+  source: '일본 의학박사 Qing Li, 신린요쿠 연구 (2010)',
+};
+
 function RestNature() {
   const navigate = useNavigate();
   const [mainTab, setMainTab] = useState('walk');
@@ -105,6 +126,21 @@ function RestNature() {
 
           <main className="max-w-4xl mx-auto">
 
+            {/* 효과 배지 */}
+            <section className="mb-8">
+              <div className="grid grid-cols-3 gap-3">
+                {EFFECTS.map((e, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
+                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                      <span className="material-icons text-lg" style={{ color: TYPE.color }}>{e.icon}</span>
+                    </div>
+                    <p className="text-[15px] font-extrabold text-slate-800">{e.stat}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{e.label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             {/* 추천 활동 */}
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
@@ -143,6 +179,38 @@ function RestNature() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* 오늘의 루틴 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 바로 시작하는 루틴</h2>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2" style={{ background: `linear-gradient(135deg, ${TYPE.color}12, ${TYPE.color}04)` }}>
+                  <span className="material-icons text-base" style={{ color: TYPE.color }}>timer</span>
+                  <span className="text-sm font-bold text-slate-600">총 소요시간 {ROUTINE.totalTime}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  {ROUTINE.steps.map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="shrink-0 flex flex-col items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: TYPE.color }}>
+                          {i + 1}
+                        </div>
+                        {i < ROUTINE.steps.length - 1 && (
+                          <div className="w-px h-full mt-1 mb-1 min-h-[24px]" style={{ backgroundColor: TYPE.color + '30' }} />
+                        )}
+                      </div>
+                      <div className="pb-5 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{step.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </section>
 
             {/* 필터 + 장소 */}
@@ -253,6 +321,22 @@ function RestNature() {
                 <span className="material-icons text-base">map</span>
                 지도에서 내 주변 자연 공간 찾기
               </Link>
+            </section>
+
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
             </section>
 
             {/* 체크리스트 */}

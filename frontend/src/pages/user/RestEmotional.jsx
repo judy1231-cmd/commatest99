@@ -45,6 +45,27 @@ const CHECKLIST = [
   '혼자 있으면 공허하고 연결이 끊긴 느낌이다.',
 ];
 
+const EFFECTS = [
+  { icon: 'favorite', stat: '옥시토신 ↑', label: '유대감 호르몬 분비' },
+  { icon: 'mood', stat: '감정 조절', label: '전두엽-편도체 균형' },
+  { icon: 'volunteer_activism', stat: '공감 능력', label: '거울 뉴런 활성화' },
+];
+
+const ROUTINE = {
+  totalTime: '약 20분',
+  steps: [
+    { title: '감정 이름 붙이기', time: '5분', desc: '지금 느끼는 감정을 정확한 단어로 표현하기. "우울하다" → "실망스럽고 외롭다"처럼 구체화' },
+    { title: '감정 일기 쓰기', time: '10분', desc: '그 감정이 언제, 왜 생겼는지 판단 없이 서술. 잘 쓰려 하지 말고 그냥 쏟아내기' },
+    { title: '자기 위로 한 마디', time: '5분', desc: '"지금 이 감정은 자연스러운 것이야"라고 자신에게 말하기. 친한 친구에게 하듯이' },
+  ],
+};
+
+const TIP = {
+  quote: '감정을 억누르면 몸이 대신 기억합니다',
+  body: '표현되지 않은 감정은 근육 긴장, 소화 장애, 면역 저하로 나타납니다. 감정을 인식하고 이름 붙이는 것만으로도 뇌의 감정 반응이 40% 낮아진다는 연구가 있어요.',
+  source: 'UCLA 신경과학 연구팀 감정 레이블링 연구',
+};
+
 function RestEmotional() {
   const navigate = useNavigate();
   const [companion, setCompanion] = useState('alone');
@@ -59,7 +80,6 @@ function RestEmotional() {
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -72,7 +92,6 @@ function RestEmotional() {
           </div>
         </div>
 
-        {/* 브릿지 */}
         <div className="relative -mt-5 bg-[#F7F7F8] rounded-t-3xl pt-6 px-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.chipBg }}>
@@ -85,6 +104,21 @@ function RestEmotional() {
           </div>
 
           <main className="max-w-4xl mx-auto">
+
+            {/* 효과 배지 */}
+            <section className="mb-8">
+              <div className="grid grid-cols-3 gap-3">
+                {EFFECTS.map((e, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
+                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                      <span className="material-icons text-lg" style={{ color: TYPE.color }}>{e.icon}</span>
+                    </div>
+                    <p className="text-[15px] font-extrabold text-slate-800">{e.stat}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{e.label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             {/* 추천 활동 */}
             <section className="mb-10">
@@ -124,6 +158,38 @@ function RestEmotional() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* 오늘의 루틴 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 바로 시작하는 루틴</h2>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2" style={{ background: `linear-gradient(135deg, ${TYPE.color}12, ${TYPE.color}04)` }}>
+                  <span className="material-icons text-base" style={{ color: TYPE.color }}>timer</span>
+                  <span className="text-sm font-bold text-slate-600">총 소요시간 {ROUTINE.totalTime}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  {ROUTINE.steps.map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="shrink-0 flex flex-col items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: TYPE.color }}>
+                          {i + 1}
+                        </div>
+                        {i < ROUTINE.steps.length - 1 && (
+                          <div className="w-px h-full mt-1 mb-1 min-h-[24px]" style={{ backgroundColor: TYPE.color + '30' }} />
+                        )}
+                      </div>
+                      <div className="pb-5 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{step.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </section>
 
             {/* 필터 + 장소 */}
@@ -201,6 +267,22 @@ function RestEmotional() {
                 <span className="material-icons text-base">map</span>
                 지도에서 내 주변 정서 힐링 공간 찾기
               </Link>
+            </section>
+
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
             </section>
 
             {/* 체크리스트 */}

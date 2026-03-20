@@ -44,6 +44,27 @@ const CHECKLIST = [
   '머릿속이 항상 시끄럽고 지쳐있다.',
 ];
 
+const EFFECTS = [
+  { icon: 'psychology', stat: '35% ↓', label: '과각성 상태 감소' },
+  { icon: 'center_focus_strong', stat: '집중력 ↑', label: '전두엽 활성화' },
+  { icon: 'sentiment_calm', stat: '불안 완화', label: '편도체 반응 안정' },
+];
+
+const ROUTINE = {
+  totalTime: '약 20분',
+  steps: [
+    { title: '디지털 기기 차단', time: '1분', desc: '스마트폰을 뒤집거나 다른 방에 두기. 알림음 완전 끄기' },
+    { title: '4-7-8 호흡법', time: '5분', desc: '코로 4초 들숨 → 7초 멈춤 → 입으로 8초 날숨. 4회 반복' },
+    { title: '마음챙김 관찰', time: '10분', desc: '지금 보이는 것 3가지, 들리는 것 2가지, 느껴지는 것 1가지 찾기' },
+  ],
+};
+
+const TIP = {
+  quote: '생각을 없애려 할수록 생각은 더 강해집니다',
+  body: '명상의 목표는 잡념을 없애는 것이 아니라, 잡념을 알아차리고 흘려보내는 것입니다. 생각이 떠올랐을 때 "또 생각이 왔네" 하고 관찰자 시점에서 바라보세요.',
+  source: 'MBSR(마음챙김 기반 스트레스 감소) 프로그램',
+};
+
 function RestMental() {
   const navigate = useNavigate();
   const [timeOpt, setTimeOpt] = useState('short');
@@ -58,7 +79,6 @@ function RestMental() {
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -71,7 +91,6 @@ function RestMental() {
           </div>
         </div>
 
-        {/* 브릿지 */}
         <div className="relative -mt-5 bg-[#F7F7F8] rounded-t-3xl pt-6 px-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.chipBg }}>
@@ -79,11 +98,26 @@ function RestMental() {
             </div>
             <div>
               <p className="text-[13px] font-extrabold" style={{ color: TYPE.color }}>{TYPE.name}</p>
-              <p className="text-[11px] text-slate-400">집중력 향상 · 감정 안정 · 창의성 회복</p>
+              <p className="text-[11px] text-slate-400">과각성 완화 · 집중력 회복 · 내면 평정심</p>
             </div>
           </div>
 
           <main className="max-w-4xl mx-auto">
+
+            {/* 효과 배지 */}
+            <section className="mb-8">
+              <div className="grid grid-cols-3 gap-3">
+                {EFFECTS.map((e, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
+                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                      <span className="material-icons text-lg" style={{ color: TYPE.color }}>{e.icon}</span>
+                    </div>
+                    <p className="text-[15px] font-extrabold text-slate-800">{e.stat}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{e.label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             {/* 추천 활동 */}
             <section className="mb-10">
@@ -125,9 +159,41 @@ function RestMental() {
               )}
             </section>
 
+            {/* 오늘의 루틴 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 바로 시작하는 루틴</h2>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2" style={{ background: `linear-gradient(135deg, ${TYPE.color}12, ${TYPE.color}04)` }}>
+                  <span className="material-icons text-base" style={{ color: TYPE.color }}>timer</span>
+                  <span className="text-sm font-bold text-slate-600">총 소요시간 {ROUTINE.totalTime}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  {ROUTINE.steps.map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="shrink-0 flex flex-col items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: TYPE.color }}>
+                          {i + 1}
+                        </div>
+                        {i < ROUTINE.steps.length - 1 && (
+                          <div className="w-px h-full mt-1 mb-1 min-h-[24px]" style={{ backgroundColor: TYPE.color + '30' }} />
+                        )}
+                      </div>
+                      <div className="pb-5 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{step.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             {/* 필터 + 장소 */}
             <section className="mb-10">
-              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 어떻게 쉬고 싶어요?</h2>
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 어떻게 마음을 쉬게 할까요?</h2>
 
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
                 <div>
@@ -146,7 +212,7 @@ function RestMental() {
                 </div>
                 <div className="w-px bg-slate-100 self-stretch" />
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">휴식 방식</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">방식</p>
                   <div className="flex gap-2">
                     {WITH_OPTIONS.map(opt => (
                       <button key={opt.key} onClick={() => setWithOpt(opt.key)}
@@ -196,10 +262,26 @@ function RestMental() {
               )}
 
               <Link to="/map?restType=mental"
-                className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-all">
+                className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-blue-300 hover:text-blue-500 transition-all">
                 <span className="material-icons text-base">map</span>
-                지도에서 내 주변 명상 공간 찾기
+                지도에서 내 주변 고요한 공간 찾기
               </Link>
+            </section>
+
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
             </section>
 
             {/* 체크리스트 */}
@@ -210,7 +292,7 @@ function RestMental() {
                     <span className="material-icons text-sm" style={{ color: TYPE.color }}>checklist</span>
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-slate-800 text-sm">정신적 고요가 필요한 신호</h3>
+                    <h3 className="font-extrabold text-slate-800 text-sm">정신적 휴식이 필요한 신호</h3>
                     <p className="text-xs text-slate-400">해당하는 항목을 체크해보세요</p>
                   </div>
                 </div>
@@ -223,7 +305,7 @@ function RestMental() {
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-400">※ 2개 이상 해당된다면 오늘은 정신적 고요에 집중하세요.</p>
+                  <p className="text-xs text-slate-400">※ 3개 이상 해당된다면 오늘은 정신적 고요가 필요합니다.</p>
                 </div>
               </div>
             </section>

@@ -48,6 +48,27 @@ const CHECKLIST = [
   '작업에 대한 성취감보다 의무감이 더 크다.',
 ];
 
+const EFFECTS = [
+  { icon: 'emoji_emotions', stat: '도파민 ↑', label: '완성의 기쁨 호르몬' },
+  { icon: 'lightbulb', stat: '창의력 ↑', label: '우뇌 활성화' },
+  { icon: 'local_fire_department', stat: '번아웃 ↓', label: '소진 예방 효과' },
+];
+
+const ROUTINE = {
+  totalTime: '약 40분',
+  steps: [
+    { title: '작은 것으로 시작', time: '5분', desc: '흰 종이에 선 하나 긋기, 단어 하나 쓰기. 완성하려 하지 말고 그냥 시작만' },
+    { title: '몰입 시간', time: '30분', desc: '알림 차단 후 선택한 창작 활동에 집중. 잘하려 하지 말고 과정 자체를 즐기기' },
+    { title: '결과 감상', time: '5분', desc: '완성됐든 안 됐든 오늘 만든 것 바라보기. "내가 했다"는 사실만으로 충분해' },
+  ],
+};
+
+const TIP = {
+  quote: '창작은 완성이 아니라 과정에서 치유됩니다',
+  body: '예술 치료 연구에 따르면 창작 활동 45분 후 코르티솔(스트레스 호르몬)이 평균 75% 감소합니다. 그림 실력, 글솜씨는 중요하지 않아요. 만드는 행위 자체가 뇌를 치유합니다.',
+  source: '드렉셀 대학교 예술 치료 연구 (Stuckey & Nobel)',
+};
+
 function RestCreative() {
   const navigate = useNavigate();
   const [field, setField] = useState('art');
@@ -62,7 +83,6 @@ function RestCreative() {
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -75,7 +95,6 @@ function RestCreative() {
           </div>
         </div>
 
-        {/* 브릿지 */}
         <div className="relative -mt-5 bg-[#F7F7F8] rounded-t-3xl pt-6 px-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.chipBg }}>
@@ -88,6 +107,21 @@ function RestCreative() {
           </div>
 
           <main className="max-w-4xl mx-auto">
+
+            {/* 효과 배지 */}
+            <section className="mb-8">
+              <div className="grid grid-cols-3 gap-3">
+                {EFFECTS.map((e, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
+                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                      <span className="material-icons text-lg" style={{ color: TYPE.color }}>{e.icon}</span>
+                    </div>
+                    <p className="text-[15px] font-extrabold text-slate-800">{e.stat}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{e.label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             {/* 추천 활동 */}
             <section className="mb-10">
@@ -127,6 +161,38 @@ function RestCreative() {
                   ))}
                 </div>
               )}
+            </section>
+
+            {/* 오늘의 루틴 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 바로 시작하는 루틴</h2>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2" style={{ background: `linear-gradient(135deg, ${TYPE.color}12, ${TYPE.color}04)` }}>
+                  <span className="material-icons text-base" style={{ color: TYPE.color }}>timer</span>
+                  <span className="text-sm font-bold text-slate-600">총 소요시간 {ROUTINE.totalTime}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  {ROUTINE.steps.map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="shrink-0 flex flex-col items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: TYPE.color }}>
+                          {i + 1}
+                        </div>
+                        {i < ROUTINE.steps.length - 1 && (
+                          <div className="w-px h-full mt-1 mb-1 min-h-[24px]" style={{ backgroundColor: TYPE.color + '30' }} />
+                        )}
+                      </div>
+                      <div className="pb-5 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{step.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </section>
 
             {/* 필터 + 장소 */}
@@ -204,6 +270,22 @@ function RestCreative() {
                 <span className="material-icons text-base">map</span>
                 지도에서 내 주변 창작 공간 찾기
               </Link>
+            </section>
+
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
             </section>
 
             {/* 체크리스트 */}
