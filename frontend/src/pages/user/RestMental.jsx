@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
@@ -14,29 +14,6 @@ const TYPE = {
   chipBg: '#F0F5FF',
   heroImg: 'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=800',
 };
-
-const TIME_OPTIONS = [
-  { key: 'short',  label: '10분',   icon: 'bolt' },
-  { key: 'medium', label: '30분',   icon: 'nightlight' },
-  { key: 'long',   label: '1시간+', icon: 'star' },
-];
-
-const WITH_OPTIONS = [
-  { key: 'alone',  label: '혼자',       icon: 'person' },
-  { key: 'space',  label: '조용한 공간', icon: 'domain' },
-  { key: 'guided', label: '안내 받기',   icon: 'headphones' },
-];
-
-const MENTAL_PLACES = [
-  { name: '마음챙김 호흡 (5분)', location: '어디서든', desc: '4-7-8 호흡법. 들숨 4초, 멈춤 7초, 날숨 8초 × 4회', time: ['short'], with: ['alone'], tags: ['즉시가능', '호흡', '무료'], icon: 'air', gradient: 'from-teal-400 to-cyan-500' },
-  { name: '저널링 (10분)', location: '집·카페 어디서든', desc: '지금 머릿속에 있는 것 모두 종이에 쓰기. 판단 없이', time: ['short', 'medium'], with: ['alone'], tags: ['글쓰기', '감정정리', '무료'], icon: 'edit_note', gradient: 'from-emerald-400 to-teal-500' },
-  { name: '국립중앙도서관', location: '서울 서초구', desc: '완벽한 고요함. 책을 읽지 않아도 앉아있는 것만으로도 회복', time: ['medium', 'long'], with: ['space'], tags: ['도서관', '무료', '고요함'], icon: 'local_library', gradient: 'from-sky-400 to-blue-500' },
-  { name: '교보문고 광화문', location: '서울 종로구', desc: '책향기 가득한 공간에서 어슬렁거리기. 사야 한다는 부담 없이', time: ['medium'], with: ['space', 'alone'], tags: ['서점', '책', '자유로움'], icon: 'menu_book', gradient: 'from-violet-400 to-purple-500' },
-  { name: '명상 앱 (코끼리·마보)', location: '집·어디서든', desc: '가이드 명상 10~20분. 초보도 바로 시작 가능', time: ['short', 'medium'], with: ['guided'], tags: ['앱', '가이드명상', '무료체험'], icon: 'self_improvement', gradient: 'from-indigo-400 to-blue-500' },
-  { name: '사찰 템플스테이', location: '전국 사찰', desc: '1박 2일 또는 당일형. 예불·참선·공양 체험', time: ['long'], with: ['guided', 'space'], tags: ['템플스테이', '사찰', '1박2일'], icon: 'temple_buddhist', gradient: 'from-amber-500 to-orange-600' },
-  { name: '조용한 전통찻집', location: '인사동·북촌', desc: '차 한 잔 마시며 아무것도 안 하는 시간. 스마트폰은 내려두기', time: ['medium'], with: ['alone', 'space'], tags: ['전통차', '고요함', '인사동'], icon: 'local_cafe', gradient: 'from-stone-400 to-amber-500' },
-  { name: '명상 스튜디오', location: '강남·마포·홍대', desc: '전문 명상 지도사가 이끄는 50분 집중 프로그램', time: ['long'], with: ['guided'], tags: ['전문명상', '예약', '프리미엄'], icon: 'spa', gradient: 'from-blue-400 to-indigo-600' },
-];
 
 const CHECKLIST = [
   '생각이 너무 많아 멈출 수가 없다.',
@@ -68,14 +45,22 @@ const TIP = {
 
 function RestMental() {
   const navigate = useNavigate();
-  const [timeOpt, setTimeOpt] = useState('short');
-  const [withOpt, setWithOpt] = useState('alone');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('mental');
 
-  const filteredPlaces = MENTAL_PLACES.filter(
-    p => p.time.includes(timeOpt) && p.with.includes(withOpt)
-  );
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+
+  useEffect(() => {
+    setNearbyLoading(true);
+    fetch(`/api/places?restType=${TYPE.key}&size=6`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.places) setNearbyPlaces(data.data.places);
+      })
+      .catch(() => {})
+      .finally(() => setNearbyLoading(false));
+  }, []);
 
   return (
     <>
@@ -242,85 +227,64 @@ function RestMental() {
               </div>
             </section>
 
-            {/* 필터 + 장소 */}
+            {/* 더 찾아보기 */}
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
                 <span className="text-xs text-slate-400">조건에 맞게 직접 골라봐요</span>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">가능한 시간</p>
-                  <div className="flex gap-2">
-                    {TIME_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={timeOpt === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
+              {nearbyLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1,2].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24" />)}
                 </div>
-                <div className="w-px bg-slate-100 self-stretch" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">방식</p>
-                  <div className="flex gap-2">
-                    {WITH_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setWithOpt(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={withOpt === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {filteredPlaces.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                  <span className="material-icons text-4xl text-slate-200 block mb-2">search_off</span>
-                  <p className="text-slate-400 text-sm font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
+              ) : nearbyPlaces.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
+                  <span className="material-icons text-4xl text-slate-200 block mb-2">location_off</span>
+                  <p className="text-slate-400 text-sm font-medium">장소 데이터를 준비 중이에요</p>
+                  <p className="text-slate-300 text-xs mt-1">지도에서 직접 탐색해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredPlaces.map((place, i) => (
-                    <a key={i}
-                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(place.name + ' 힐링')}`}
-                      target="_blank" rel="noopener noreferrer"
+                  {nearbyPlaces.map((place) => (
+                    <div key={place.id}
+                      onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
-                      <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
-                        <span className="material-icons text-2xl text-white/90">{place.icon}</span>
+                      <div className="w-16 shrink-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
+                        <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0 p-4">
                         <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
                         <div className="flex items-center gap-1 mt-0.5 mb-2">
                           <span className="material-icons text-[11px] text-slate-300">location_on</span>
-                          <p className="text-[11px] text-slate-400">{place.location}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{place.desc}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {place.tags.map((tag, j) => (
-                            <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
-                          ))}
-                        </div>
+                        {place.operatingHours && (
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <span className="material-icons text-[11px]">schedule</span>
+                            {place.operatingHours}
+                          </p>
+                        )}
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-icons text-red-400 text-[20px]">play_circle</span>
+                        <span className="material-icons text-slate-300">chevron_right</span>
                       </div>
-                    </a>
+                    </div>
                   ))}
                 </div>
               )}
 
-              <Link to="/map?restType=mental"
+              <Link to="/map"
+                state={{ restType: TYPE.key }}
                 className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-blue-300 hover:text-blue-500 transition-all">
                 <span className="material-icons text-base">map</span>
-                지도에서 내 주변 고요한 공간 찾기
+                지도에서 더 보기
               </Link>
             </section>
 

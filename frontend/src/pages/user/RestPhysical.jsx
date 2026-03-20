@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
@@ -13,30 +13,6 @@ const TYPE = {
   color: '#4CAF82',
   heroImg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
-
-const INTENSITY_OPTIONS = [
-  { key: 'light',  label: '가볍게', icon: 'self_improvement' },
-  { key: 'medium', label: '보통',   icon: 'directions_bike' },
-  { key: 'hard',   label: '강하게', icon: 'sports_mma' },
-];
-
-const PLACE_TYPE_OPTIONS = [
-  { key: 'indoor',  label: '실내', icon: 'domain' },
-  { key: 'outdoor', label: '실외', icon: 'park' },
-  { key: 'home',    label: '홈트', icon: 'home' },
-];
-
-const EXERCISE_PLACES = [
-  { name: '스트레칭 루틴 (유튜브)', location: '집에서', desc: '10~15분 전신 스트레칭. 코어힐링TV, 하루10분 채널 추천', intensity: ['light'], type: ['home'], tags: ['무료', '유튜브', '즉시가능'], icon: 'play_circle', gradient: 'from-orange-400 to-rose-400' },
-  { name: '요가원 (동네)', location: '가까운 요가원', desc: '초보반 60분. 몸의 긴장을 천천히 풀어주는 회복 요가', intensity: ['light', 'medium'], type: ['indoor'], tags: ['요가', '60분', '예약'], icon: 'self_improvement', gradient: 'from-pink-400 to-purple-500' },
-  { name: '실내 수영장', location: '구청·주민센터 수영장', desc: '저강도 자유형 30분. 관절 부담 없이 전신 운동', intensity: ['medium'], type: ['indoor'], tags: ['수영', '관절부담없음', '저렴'], icon: 'pool', gradient: 'from-sky-400 to-blue-500' },
-  { name: '필라테스 스튜디오', location: '동네 필라테스', desc: '소도구 필라테스 50분. 코어와 자세 교정에 효과적', intensity: ['light', 'medium'], type: ['indoor'], tags: ['필라테스', '소그룹', '자세교정'], icon: 'accessibility_new', gradient: 'from-fuchsia-400 to-pink-500' },
-  { name: '한강 자전거길', location: '서울 한강변', desc: '한강 자전거 대여 후 왕복 10~20km. 바람 맞으며 유산소', intensity: ['medium'], type: ['outdoor'], tags: ['자전거', '한강', '대여가능'], icon: 'directions_bike', gradient: 'from-emerald-400 to-teal-500' },
-  { name: '클라이밍 짐', location: '홍대·신촌·강남', desc: '볼더링 입문 2시간. 문제 풀 듯 집중하며 전신 운동', intensity: ['hard'], type: ['indoor'], tags: ['클라이밍', '집중력', '초보가능'], icon: 'sports_gymnastics', gradient: 'from-violet-400 to-purple-600' },
-  { name: '크로스핏 박스', location: '동네 크로스핏', desc: '고강도 기능성 운동 1시간. 땀 흠뻑 흘리고 싶을 때', intensity: ['hard'], type: ['indoor'], tags: ['고강도', '땀', '동기부여'], icon: 'fitness_center', gradient: 'from-red-400 to-rose-600' },
-  { name: '공원 인터벌 러닝', location: '올림픽공원·한강공원', desc: '달리기 20분+걷기 10분 반복. 유산소 최대 효율', intensity: ['hard'], type: ['outdoor'], tags: ['러닝', '인터벌', '무료'], icon: 'directions_run', gradient: 'from-amber-400 to-orange-500' },
-  { name: '홈 웨이트 (유튜브)', location: '집에서', desc: '맨몸 웨이트 30분. 덤벨 없어도 충분한 자극', intensity: ['medium', 'hard'], type: ['home'], tags: ['홈트', '맨몸운동', '무료'], icon: 'sports_mma', gradient: 'from-slate-500 to-slate-700' },
-];
 
 const CHECKLIST = [
   '어깨와 목이 항상 뭉쳐있다.',
@@ -70,14 +46,22 @@ const TIP = {
 
 function RestPhysical() {
   const navigate = useNavigate();
-  const [intensity, setIntensity] = useState('light');
-  const [placeType, setPlaceType] = useState('indoor');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('physical');
 
-  const filteredPlaces = EXERCISE_PLACES.filter(
-    p => p.intensity.includes(intensity) && p.type.includes(placeType)
-  );
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+
+  useEffect(() => {
+    setNearbyLoading(true);
+    fetch(`/api/places?restType=${TYPE.key}&size=6`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.places) setNearbyPlaces(data.data.places);
+      })
+      .catch(() => {})
+      .finally(() => setNearbyLoading(false));
+  }, []);
 
   return (
     <>
@@ -246,85 +230,64 @@ function RestPhysical() {
               </div>
             </section>
 
-            {/* 필터 + 장소 */}
+            {/* 더 찾아보기 */}
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
                 <span className="text-xs text-slate-400">조건에 맞게 직접 골라봐요</span>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">강도</p>
-                  <div className="flex gap-2">
-                    {INTENSITY_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setIntensity(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={intensity === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
+              {nearbyLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1,2].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24" />)}
                 </div>
-                <div className="w-px bg-slate-100 self-stretch" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">장소</p>
-                  <div className="flex gap-2">
-                    {PLACE_TYPE_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setPlaceType(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={placeType === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {filteredPlaces.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                  <span className="material-icons text-4xl text-slate-200 block mb-2">search_off</span>
-                  <p className="text-slate-400 text-sm font-medium">이 조건에 맞는 활동을 준비 중이에요</p>
+              ) : nearbyPlaces.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
+                  <span className="material-icons text-4xl text-slate-200 block mb-2">location_off</span>
+                  <p className="text-slate-400 text-sm font-medium">장소 데이터를 준비 중이에요</p>
+                  <p className="text-slate-300 text-xs mt-1">지도에서 직접 탐색해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredPlaces.map((place, i) => (
-                    <a key={i}
-                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(place.name + ' 운동 따라하기')}`}
-                      target="_blank" rel="noopener noreferrer"
+                  {nearbyPlaces.map((place) => (
+                    <div key={place.id}
+                      onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-green-200 transition-all">
-                      <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
-                        <span className="material-icons text-2xl text-white/90">{place.icon}</span>
+                      <div className="w-16 shrink-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
+                        <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0 p-4">
                         <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
                         <div className="flex items-center gap-1 mt-0.5 mb-2">
                           <span className="material-icons text-[11px] text-slate-300">location_on</span>
-                          <p className="text-[11px] text-slate-400">{place.location}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{place.desc}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {place.tags.map((tag, j) => (
-                            <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
-                          ))}
-                        </div>
+                        {place.operatingHours && (
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <span className="material-icons text-[11px]">schedule</span>
+                            {place.operatingHours}
+                          </p>
+                        )}
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-icons text-red-400 text-[20px]">play_circle</span>
+                        <span className="material-icons text-slate-300">chevron_right</span>
                       </div>
-                    </a>
+                    </div>
                   ))}
                 </div>
               )}
 
-              <Link to="/map?restType=physical"
+              <Link to="/map"
+                state={{ restType: TYPE.key }}
                 className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-green-300 hover:text-green-600 transition-all">
                 <span className="material-icons text-base">map</span>
-                지도에서 내 주변 운동 시설 찾기
+                지도에서 더 보기
               </Link>
             </section>
 

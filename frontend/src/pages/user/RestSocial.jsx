@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
@@ -14,28 +14,6 @@ const TYPE = {
   chipBg: '#FFF4EB',
   heroImg: 'https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=800',
 };
-
-const SCALE_OPTIONS = [
-  { key: 'solo',  label: '나홀로',  icon: 'person' },
-  { key: 'duo',   label: '둘이서',  icon: 'people' },
-  { key: 'group', label: '소그룹',  icon: 'groups' },
-];
-
-const VIBE_OPTIONS = [
-  { key: 'quiet',  label: '조용히',    icon: 'volume_off' },
-  { key: 'active', label: '활기차게',  icon: 'celebration' },
-];
-
-const SOCIAL_PLACES = [
-  { name: '조용한 브런치 카페', location: '연남동·성수동', desc: '혼자 가도 어색하지 않은 분위기. 창가 자리에서 사람 구경', scale: ['solo'], vibe: ['quiet'], tags: ['브런치', '혼카페', '창가자리'], icon: 'local_cafe', gradient: 'from-violet-400 to-purple-500' },
-  { name: '독립서점', location: '전국 동네 서점', desc: '취향 맞는 책 구경하다 점원과 짧게 대화. 가벼운 연결감', scale: ['solo'], vibe: ['quiet'], tags: ['서점', '취향', '혼자'], icon: 'menu_book', gradient: 'from-indigo-400 to-violet-500' },
-  { name: '소규모 북클럽', location: '도서관·서점 프로그램', desc: '같은 책을 읽은 3~5명이 이야기 나누기. 깊은 연결', scale: ['group'], vibe: ['quiet'], tags: ['독서모임', '소그룹', '공감'], icon: 'groups', gradient: 'from-blue-400 to-indigo-500' },
-  { name: '조용한 찻집 둘이서', location: '인사동·북촌', desc: '친한 한 명과 차 마시며 천천히 이야기', scale: ['duo'], vibe: ['quiet'], tags: ['찻집', '둘이서', '대화'], icon: 'emoji_food_beverage', gradient: 'from-amber-500 to-orange-500' },
-  { name: '보드게임 카페', location: '홍대·강남·건대', desc: '2~6명이 신나게 게임. 웃음이 넘치는 사회적 휴식', scale: ['duo','group'], vibe: ['active'], tags: ['보드게임', '웃음', '경쟁'], icon: 'casino', gradient: 'from-sky-400 to-blue-500' },
-  { name: '방탈출 카페', location: '전국 방탈출', desc: '2~4명 팀으로 협력. 몰입하다 보면 일상 스트레스 잊혀', scale: ['duo','group'], vibe: ['active'], tags: ['방탈출', '협력', '몰입'], icon: 'lock', gradient: 'from-red-400 to-rose-600' },
-  { name: '취미 원데이클래스', location: '플리마켓·문화센터', desc: '낯선 사람들과 같은 것 만들기. 자연스러운 대화와 연결', scale: ['solo','group'], vibe: ['active'], tags: ['원데이클래스', '취미', '새로운 인연'], icon: 'brush', gradient: 'from-emerald-400 to-teal-500' },
-  { name: '혼자 가기 좋은 재즈바', location: '이태원·홍대', desc: '바 카운터에 앉아 라이브 재즈 감상. 혼자지만 외롭지 않은 밤', scale: ['solo'], vibe: ['active'], tags: ['재즈바', '라이브', '분위기'], icon: 'music_note', gradient: 'from-orange-400 to-amber-500' },
-];
 
 const CHECKLIST = [
   '낯선 사람과의 짧은 대화가 유난히 버겁다.',
@@ -67,14 +45,22 @@ const TIP = {
 
 function RestSocial() {
   const navigate = useNavigate();
-  const [scale, setScale] = useState('solo');
-  const [vibe, setVibe] = useState('quiet');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('social');
 
-  const filteredPlaces = SOCIAL_PLACES.filter(
-    p => p.scale.includes(scale) && p.vibe.includes(vibe)
-  );
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+
+  useEffect(() => {
+    setNearbyLoading(true);
+    fetch(`/api/places?restType=${TYPE.key}&size=6`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.places) setNearbyPlaces(data.data.places);
+      })
+      .catch(() => {})
+      .finally(() => setNearbyLoading(false));
+  }, []);
 
   return (
     <>
@@ -241,85 +227,64 @@ function RestSocial() {
               </div>
             </section>
 
-            {/* 필터 + 장소 */}
+            {/* 더 찾아보기 */}
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
                 <span className="text-xs text-slate-400">조건에 맞게 직접 골라봐요</span>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">인원 규모</p>
-                  <div className="flex gap-2">
-                    {SCALE_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setScale(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={scale === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
+              {nearbyLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1,2].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24" />)}
                 </div>
-                <div className="w-px bg-slate-100 self-stretch" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">분위기</p>
-                  <div className="flex gap-2">
-                    {VIBE_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setVibe(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={vibe === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {filteredPlaces.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                  <span className="material-icons text-4xl text-slate-200 block mb-2">search_off</span>
-                  <p className="text-slate-400 text-sm font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
+              ) : nearbyPlaces.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
+                  <span className="material-icons text-4xl text-slate-200 block mb-2">location_off</span>
+                  <p className="text-slate-400 text-sm font-medium">장소 데이터를 준비 중이에요</p>
+                  <p className="text-slate-300 text-xs mt-1">지도에서 직접 탐색해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredPlaces.map((place, i) => (
-                    <a key={i}
-                      href={`https://www.youtube.com/results?search_query=${encodeURIComponent(place.name + ' 힐링')}`}
-                      target="_blank" rel="noopener noreferrer"
+                  {nearbyPlaces.map((place) => (
+                    <div key={place.id}
+                      onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-orange-200 transition-all">
-                      <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
-                        <span className="material-icons text-2xl text-white/90">{place.icon}</span>
+                      <div className="w-16 shrink-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
+                        <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0 p-4">
                         <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
                         <div className="flex items-center gap-1 mt-0.5 mb-2">
                           <span className="material-icons text-[11px] text-slate-300">location_on</span>
-                          <p className="text-[11px] text-slate-400">{place.location}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{place.desc}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {place.tags.map((tag, j) => (
-                            <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
-                          ))}
-                        </div>
+                        {place.operatingHours && (
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <span className="material-icons text-[11px]">schedule</span>
+                            {place.operatingHours}
+                          </p>
+                        )}
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-icons text-red-400 text-[20px]">play_circle</span>
+                        <span className="material-icons text-slate-300">chevron_right</span>
                       </div>
-                    </a>
+                    </div>
                   ))}
                 </div>
               )}
 
-              <Link to="/map?restType=social"
+              <Link to="/map"
+                state={{ restType: TYPE.key }}
                 className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-orange-300 hover:text-orange-500 transition-all">
                 <span className="material-icons text-base">map</span>
-                지도에서 내 주변 사회적 휴식 공간 찾기
+                지도에서 더 보기
               </Link>
             </section>
 
