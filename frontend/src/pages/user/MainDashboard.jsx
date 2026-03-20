@@ -263,7 +263,7 @@ function MainDashboard() {
         el.scrollLeft -= el.scrollWidth / 2;
       }
       el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 2500);
+    }, 4000);
     return () => clearInterval(interval);
   }, [recommendations]);
 
@@ -278,7 +278,7 @@ function MainDashboard() {
         el.scrollLeft -= el.scrollWidth / 2;
       }
       el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 2500);
+    }, 4000);
     return () => clearInterval(interval);
   }, [places]);
 
