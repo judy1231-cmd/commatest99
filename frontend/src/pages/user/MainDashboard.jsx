@@ -109,9 +109,7 @@ function MainDashboard() {
   const placeScrollRef = useRef(null);
   const recScrollPaused = useRef(false);
   const placeScrollPaused = useRef(false);
-  const [likedContentIds, setLikedContentIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
-  const [suggestedContents, setSuggestedContents] = useState([]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -197,30 +195,6 @@ function MainDashboard() {
       const data = await fetchWithAuth('/api/places/bookmarks');
       if (data.success && Array.isArray(data.data)) {
         setBookmarkedIds(new Set(data.data.map(p => p.id)));
-      }
-    } catch {
-      // 무시
-    }
-  };
-
-  const handleToggleContentLike = async (e, contentId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isLoggedIn) { navigate('/login'); return; }
-    try {
-      const data = await fetchWithAuth(`/api/contents/${contentId}/like`, { method: 'POST' });
-      if (data.success) {
-        const liked = data.data?.liked;
-        setLikedContentIds(prev => {
-          const next = new Set(prev);
-          liked ? next.add(contentId) : next.delete(contentId);
-          return next;
-        });
-        setSuggestedContents(prev => prev.map(c =>
-          c.id === contentId
-            ? { ...c, likeCount: liked ? (c.likeCount || 0) + 1 : Math.max((c.likeCount || 1) - 1, 0) }
-            : c
-        ));
       }
     } catch {
       // 무시
@@ -665,7 +639,6 @@ function MainDashboard() {
             >
               {[...places, ...places].map((place, idx) => {
                 const firstTag = place.tags?.[0];
-                const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
 
                 return (
                   <div
