@@ -125,8 +125,8 @@ function MainDashboard() {
   const loadPlaces = async (restType) => {
     try {
       const url = restType
-        ? `/api/places?page=1&size=20&restType=${restType}`
-        : '/api/places?page=1&size=20&status=approved';
+        ? `/api/places?page=1&size=5&restType=${restType}`
+        : '/api/places?page=1&size=5&status=approved';
       const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data?.places) {
