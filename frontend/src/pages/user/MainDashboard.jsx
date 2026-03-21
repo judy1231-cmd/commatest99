@@ -647,14 +647,6 @@ function MainDashboard() {
                 );
               })}
 
-              {/* 더보기 카드 */}
-              <Link
-                to="/map"
-                className="flex-shrink-0 w-[160px] bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
-              >
-                <span className="material-icons text-slate-300 text-[32px] group-hover:text-primary transition-colors">add_location</span>
-                <p className="text-[12px] font-bold text-slate-400 group-hover:text-primary transition-colors text-center leading-tight px-2">지도에서<br/>더 보기</p>
-              </Link>
             </div>
           </div>
           )}
