@@ -90,4 +90,10 @@ public interface AdminMapper {
                         @Param("durationMinutes") Integer durationMinutes);
 
     void deleteActivity(@Param("id") Long id);
+
+    // ==================== 태그 관리 ====================
+
+    List<Map<String, Object>> findAllTags();
+
+    void deleteTag(@Param("id") Long id);
 }

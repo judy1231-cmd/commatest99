@@ -141,6 +141,17 @@ public class AdminService {
         adminMapper.deleteActivity(id);
     }
 
+    // ==================== 태그 관리 ====================
+
+    public List<Map<String, Object>> getAllTags() {
+        return adminMapper.findAllTags();
+    }
+
+    @Transactional
+    public void deleteTag(Long id) {
+        adminMapper.deleteTag(id);
+    }
+
     private void logAudit(String admin쉼표번호, String action, String targetType, String targetId) {
         AuditLog log = new AuditLog();
         log.setAdmin쉼표번호(admin쉼표번호);

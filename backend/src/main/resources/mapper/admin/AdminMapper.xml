@@ -193,4 +193,23 @@
         DELETE FROM rest_activities WHERE id = #{id}
     </delete>
 
+    <!-- ==================== 태그 관리 ==================== -->
+
+    <!-- tag_name 기준으로 집계 — 동일 태그명을 가진 장소 수를 usageCount로 표시 -->
+    <select id="findAllTags" resultType="map">
+        SELECT
+            MIN(pt.id)    AS id,
+            pt.tag_name   AS tagName,
+            MIN(pt.rest_type) AS restType,
+            COUNT(*)      AS usageCount
+        FROM place_tags pt
+        GROUP BY pt.tag_name
+        ORDER BY usageCount DESC, pt.tag_name
+    </select>
+
+    <delete id="deleteTag">
+        DELETE FROM place_tags
+        WHERE tag_name = (SELECT tagn FROM (SELECT tag_name AS tagn FROM place_tags WHERE id = #{id}) tmp)
+    </delete>
+
 </mapper>

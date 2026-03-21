@@ -156,4 +156,20 @@ public class AdminController {
         adminService.deleteActivity(id);
         return ResponseEntity.ok(ApiResponse.ok("활동이 삭제되었습니다."));
     }
+
+    // ==================== 태그 관리 ====================
+
+    // GET /api/admin/tags  [ADMIN 전용]
+    @GetMapping("/tags")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTags() {
+        List<Map<String, Object>> tags = adminService.getAllTags();
+        return ResponseEntity.ok(ApiResponse.ok(tags, "태그 목록 조회 성공"));
+    }
+
+    // DELETE /api/admin/tags/{id}  [ADMIN 전용] — 동일 태그명 전체 삭제
+    @DeleteMapping("/tags/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteTag(@PathVariable Long id) {
+        adminService.deleteTag(id);
+        return ResponseEntity.ok(ApiResponse.ok("태그가 삭제되었습니다."));
+    }
 }
