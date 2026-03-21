@@ -195,35 +195,6 @@ function MainDashboard() {
     }
   };
 
-  // 맞춤추천 무한 자동 스크롤
-  useEffect(() => {
-    const el = recScrollRef.current;
-    if (!el || recommendations.length === 0) return;
-    const cardWidth = 220 + 16;
-    const interval = setInterval(() => {
-      if (recScrollPaused.current) return;
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft -= el.scrollWidth / 2;
-      }
-      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [recommendations]);
-
-  // 추천장소 무한 자동 스크롤
-  useEffect(() => {
-    const el = placeScrollRef.current;
-    if (!el || places.length === 0) return;
-    const cardWidth = 220 + 16;
-    const interval = setInterval(() => {
-      if (placeScrollPaused.current) return;
-      if (el.scrollLeft >= el.scrollWidth / 2) {
-        el.scrollLeft -= el.scrollWidth / 2;
-      }
-      el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [places]);
 
   let typeRatios = [];
   if (monthlyStats?.typeRatioJson) {
