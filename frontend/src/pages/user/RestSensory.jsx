@@ -44,6 +44,34 @@ const TIP = {
   source: '디지털 웰빙 연구소 (2024)',
 };
 
+const OVERSEAS_KW = ['인도네시아','일본','미국','중국','태국','베트남','프랑스','이탈리아','스위스','호주','뉴질랜드','필리핀','싱가포르','말레이시아','인도','스페인','독일','영국','그리스','터키','캐나다','페루','멕시코'];
+function getLocation(place) {
+  if (place.latitude && place.longitude) {
+    const lat = Number(place.latitude), lng = Number(place.longitude);
+    if (lat >= 33.0 && lat <= 38.6 && lng >= 124.5 && lng <= 132.0) return '국내';
+    return '해외';
+  }
+  const addr = place.address || '';
+  if (OVERSEAS_KW.some(k => addr.includes(k))) return '해외';
+  return /[\uAC00-\uD7A3]/.test(addr) ? '국내' : '해외';
+}
+const HARD_TAGS = ['등산', '하이킹', '암벽', '서핑', '다이빙', '트레킹', '래프팅', '클라이밍'];
+const EASY_TAGS = ['카페', '공원', '독서', '산책', '미술관', '박물관', '수족관', '스파', '온천', '찜질'];
+function getDifficulty(place) {
+  const tags = (place.tags || []).join(' ');
+  if (HARD_TAGS.some(k => tags.includes(k))) return '높음';
+  if (EASY_TAGS.some(k => tags.includes(k))) return '낮음';
+  return '보통';
+}
+const DIFFICULTY_COLORS = { 낮음: '#4CAF82', 보통: '#FFB830', 높음: '#EF4444' };
+function getDistanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function RestSensory() {
   const navigate = useNavigate();
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -51,6 +79,28 @@ function RestSensory() {
 
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [locationFilter, setLocationFilter] = useState('전체');
+  const [difficultyFilter, setDifficultyFilter] = useState('전체');
+  const [userLocation, setUserLocation] = useState(null);
+  const handleLocationFilter = (v) => {
+    if (v === '내 주변' && !userLocation) {
+      navigator.geolocation?.getCurrentPosition(
+        pos => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      );
+    }
+    setLocationFilter(v);
+  };
+  const filteredPlaces = nearbyPlaces.filter(place => {
+    if (locationFilter === '국내' && getLocation(place) !== '국내') return false;
+    if (locationFilter === '해외' && getLocation(place) !== '해외') return false;
+    if (locationFilter === '내 주변') {
+      if (!userLocation || !place.latitude || !place.longitude) return false;
+      if (getDistanceKm(userLocation.lat, userLocation.lng, Number(place.latitude), Number(place.longitude)) > 50) return false;
+    }
+    if (difficultyFilter !== '전체' && getDifficulty(place) !== difficultyFilter) return false;
+    return true;
+  });
 
   useEffect(() => {
     setNearbyLoading(true);
@@ -230,24 +280,52 @@ function RestSensory() {
 
             {/* 더 찾아보기 */}
             <section className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
-                <span className="text-xs text-slate-400">조건에 맞게 직접 골라봐요</span>
+                <span className="text-xs text-slate-400">{filteredPlaces.length}개 장소</span>
+              </div>
+
+              {/* 필터 칩 */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5">
+                  <span className="material-icons text-[13px] text-slate-400">flight</span>
+                  {['전체', '내 주변', '국내', '해외'].map(v => (
+                    <button key={v} onClick={() => handleLocationFilter(v)}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${locationFilter === v ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-600'}`}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5">
+                  <span className="material-icons text-[13px] text-slate-400">signal_cellular_alt</span>
+                  {['전체', '낮음', '보통', '높음'].map(v => (
+                    <button key={v} onClick={() => setDifficultyFilter(v)}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${difficultyFilter === v ? 'text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                      style={difficultyFilter === v && v !== '전체' ? { backgroundColor: DIFFICULTY_COLORS[v] } : difficultyFilter === v ? { backgroundColor: '#1e293b' } : {}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {nearbyLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[1,2].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24" />)}
                 </div>
-              ) : nearbyPlaces.length === 0 ? (
+              ) : filteredPlaces.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
                   <span className="material-icons text-4xl text-slate-200 block mb-2">location_off</span>
-                  <p className="text-slate-400 text-sm font-medium">장소 데이터를 준비 중이에요</p>
+                  <p className="text-slate-400 text-sm font-medium">
+                    {nearbyPlaces.length === 0 ? '장소 데이터를 준비 중이에요' : '조건에 맞는 장소가 없어요'}
+                  </p>
                   <p className="text-slate-300 text-xs mt-1">지도에서 직접 탐색해보세요</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {nearbyPlaces.map((place) => (
+                  {filteredPlaces.map((place) => {
+                    const difficulty = getDifficulty(place);
+                    const location = getLocation(place);
+                    return (
                     <div key={place.id}
                       onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
                       className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-violet-200 transition-all">
@@ -258,13 +336,19 @@ function RestSensory() {
                         {place.photoUrl && (
                           <img src={place.photoUrl} alt={place.name} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                         )}
+                        <span className="absolute top-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                          {location}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0 p-4">
-                        <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                          <span className="material-icons text-[14px] shrink-0" style={{ color: TYPE.color }}>{TYPE.icon}</span>
-                          {place.name}
-                        </h4>
-                        <div className="flex items-center gap-1 mt-0.5 mb-2">
+                        <div className="flex items-start justify-between gap-1 mb-0.5">
+                          <h4 className="font-bold text-slate-800 text-sm leading-snug">{place.name}</h4>
+                          <span className="shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: DIFFICULTY_COLORS[difficulty] }}>
+                            {difficulty}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 mb-2">
                           <span className="material-icons text-[11px] text-slate-300">location_on</span>
                           <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
                         </div>
@@ -292,7 +376,8 @@ function RestSensory() {
                         <span className="material-icons text-slate-300">chevron_right</span>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
