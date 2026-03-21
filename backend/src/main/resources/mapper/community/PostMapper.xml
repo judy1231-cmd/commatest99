@@ -141,4 +141,8 @@
         SELECT COUNT(*) FROM posts
     </select>
 
+    <update id="updatePostStatus">
+        UPDATE posts SET status = #{status} WHERE id = #{id}
+    </update>
+
 </mapper>

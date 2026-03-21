@@ -42,4 +42,7 @@ public interface PostMapper {
     List<Post> findAllForAdmin(@Param("size") int size, @Param("offset") int offset);
 
     int countAllForAdmin();
+
+    // 관리자용 — 게시글 상태 변경
+    void updatePostStatus(@Param("id") Long id, @Param("status") String status);
 }

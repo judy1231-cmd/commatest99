@@ -82,4 +82,14 @@ public class PostController {
         Map<String, Object> result = postService.getPostsForAdmin(page, size);
         return ResponseEntity.ok(ApiResponse.ok(result, "관리자 게시글 목록 조회 성공"));
     }
+
+    // PUT /api/admin/posts/{id}/status  [ADMIN]  — 게시글 상태 변경 (visible/hidden/deleted)
+    @PutMapping("/api/admin/posts/{id}/status")
+    public ResponseEntity<ApiResponse<Void>> updatePostStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String status = body.get("status");
+        postService.updatePostStatus(id, status);
+        return ResponseEntity.ok(ApiResponse.ok("게시글 상태가 변경되었습니다."));
+    }
 }

@@ -65,6 +65,11 @@ public class PostService {
         return result;
     }
 
+    // 관리자용 상태 변경
+    public void updatePostStatus(Long id, String status) {
+        postMapper.updatePostStatus(id, status);
+    }
+
     // 관리자용 목록
     public Map<String, Object> getPostsForAdmin(int page, int size) {
         int offset = (page - 1) * size;

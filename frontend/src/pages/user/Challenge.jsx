@@ -1,151 +1,103 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
-const TAG_META = {
-  '신체적 휴식': { color: '#4CAF82', bg: '#F0FDF4' },
-  '정신적 휴식': { color: '#5B8DEF', bg: '#EFF6FF' },
-  '감각적 휴식': { color: '#9B6DFF', bg: '#F5F3FF' },
-  '정서적 휴식': { color: '#FF7BAC', bg: '#FFF0F6' },
-  '사회적 휴식': { color: '#FF9A3C', bg: '#FFF7ED' },
-  '자연적 휴식': { color: '#2ECC9A', bg: '#ECFDF5' },
-  '창조적 휴식': { color: '#FFB830', bg: '#FFFBEB' },
+// 챌린지 인증 방식 한글
+const AUTH_TYPE_LABELS = {
+  photo: '사진 인증',
+  check: '체크 인증',
+  text: '텍스트 인증',
 };
 
-const MY_CHALLENGE = {
-  title: '7일 자연 산책 챌린지',
-  icon: 'park',
-  doneDay: 5,
-  totalDay: 7,
-  progress: 72,
-  daysLeft: 2,
-  badgeIcon: 'emoji_events',
-  color1: '#2ECC9A',
-  color2: '#10b981',
-};
-
-const CHALLENGES = [
-  {
-    id: 1,
-    title: '7일 자연 산책 챌린지',
-    desc: '일주일 동안 매일 30분 이상 자연 속에서 산책하기',
-    progress: 72,
-    participants: '1,284',
-    icon: 'park',
-    tag: '자연적 휴식',
-    badge: '인기',
-    daysLeft: 2,
-  },
-  {
-    id: 2,
-    title: '디지털 디톡스 3일 챌린지',
-    desc: '하루 2시간 스마트폰 없이 온전한 나만의 시간 갖기',
-    progress: 45,
-    participants: '892',
-    icon: 'phone_disabled',
-    tag: '정신적 휴식',
-    badge: '추천',
-    daysLeft: 1,
-  },
-  {
-    id: 3,
-    title: '명상 21일 챌린지',
-    desc: '매일 아침 10분 마음챙김 명상으로 하루 시작하기',
-    progress: 30,
-    participants: '2,150',
-    icon: 'self_improvement',
-    tag: '정신적 휴식',
-    badge: '',
-    daysLeft: 14,
-  },
-  {
-    id: 4,
-    title: '감사 일기 30일 챌린지',
-    desc: '매일 감사한 일 3가지를 기록하며 긍정 에너지 채우기',
-    progress: 60,
-    participants: '3,421',
-    icon: 'edit_note',
-    tag: '정서적 휴식',
-    badge: '인기',
-    daysLeft: 12,
-  },
+// 챌린지 색상 테마 (id % 길이 로 선택)
+const CHALLENGE_THEMES = [
+  { color: '#2ECC9A', bg: '#F0FBF7', icon: 'park' },
+  { color: '#5B8DEF', bg: '#F0F5FF', icon: 'self_improvement' },
+  { color: '#FFB830', bg: '#FFFBF0', icon: 'edit_note' },
+  { color: '#FF7BAC', bg: '#FFF0F7', icon: 'favorite' },
+  { color: '#9B6DFF', bg: '#F5F0FF', icon: 'phone_disabled' },
+  { color: '#FF9A3C', bg: '#FFF5EC', icon: 'fitness_center' },
+  { color: '#4CAF82', bg: '#F0FAF5', icon: 'spa' },
 ];
 
-function ChallengeCard({ challenge }) {
-  const meta = TAG_META[challenge.tag] || { color: '#10b981', bg: '#ECFDF5' };
+function getTheme(id) {
+  return CHALLENGE_THEMES[(id - 1) % CHALLENGE_THEMES.length];
+}
 
+function ChallengeCard({ challenge, onToggleJoin, isLoggedIn }) {
+  const theme = getTheme(challenge.id);
+  const progress = challenge.myAchievedDays && challenge.durationDays
+    ? Math.round((challenge.myAchievedDays / challenge.durationDays) * 100)
+    : 0;
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
       {/* 컬러 썸네일 */}
       <div
         className="h-24 flex items-center justify-center relative"
-        style={{ background: `linear-gradient(135deg, ${meta.color}22 0%, ${meta.color}0d 100%)` }}
+        style={{ background: `linear-gradient(135deg, ${theme.color}22 0%, ${theme.color}0d 100%)` }}
       >
         <span
-          className="material-icons opacity-25 absolute right-4 bottom-2"
-          style={{ fontSize: '64px', color: meta.color }}
+          className="material-icons opacity-20 absolute right-4 bottom-2"
+          style={{ fontSize: '64px', color: theme.color }}
         >
-          {challenge.icon}
+          {theme.icon}
         </span>
         <span
           className="material-icons relative z-10"
-          style={{ fontSize: '36px', color: meta.color }}
+          style={{ fontSize: '36px', color: theme.color }}
         >
-          {challenge.icon}
+          {theme.icon}
         </span>
-
-        {/* 배지 */}
-        {challenge.badge && (
-          <span
-            className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: meta.color, color: '#fff' }}
-          >
-            {challenge.badge}
-          </span>
-        )}
-
-        {/* D-day */}
         <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/80 px-2 py-0.5 rounded-full text-slate-600">
-          D-{challenge.daysLeft}
+          {challenge.durationDays}일
+        </span>
+        <span
+          className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
+          style={{ backgroundColor: theme.color, color: '#fff' }}
+        >
+          {AUTH_TYPE_LABELS[challenge.verificationType] || '인증'}
         </span>
       </div>
 
       {/* 본문 */}
       <div className="px-4 py-4">
-        {/* 태그 */}
-        <span
-          className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
-          style={{ backgroundColor: meta.bg, color: meta.color }}
-        >
-          {challenge.tag}
-        </span>
-
         <h3 className="text-sm font-extrabold text-slate-800 leading-snug mb-1">
           {challenge.title}
         </h3>
         <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mb-3">
-          {challenge.desc}
+          {challenge.description}
         </p>
 
-        {/* 진행률 */}
         <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
           <span className="flex items-center gap-1">
             <span className="material-icons text-xs">people</span>
-            {challenge.participants}명 참여 중
+            {(challenge.participantCount || 0).toLocaleString()}명 참여 중
           </span>
-          <span style={{ color: meta.color }} className="font-bold">{challenge.progress}%</span>
-        </div>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${challenge.progress}%`, backgroundColor: meta.color }}
-          />
+          {challenge.joinedByMe && (
+            <span style={{ color: theme.color }} className="font-bold">{progress}%</span>
+          )}
         </div>
 
+        {challenge.joinedByMe && (
+          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${progress}%`, backgroundColor: theme.color }}
+            />
+          </div>
+        )}
+
         <button
-          className="w-full py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95"
-          style={{ backgroundColor: meta.color }}
+          onClick={() => isLoggedIn ? onToggleJoin(challenge.id) : null}
+          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-95 ${
+            challenge.joinedByMe
+              ? 'bg-slate-100 text-slate-500'
+              : 'text-white'
+          }`}
+          style={challenge.joinedByMe ? {} : { backgroundColor: theme.color }}
         >
-          참여하기
+          {challenge.joinedByMe ? '참여 취소' : '참여하기'}
         </button>
       </div>
     </div>
@@ -153,8 +105,64 @@ function ChallengeCard({ challenge }) {
 }
 
 function Challenge() {
-  const [showOverlay, setShowOverlay] = useState(true);
-  const my = MY_CHALLENGE;
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem('accessToken');
+
+  const [challenges, setChallenges] = useState([]);
+  const [myChallenges, setMyChallenges] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadChallenges();
+  }, []);
+
+  const loadChallenges = async () => {
+    setLoading(true);
+    try {
+      const fetcher = isLoggedIn ? fetchWithAuth : (url) => fetch(url).then(r => r.json());
+      const [allRes, myRes] = await Promise.allSettled([
+        fetcher('/api/challenges'),
+        isLoggedIn ? fetchWithAuth('/api/challenges/my') : Promise.resolve({ success: false }),
+      ]);
+
+      if (allRes.status === 'fulfilled' && allRes.value.success) {
+        setChallenges(allRes.value.data || []);
+      }
+      if (myRes.status === 'fulfilled' && myRes.value.success) {
+        setMyChallenges(myRes.value.data || []);
+      }
+    } catch {
+      // 무시
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleJoin = async (challengeId) => {
+    if (!isLoggedIn) { navigate('/login'); return; }
+    try {
+      const data = await fetchWithAuth(`/api/challenges/${challengeId}/join`, { method: 'POST' });
+      if (data.success) {
+        // 목록 갱신
+        loadChallenges();
+      }
+    } catch {
+      // 무시
+    }
+  };
+
+  const activeChallenge = myChallenges.find(c => c.myStatus === 'ongoing');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8]">
+        <UserNavbar />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
@@ -169,98 +177,97 @@ function Challenge() {
         </div>
 
         {/* 내 진행 중 챌린지 */}
-        <div
-          className="rounded-2xl p-5 mb-6 text-white relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${my.color1} 0%, ${my.color2} 100%)` }}
-        >
-          {/* 배경 아이콘 */}
-          <span
-            className="material-icons absolute right-4 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none select-none"
-            style={{ fontSize: '100px' }}
-          >
-            {my.icon}
-          </span>
-
-          <div className="relative z-10">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-1">
-                  참여 중인 챌린지
-                </p>
-                <h2 className="text-[17px] font-extrabold leading-snug">{my.title}</h2>
-              </div>
-              {/* D-day 배지 */}
-              <span className="shrink-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full ml-3">
-                D-{my.daysLeft}
-              </span>
-            </div>
-
-            {/* 진행률 */}
-            <div className="flex items-center justify-between text-xs mb-2">
-              <span className="text-white/80">{my.doneDay}/{my.totalDay}일 완료</span>
-              <span className="font-bold">{my.progress}%</span>
-            </div>
-            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden mb-3">
+        {activeChallenge ? (
+          (() => {
+            const theme = getTheme(activeChallenge.id);
+            const progress = activeChallenge.myAchievedDays && activeChallenge.durationDays
+              ? Math.round((activeChallenge.myAchievedDays / activeChallenge.durationDays) * 100)
+              : 0;
+            const daysLeft = activeChallenge.durationDays - (activeChallenge.myAchievedDays || 0);
+            return (
               <div
-                className="h-full bg-white rounded-full transition-all duration-500"
-                style={{ width: `${my.progress}%` }}
-              />
-            </div>
-
-            {/* 배지 획득 안내 */}
-            <div className="flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2">
-              <span className="material-icons text-base text-yellow-200">{my.badgeIcon}</span>
-              <p className="text-xs text-white/90">
-                <span className="font-bold">{my.daysLeft}일</span>만 더 완료하면 배지를 획득해요!
-              </p>
-            </div>
+                className="rounded-2xl p-5 mb-6 text-white relative overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${theme.color} 0%, ${theme.color}cc 100%)` }}
+              >
+                <span
+                  className="material-icons absolute right-4 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none select-none"
+                  style={{ fontSize: '100px' }}
+                >
+                  {theme.icon}
+                </span>
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-1">참여 중인 챌린지</p>
+                      <h2 className="text-[17px] font-extrabold leading-snug">{activeChallenge.title}</h2>
+                    </div>
+                    <span className="shrink-0 bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full ml-3">
+                      {daysLeft}일 남음
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="text-white/80">{activeChallenge.myAchievedDays || 0}/{activeChallenge.durationDays}일 완료</span>
+                    <span className="font-bold">{progress}%</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden mb-3">
+                    <div className="h-full bg-white rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2">
+                    <span className="material-icons text-base text-yellow-200">emoji_events</span>
+                    <p className="text-xs text-white/90">
+                      <span className="font-bold">{daysLeft}일</span>만 더 완료하면 배지를 획득해요!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
+        ) : isLoggedIn ? (
+          <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-6 mb-6 text-center">
+            <span className="material-icons text-3xl text-slate-200 block mb-2">emoji_events</span>
+            <p className="text-sm font-semibold text-slate-400">아직 참여 중인 챌린지가 없어요</p>
+            <p className="text-xs text-slate-300 mt-1">아래에서 챌린지를 골라 참여해보세요</p>
           </div>
-        </div>
+        ) : null}
 
         {/* 챌린지 목록 */}
         <div className="flex items-center justify-between mb-3 px-0.5">
           <p className="text-sm font-extrabold text-slate-700">진행 중인 챌린지</p>
-          <span className="text-xs text-slate-400">{CHALLENGES.length}개</span>
+          <span className="text-xs text-slate-400">{challenges.length}개</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {CHALLENGES.map(challenge => (
-            <ChallengeCard key={challenge.id} challenge={challenge} />
-          ))}
-        </div>
+        {challenges.length === 0 ? (
+          <div className="text-center py-16">
+            <span className="material-icons text-4xl text-slate-200 block mb-2">emoji_events</span>
+            <p className="text-sm text-slate-400">진행 중인 챌린지가 없습니다</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {challenges.map(challenge => (
+              <ChallengeCard
+                key={challenge.id}
+                challenge={challenge}
+                onToggleJoin={handleToggleJoin}
+                isLoggedIn={isLoggedIn}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isLoggedIn && (
+          <div className="mt-6 bg-white rounded-2xl border border-primary/20 p-5 text-center">
+            <span className="material-icons text-2xl text-primary block mb-2">login</span>
+            <p className="text-sm font-semibold text-slate-700 mb-1">로그인하면 챌린지에 참여할 수 있어요</p>
+            <button
+              onClick={() => navigate('/login')}
+              className="mt-2 px-5 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90"
+            >
+              로그인하기
+            </button>
+          </div>
+        )}
 
       </main>
-
-      {/* 준비중 오버레이 */}
-      {showOverlay && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="material-icons text-3xl text-amber-400">construction</span>
-            </div>
-            <h2 className="text-lg font-extrabold text-slate-800 mb-2">챌린지 준비 중</h2>
-            <p className="text-sm text-slate-500 leading-relaxed mb-1">
-              챌린지 기능은 현재 <span className="font-bold text-amber-500">2차 MVP</span>로<br />
-              개발 중이에요.
-            </p>
-            <p className="text-xs text-slate-400 mb-6">미리보기로 화면을 확인할 수 있어요.</p>
-            <div className="space-y-2">
-              <button
-                onClick={() => setShowOverlay(false)}
-                className="w-full py-3.5 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-all"
-              >
-                미리보기
-              </button>
-              <button
-                onClick={() => window.history.back()}
-                className="w-full py-2.5 text-slate-400 font-semibold text-sm hover:text-slate-600 transition-colors"
-              >
-                돌아가기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
