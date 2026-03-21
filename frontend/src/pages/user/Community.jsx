@@ -121,8 +121,8 @@ function Community() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const token = localStorage.getItem('token');
-  const isLoggedIn = !!localStorage.getItem('accessToken');
+  const token = localStorage.getItem('accessToken');
+  const isLoggedIn = !!token;
 
   const fetchPosts = useCallback(async () => {
     try {
