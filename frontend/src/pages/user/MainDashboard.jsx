@@ -152,7 +152,7 @@ function MainDashboard() {
     try {
       const data = await fetchWithAuth('/api/recommendations');
       if (data.success && Array.isArray(data.data)) {
-        setRecommendations(data.data.filter(r => r.placeName));
+        setRecommendations(data.data.filter(r => r.placeName).slice(0, 5));
       }
     } catch {
       // 무시
