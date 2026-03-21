@@ -11,6 +11,8 @@ import SignupComplete from './pages/user/SignupComplete';
 import PasswordReset from './pages/user/PasswordReset';
 import MyPage from './pages/user/MyPage';
 import Community from './pages/user/Community';
+import CommunityWrite from './pages/user/CommunityWrite';
+import CommunityDetail from './pages/user/CommunityDetail';
 import Challenge from './pages/user/Challenge';
 import HeartRateCheck from './pages/user/HeartRateCheck';
 import RestTypeTest from './pages/user/RestTypeTest';
@@ -153,6 +155,8 @@ function App() {
       <Route path="/signup-complete" element={<SignupComplete />} />
       <Route path="/password-reset" element={<PasswordReset />} />
       <Route path="/community" element={<Community />} />
+      <Route path="/community/write" element={<PrivateRoute><CommunityWrite /></PrivateRoute>} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/places/:id" element={<PlaceDetail />} />
       <Route path="/rest-test" element={<RestTypeTest />} />

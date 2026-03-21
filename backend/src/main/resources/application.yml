@@ -5,6 +5,12 @@ spring:
   profiles:
     active: local
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 26MB   # 5MB × 5개 + 여유
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}

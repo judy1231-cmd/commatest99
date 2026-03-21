@@ -33,12 +33,15 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
-function PostCard({ post, onLike }) {
+function PostCard({ post, onLike, onClick }) {
   const catColor = CATEGORY_COLOR[post.category] || '#10b981';
   const avatarLetter = (post.nickname || '?')[0];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+    <div
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
+      onClick={onClick}
+    >
       {/* 상단: 작성자 정보 */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <div
@@ -85,7 +88,7 @@ function PostCard({ post, onLike }) {
       {/* 하단: 반응 */}
       <div className="flex items-center gap-4 px-4 py-3 border-t border-slate-50">
         <button
-          onClick={() => onLike(post.id)}
+          onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
           className={`flex items-center gap-1 text-xs font-semibold transition-colors ${
             post.likedByMe ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'
           }`}
@@ -117,7 +120,6 @@ function Community() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showBanner, setShowBanner] = useState(true);
 
   const token = localStorage.getItem('token');
   const isLoggedIn = !!localStorage.getItem('accessToken');
@@ -167,25 +169,6 @@ function Community() {
       <UserNavbar />
 
       <main className="max-w-2xl mx-auto px-4 pt-5 pb-28">
-
-        {/* 2차 MVP 준비중 배너 */}
-        {showBanner && (
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 mb-5">
-            <span className="material-icons text-amber-400 text-base shrink-0 mt-0.5">construction</span>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-amber-700">커뮤니티 기능 준비 중</p>
-              <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-                현재 2차 MVP로 개발 중이에요. 일부 기능이 제한될 수 있어요.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowBanner(false)}
-              className="text-amber-300 hover:text-amber-500 transition-colors shrink-0"
-            >
-              <span className="material-icons text-base">close</span>
-            </button>
-          </div>
-        )}
 
         {/* 헤더 */}
         <div className="mb-5">
@@ -268,6 +251,7 @@ function Community() {
                 key={post.id}
                 post={post}
                 onLike={handleLike}
+                onClick={() => navigate(`/community/${post.id}`)}
               />
             ))}
           </div>

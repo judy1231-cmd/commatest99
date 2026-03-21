@@ -1,10 +1,16 @@
 package com.comma.domain.community.service;
 
 import com.comma.domain.community.mapper.PostMapper;
+import com.comma.domain.community.mapper.PostPhotoMapper;
 import com.comma.domain.community.model.Post;
+import com.comma.domain.community.model.PostPhoto;
+import com.comma.global.util.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +20,8 @@ import java.util.Map;
 public class PostService {
 
     private final PostMapper postMapper;
+    private final PostPhotoMapper postPhotoMapper;
+    private final FileUploadService fileUploadService;
 
     // 게시글 목록 조회
     public Map<String, Object> getPosts(String category, String sort, String commaNo, int page, int size) {
@@ -39,12 +47,25 @@ public class PostService {
         return post;
     }
 
-    // 게시글 작성
-    public Post createPost(String 쉼표번호, Post post) {
+    // 게시글 작성 (사진 포함)
+    @Transactional
+    public Post createPost(String 쉼표번호, Post post, List<MultipartFile> images) throws IOException {
         post.set쉼표번호(쉼표번호);
         post.setStatus("visible");
         postMapper.insertPost(post);
+
+        if (images != null && !images.isEmpty()) {
+            List<String> photoUrls = fileUploadService.uploadPostPhotos(images);
+            for (String url : photoUrls) {
+                postPhotoMapper.insertPhoto(post.getId(), url);
+            }
+        }
         return post;
+    }
+
+    // 게시글 사진 목록 조회
+    public List<PostPhoto> getPostPhotos(Long postId) {
+        return postPhotoMapper.findByPostId(postId);
     }
 
     // 게시글 삭제
