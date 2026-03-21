@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
@@ -26,17 +26,7 @@ const REST_TYPE_PHOTOS = {
   default:   'https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=400',
 };
 
-const REST_TYPE_TAG_COLORS = {
-  physical: 'text-emerald-600 border-emerald-50',
-  mental: 'text-primary border-blue-50',
-  sensory: 'text-amber-600 border-amber-50',
-  emotional: 'text-rose-600 border-rose-50',
-  social: 'text-purple-600 border-purple-50',
-  nature: 'text-green-600 border-green-50',
-  creative: 'text-orange-600 border-orange-50',
-};
 
-const STAT_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400'];
 
 const REST_TYPE_LABELS = {
   physical:  '신체의 이완',
@@ -105,10 +95,6 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
-  const recScrollRef = useRef(null);
-  const placeScrollRef = useRef(null);
-  const recScrollPaused = useRef(false);
-  const placeScrollPaused = useRef(false);
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
 
   useEffect(() => {
@@ -128,15 +114,11 @@ function MainDashboard() {
       if (data.success && data.data?.primaryRestType) {
         setLatestDiagnosis(data.data);
         loadPlaces(data.data.primaryRestType);
-        loadSuggestedContents(data.data.primaryRestType);
       } else {
-        // 진단 이력 없어도 콘텐츠 섹션은 표시 (전체 콘텐츠)
         loadPlaces(null);
-        loadSuggestedContents(null);
       }
     } catch {
       loadPlaces(null);
-      loadSuggestedContents(null);
     }
   };
 
@@ -154,19 +136,6 @@ function MainDashboard() {
       // 장소 API 실패 시 빈 배열 유지
     } finally {
       setPlacesLoading(false);
-    }
-  };
-
-  const loadSuggestedContents = async (category) => {
-    try {
-      const url = category ? `/api/contents?category=${category}` : '/api/contents';
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setSuggestedContents(data.data.slice(0, 3));
-      }
-    } catch {
-      // 무시
     }
   };
 
@@ -397,7 +366,7 @@ function MainDashboard() {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value, name, props) => [`${value}%`, REST_TYPE_LABELS[props.payload.type] || props.payload.type]}
+                          formatter={(value, _name, props) => [`${value}%`, REST_TYPE_LABELS[props.payload.type] || props.payload.type]}
                           contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
                         />
                       </PieChart>
@@ -520,13 +489,8 @@ function MainDashboard() {
                 </div>
               }
             />
-            <div
-              ref={recScrollRef}
-              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
-              onMouseEnter={() => { recScrollPaused.current = true; }}
-              onMouseLeave={() => { recScrollPaused.current = false; }}
-            >
-              {[...recommendations, ...recommendations].map((rec, idx) => (
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+              {recommendations.map((rec, idx) => (
                 <div
                   key={`rec-${idx}`}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
@@ -631,13 +595,8 @@ function MainDashboard() {
               <Link to="/map" className="text-[13px] text-primary font-bold hover:underline">지도에서 탐색하기 →</Link>
             </div>
           ) : (
-            <div
-              ref={placeScrollRef}
-              className="flex gap-4 overflow-x-auto py-3 hide-scrollbar"
-              onMouseEnter={() => { placeScrollPaused.current = true; }}
-              onMouseLeave={() => { placeScrollPaused.current = false; }}
-            >
-              {[...places, ...places].map((place, idx) => {
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+              {places.map((place, idx) => {
                 const firstTag = place.tags?.[0];
 
                 return (
