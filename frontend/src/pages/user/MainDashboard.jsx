@@ -460,8 +460,7 @@ function MainDashboard() {
                 </div>
               }
             />
-            <div className="relative">
-              <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar pr-6">
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar pr-6">
               {recommendations.map((rec, idx) => (
                 <div
                   key={`rec-${idx}`}
@@ -529,8 +528,6 @@ function MainDashboard() {
                   </div>
                 </div>
               ))}
-              </div>
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#F7F7F8] to-transparent pointer-events-none" />
             </div>
           </section>
         )}
@@ -658,9 +655,8 @@ function MainDashboard() {
                 <span className="material-icons text-slate-300 text-[32px] group-hover:text-primary transition-colors">add_location</span>
                 <p className="text-[12px] font-bold text-slate-400 group-hover:text-primary transition-colors text-center leading-tight px-2">지도에서<br/>더 보기</p>
               </Link>
-              </div>
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#F7F7F8] to-transparent pointer-events-none" />
             </div>
+          </div>
           )}
         </section>
 
