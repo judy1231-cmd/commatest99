@@ -401,7 +401,7 @@ function PlaceDetail() {
 
       {/* ===== 지도 + 사진 ===== */}
       {place.latitude && place.longitude && (
-        <div className="mb-2 shadow-sm flex overflow-hidden" style={{ height: '450px' }}>
+        <div className="mb-2 shadow-sm flex overflow-hidden" style={{ height: '450px', isolation: 'isolate' }}>
           {/* 왼쪽 사진 */}
           {photos[0]?.photoUrl && (
             <div className="w-2/5 shrink-0 overflow-hidden">
@@ -580,7 +580,7 @@ function PlaceDetail() {
       </div>
 
       {/* ===== 하단 고정 버튼 ===== */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-5 py-4 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-5 py-4 z-[1000]">
         <div className="flex gap-3 max-w-2xl mx-auto">
           {place.latitude && place.longitude && (
             <a
