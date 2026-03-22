@@ -3,10 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, ReferenceLine,
-} from 'recharts';
 
 const TYPE_INFO = {
   physical:  { label: '신체의 이완', icon: 'fitness_center', bg: 'bg-red-50 text-red-600' },
@@ -358,89 +354,6 @@ function RestRecord() {
             </div>
           ))}
         </div>
-
-        {/* 감정 변화 그래프 */}
-        {(() => {
-          const chartData = [...logs]
-            .filter(l => l.emotionBefore != null || l.emotionAfter != null)
-            .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-            .slice(-20)
-            .map(l => ({
-              date: formatDate(l.startTime),
-              전: l.emotionBefore ?? null,
-              후: l.emotionAfter ?? null,
-              향상: l.emotionBefore != null && l.emotionAfter != null
-                ? l.emotionAfter - l.emotionBefore : null,
-            }));
-
-          if (chartData.length < 2) return null;
-
-          const avgBefore = (chartData.reduce((s, d) => s + (d.전 || 0), 0) / chartData.filter(d => d.전).length).toFixed(1);
-          const avgAfter  = (chartData.reduce((s, d) => s + (d.후 || 0), 0) / chartData.filter(d => d.후).length).toFixed(1);
-          const avgImprove = (avgAfter - avgBefore).toFixed(1);
-
-          return (
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-[15px] font-extrabold text-slate-800">감정 변화 추이</h3>
-                  <p className="text-[12px] text-slate-400 mt-0.5">최근 {chartData.length}개 기록 기준</p>
-                </div>
-                <div className="flex gap-3 text-right">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">평균 향상</p>
-                    <p className={`text-[18px] font-extrabold ${Number(avgImprove) >= 0 ? 'text-primary' : 'text-red-400'}`}>
-                      {Number(avgImprove) >= 0 ? '+' : ''}{avgImprove}점
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} />
-                  <YAxis domain={[1, 10]} ticks={[1, 3, 5, 7, 10]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    formatter={(value, name) => [`${value}점`, name === '전' ? '휴식 전' : '휴식 후']}
-                  />
-                  <ReferenceLine y={5} stroke="#e2e8f0" strokeDasharray="4 4" />
-                  <Legend
-                    formatter={(value) => value === '전' ? '휴식 전' : '휴식 후'}
-                    wrapperStyle={{ fontSize: 12, color: '#64748b' }}
-                  />
-                  <Line
-                    type="monotone" dataKey="전"
-                    stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 3"
-                    dot={{ r: 3, fill: '#cbd5e1', strokeWidth: 0 }}
-                    activeDot={{ r: 5 }}
-                    connectNulls
-                  />
-                  <Line
-                    type="monotone" dataKey="후"
-                    stroke="#10b981" strokeWidth={2.5}
-                    dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }}
-                    activeDot={{ r: 6 }}
-                    connectNulls
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-
-              {/* 요약 칩 */}
-              <div className="flex gap-2 mt-3 flex-wrap">
-                <span className="flex items-center gap-1 text-[11px] font-bold bg-slate-50 text-slate-500 px-3 py-1 rounded-full">
-                  <span className="w-2 h-0.5 bg-slate-300 inline-block rounded" />
-                  휴식 전 평균 {avgBefore}점
-                </span>
-                <span className="flex items-center gap-1 text-[11px] font-bold bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full">
-                  <span className="w-2 h-0.5 bg-primary inline-block rounded" />
-                  휴식 후 평균 {avgAfter}점
-                </span>
-              </div>
-            </div>
-          );
-        })()}
 
         {/* Filter */}
         <div className="flex gap-2 mb-6 overflow-x-auto hide-scrollbar">
