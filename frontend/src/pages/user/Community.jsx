@@ -170,18 +170,18 @@ function Community() {
   const [hoveredCat, setHoveredCat] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false); // 카테고리/정렬 전환 중 (기존 포스트 유지)
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [listVisible, setListVisible] = useState(true);
-  const prevCategory = useRef('all');
 
   const token = localStorage.getItem('accessToken');
   const isLoggedIn = !!token;
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
+      else setFiltering(true);
       setError(null);
       const cat = activeCategory === 'all' ? '' : `&category=${encodeURIComponent(activeCategory)}`;
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -195,21 +195,16 @@ function Community() {
       setError('게시글을 불러오지 못했어요.');
     } finally {
       setLoading(false);
+      setFiltering(false);
     }
   }, [activeCategory, sort, page, token]);
 
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
-    if (prevCategory.current !== activeCategory || sort) {
-      setListVisible(false);
-      const t = setTimeout(() => setListVisible(true), 160);
-      prevCategory.current = activeCategory;
-      return () => clearTimeout(t);
-    }
-  }, [activeCategory, sort]);
+    fetchPosts(!hasLoaded.current);
+    hasLoaded.current = true;
+  }, [fetchPosts]);
 
   useEffect(() => {
     setPage(1);
@@ -302,7 +297,7 @@ function Community() {
           </div>
         )}
 
-        {/* 로딩 */}
+        {/* 최초 로딩 스켈레톤 */}
         {loading && (
           <div className="bg-white divide-y divide-slate-50">
             {Array.from({ length: 6 }).map((_, i) => <SkeletonPost key={i} />)}
@@ -318,7 +313,7 @@ function Community() {
         )}
 
         {/* 빈 상태 */}
-        {!loading && !error && posts.length === 0 && (
+        {!loading && !error && posts.length === 0 && !filtering && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
               <span className="material-icons text-slate-300 text-3xl">forum</span>
@@ -337,13 +332,14 @@ function Community() {
           </div>
         )}
 
-        {/* 게시글 목록 — Twitter/Threads 스타일 */}
+        {/* 게시글 목록 — 카테고리 전환 시 기존 목록 유지하며 opacity만 처리 */}
         {!loading && !error && posts.length > 0 && (
           <div
-            className="bg-white divide-y divide-slate-50 transition-all duration-200"
+            className="bg-white divide-y divide-slate-50"
             style={{
-              opacity: listVisible ? 1 : 0,
-              transform: listVisible ? 'translateY(0)' : 'translateY(6px)',
+              opacity: filtering ? 0.4 : 1,
+              transition: 'opacity 0.15s ease',
+              pointerEvents: filtering ? 'none' : 'auto',
             }}
           >
             {posts.map(post => (
