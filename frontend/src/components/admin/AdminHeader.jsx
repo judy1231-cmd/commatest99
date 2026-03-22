@@ -5,9 +5,11 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 function AdminHeader({ title, subtitle, children }) {
   const navigate = useNavigate();
   const [bellOpen, setBellOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const bellRef = useRef(null);
+  const profileRef = useRef(null);
 
   // 대기 중 승인 건수 조회
   useEffect(() => {
@@ -35,9 +37,8 @@ function AdminHeader({ title, subtitle, children }) {
   // 외부 클릭 시 닫기
   useEffect(() => {
     const handleClick = (e) => {
-      if (bellRef.current && !bellRef.current.contains(e.target)) {
-        setBellOpen(false);
-      }
+      if (bellRef.current && !bellRef.current.contains(e.target)) setBellOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -47,6 +48,14 @@ function AdminHeader({ title, subtitle, children }) {
     try { return JSON.parse(localStorage.getItem('user')) || {}; } catch { return {}; }
   })();
   const displayName = user.nickname || user.username || '관리자';
+  const displayEmail = user.email || 'admin@comma.com';
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/admin/login');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-[#221610]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
@@ -61,7 +70,7 @@ function AdminHeader({ title, subtitle, children }) {
           {/* 알림 벨 */}
           <div className="relative" ref={bellRef}>
             <button
-              onClick={() => setBellOpen((v) => !v)}
+              onClick={() => { setBellOpen((v) => !v); setProfileOpen(false); }}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 relative transition-colors"
             >
               <span className="material-icons-round">notifications</span>
@@ -124,15 +133,55 @@ function AdminHeader({ title, subtitle, children }) {
 
           <div className="h-8 w-px bg-gray-200 dark:bg-white/10"></div>
 
-          {/* 프로필 */}
-          <div className="flex items-center gap-2">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-gray-800 dark:text-white">{displayName}</p>
-              <p className="text-[10px] text-gray-500">Super Admin</p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-              <span className="material-icons-round text-[18px]">admin_panel_settings</span>
-            </div>
+          {/* 프로필 드롭다운 */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => { setProfileOpen((v) => !v); setBellOpen(false); }}
+              className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-semibold text-gray-800 dark:text-white">{displayName}</p>
+                <p className="text-[10px] text-gray-500">Super Admin</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                <span className="material-icons-round text-[18px]">admin_panel_settings</span>
+              </div>
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 top-12 w-56 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-slate-100 dark:border-white/10 overflow-hidden z-50">
+                {/* 프로필 정보 */}
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-white/10">
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">{displayName}</p>
+                  <p className="text-[11px] text-slate-500 truncate">{displayEmail}</p>
+                  <span className="inline-block mt-1 text-[10px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    Super Admin
+                  </span>
+                </div>
+
+                {/* 메뉴 */}
+                <div className="py-1">
+                  <button
+                    onClick={() => { setProfileOpen(false); navigate('/admin/settings'); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <span className="material-icons-round text-[18px] text-slate-400">settings</span>
+                    시스템 설정
+                  </button>
+                </div>
+
+                {/* 로그아웃 */}
+                <div className="border-t border-slate-100 dark:border-white/10 py-1">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  >
+                    <span className="material-icons-round text-[18px]">logout</span>
+                    로그아웃
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
