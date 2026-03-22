@@ -54,6 +54,101 @@ function FlyToPlace({ center }) {
   return null;
 }
 
+// 핀 위에 뜨는 장소 카드
+function PlaceCard({ place, currentType, onClose }) {
+  const map = useMap();
+  const [pos, setPos] = useState(null);
+
+  useEffect(() => {
+    const update = () => {
+      const point = map.latLngToContainerPoint([place.latitude, place.longitude]);
+      setPos({ x: point.x, y: point.y });
+    };
+    update();
+    map.on('move zoom moveend zoomend', update);
+    return () => map.off('move zoom moveend zoomend', update);
+  }, [place, map]);
+
+  if (!pos) return null;
+
+  const cardWidth = 280;
+  const cardEstHeight = place.photoUrl ? 300 : 180;
+  const pinOffset = 14; // 마커 반지름
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: pos.x - cardWidth / 2,
+        top: pos.y - cardEstHeight - pinOffset,
+        width: cardWidth,
+        zIndex: 1100,
+        pointerEvents: 'auto',
+      }}
+      className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
+    >
+      {place.photoUrl && (
+        <div className="relative h-32">
+          <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        </div>
+      )}
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-bold text-slate-800 text-sm leading-snug flex-1 truncate">{place.name}</h3>
+          <button onClick={onClose} className="shrink-0 text-slate-400 hover:text-slate-600">
+            <span className="material-icons text-base">close</span>
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mb-2 truncate">{place.address}</p>
+        <div className="flex items-center gap-3 mb-2">
+          {place.aiScore && (
+            <div className="flex items-center gap-0.5">
+              <span className="material-icons text-amber-400 text-xs">star</span>
+              <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+            </div>
+          )}
+          {place.operatingHours && (
+            <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
+              <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
+              {place.operatingHours}
+            </p>
+          )}
+        </div>
+        {place.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {place.tags.slice(0, 3).map(tag => (
+              <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">#{tag}</span>
+            ))}
+          </div>
+        )}
+        <Link
+          to={`/places/${place.id}`}
+          className="block w-full text-center py-1.5 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: currentType.color }}
+        >
+          상세보기
+        </Link>
+      </div>
+      {/* 말풍선 꼬리 */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -8,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 0,
+          height: 0,
+          borderLeft: '8px solid transparent',
+          borderRight: '8px solid transparent',
+          borderTop: '8px solid white',
+          filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
+        }}
+      />
+    </div>
+  );
+}
+
 // 클릭 선택된 마커 (빨간 점)
 function createSelectedMarker() {
   return L.divIcon({
@@ -94,6 +189,11 @@ function MapPage() {
   // locationTab 변경 시 지역 선택 초기화
   useEffect(() => { setRegionL1(''); setRegionL2(''); }, [locationTab]);
   useEffect(() => { setRegionL2(''); }, [regionL1]);
+
+  // 새 장소 선택 시 외부 넘어온 하이라이트 배너 닫기
+  useEffect(() => {
+    if (selectedPlaceId) setResolvedHighlight(null);
+  }, [selectedPlaceId]);
 
   const isDomestic = (address) =>
     DOMESTIC_CITIES.some(k => address?.includes(k));
@@ -511,17 +611,21 @@ function MapPage() {
             {filteredPlaces.map(place =>
               place.latitude && place.longitude ? (
                 <Marker
-                  key={place.id}
+                  key={selectedPlaceId === place.id ? `sel-${place.id}` : `place-${place.id}`}
                   position={[place.latitude, place.longitude]}
                   icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
                   eventHandlers={{ click: () => handleMarkerClick(place) }}
-                >
-                  <Popup minWidth={160}>
-                    <p style={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b', margin: 0 }}>{place.name}</p>
-                    <p style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>{place.address}</p>
-                  </Popup>
-                </Marker>
+                />
               ) : null
+            )}
+
+            {/* 선택된 장소 카드 — 핀 위에 표시 */}
+            {selectedPlace?.latitude && selectedPlace?.longitude && (
+              <PlaceCard
+                place={selectedPlace}
+                currentType={currentType}
+                onClose={() => setSelectedPlaceId(null)}
+              />
             )}
           </MapContainer>
 
@@ -533,63 +637,6 @@ function MapPage() {
             </div>
           )}
 
-          {/* 장소 선택 플로팅 카드 */}
-          {selectedPlace && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-              {selectedPlace.photoUrl && (
-                <div className="relative h-36">
-                  <img
-                    src={selectedPlace.photoUrl}
-                    alt={selectedPlace.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-bold text-slate-800 text-sm leading-snug flex-1">{selectedPlace.name}</h3>
-                  <button
-                    onClick={() => setSelectedPlaceId(null)}
-                    className="shrink-0 text-slate-400 hover:text-slate-600"
-                  >
-                    <span className="material-icons text-base">close</span>
-                  </button>
-                </div>
-                <p className="text-xs text-slate-400 mb-2 truncate">{selectedPlace.address}</p>
-                <div className="flex items-center gap-3 mb-3">
-                  {selectedPlace.aiScore && (
-                    <div className="flex items-center gap-0.5">
-                      <span className="material-icons text-amber-400 text-xs">star</span>
-                      <span className="text-xs font-bold text-slate-600">{Number(selectedPlace.aiScore).toFixed(1)}</span>
-                    </div>
-                  )}
-                  {selectedPlace.operatingHours && (
-                    <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
-                      <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
-                      {selectedPlace.operatingHours}
-                    </p>
-                  )}
-                </div>
-                {selectedPlace.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {selectedPlace.tags.slice(0, 4).map(tag => (
-                      <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <Link
-                  to={`/places/${selectedPlace.id}`}
-                  className="block w-full text-center py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: currentType.color }}
-                >
-                  상세보기
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
