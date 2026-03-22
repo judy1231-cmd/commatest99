@@ -601,8 +601,6 @@ function MainDashboard() {
             <div className="relative">
               <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar pr-6">
               {places.map((place, idx) => {
-                const firstTag = place.tags?.[0];
-
                 return (
                   <div
                     key={`place-${idx}`}
