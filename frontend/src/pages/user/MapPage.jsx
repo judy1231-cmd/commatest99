@@ -72,15 +72,24 @@ function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
     });
 
     // 2차: 중앙값 기준 이상치 제거 (잘못된 좌표가 bounds를 바다로 끌어당기는 문제 방지)
+    let medLat = valid[0]?.latitude ?? 0;
+    let medLng = valid[0]?.longitude ?? 0;
     if (valid.length >= 3) {
       const sortedLats = [...valid].map(p => p.latitude).sort((a, b) => a - b);
       const sortedLngs = [...valid].map(p => p.longitude).sort((a, b) => a - b);
-      const medLat = sortedLats[Math.floor(sortedLats.length / 2)];
-      const medLng = sortedLngs[Math.floor(sortedLngs.length / 2)];
+      medLat = sortedLats[Math.floor(sortedLats.length / 2)];
+      medLng = sortedLngs[Math.floor(sortedLngs.length / 2)];
       const cleaned = valid.filter(p =>
         Math.abs(p.latitude - medLat) <= 15 && Math.abs(p.longitude - medLng) <= 20
       );
-      if (cleaned.length > 0) valid = cleaned;
+      if (cleaned.length > 0) {
+        valid = cleaned;
+        // 이상치 제거 후 중앙값 재계산
+        const lats2 = [...valid].map(p => p.latitude).sort((a, b) => a - b);
+        const lngs2 = [...valid].map(p => p.longitude).sort((a, b) => a - b);
+        medLat = lats2[Math.floor(lats2.length / 2)];
+        medLng = lngs2[Math.floor(lngs2.length / 2)];
+      }
     }
 
     if (valid.length === 0) return;
@@ -91,7 +100,8 @@ function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
     const bounds = L.latLngBounds(valid.map(p => [p.latitude, p.longitude]));
     const zoom = map.getBoundsZoom(bounds, false, [60, 60]);
     if (zoom < 8) {
-      map.flyTo(bounds.getCenter(), 9, { duration: 1.2 });
+      // bbox 중심(바다 가능) 대신 장소들의 중앙값 좌표 사용
+      map.flyTo([medLat, medLng], 9, { duration: 1.2 });
     } else {
       map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
     }
