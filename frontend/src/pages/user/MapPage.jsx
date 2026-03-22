@@ -91,15 +91,13 @@ function MapPage() {
   const [locationTab, setLocationTab] = useState(incomingLocationTab);
   const [regionL1, setRegionL1] = useState(''); // 국내: 시/도, 해외: 나라
   const [regionL2, setRegionL2] = useState(''); // 국내: 구/군, 해외: 도시
-  const [regionL3, setRegionL3] = useState(''); // 국내: 동/읍/면
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
 
   // locationTab 변경 시 지역 선택 초기화
-  useEffect(() => { setRegionL1(''); setRegionL2(''); setRegionL3(''); }, [locationTab]);
-  useEffect(() => { setRegionL2(''); setRegionL3(''); }, [regionL1]);
-  useEffect(() => { setRegionL3(''); }, [regionL2]);
+  useEffect(() => { setRegionL1(''); setRegionL2(''); }, [locationTab]);
+  useEffect(() => { setRegionL2(''); }, [regionL1]);
 
   const DOMESTIC_CITIES = [
     '서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '제주',
@@ -127,12 +125,6 @@ function MapPage() {
     return parts[1] || null;
   };
 
-  const getL3 = (address) => {
-    if (!address || !isDomestic(address)) return null;
-    const m = address.match(/([가-힣]+(?:동|읍|면|리))/);
-    return m ? m[1] : null;
-  };
-
   // 현재 locationTab 기준 1차 지역 목록
   const l1Options = [...new Set(
     places
@@ -149,20 +141,12 @@ function MapPage() {
       .filter(Boolean)
   )].sort() : [];
 
-  // 2차 선택 후 3차 목록 (국내 동/읍/면만)
-  const l3Options = (regionL2 && locationTab === 'domestic') ? [...new Set(
-    places
-      .filter(p => getL1(p.address) === regionL1 && getL2(p.address) === regionL2)
-      .map(p => getL3(p.address))
-      .filter(Boolean)
-  )].sort() : [];
 
   const filteredPlaces = places.filter(p => {
     const tabOk = locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address);
     if (!tabOk) return false;
     if (regionL1 && getL1(p.address) !== regionL1) return false;
     if (regionL2 && getL2(p.address) !== regionL2) return false;
-    if (regionL3 && getL3(p.address) !== regionL3) return false;
     return true;
   });
   const [flyTarget, setFlyTarget] = useState(
@@ -333,25 +317,6 @@ function MapPage() {
                 </div>
               )}
 
-              {/* L3: 동/읍/면 (국내만) */}
-              {regionL2 && l3Options.length > 0 && (
-                <div className="px-3 pt-1 pb-2.5">
-                  <p className="text-[10px] font-bold text-slate-400 mb-1.5">동·읍·면</p>
-                  <div className="flex flex-wrap gap-1">
-                    {l3Options.map(opt => (
-                      <button
-                        key={opt}
-                        onClick={() => setRegionL3(regionL3 === opt ? '' : opt)}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                          regionL3 === opt ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
