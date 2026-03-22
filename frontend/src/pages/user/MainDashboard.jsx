@@ -510,9 +510,9 @@ function MainDashboard() {
                     {REST_TYPE_MAP[rec.placeFirstRestType] && (() => {
                       const t = REST_TYPE_MAP[rec.placeFirstRestType];
                       return (
-                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
-                          style={{ background: 'rgba(0,0,0,0.45)' }}>
-                          <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
+                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: t.badge }}>
+                          <span className="material-icons text-[11px] text-white">{t.icon}</span>
                           <span className="text-[9px] font-bold text-white">{t.label}</span>
                         </div>
                       );
