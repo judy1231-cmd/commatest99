@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
@@ -12,6 +12,27 @@ const CATEGORIES = [
   { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBEB' },
   { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
 ];
+
+// 카테고리별 키워드 (많을수록 정확도 높아짐)
+const CATEGORY_KEYWORDS = {
+  '신체적 휴식': ['운동', '스트레칭', '요가', '달리기', '걷기', '수영', '헬스', '피트니스', '몸', '근육', '스포츠', '조깅', '자전거', '등산', '땀', '체력', '필라테스', '마사지', '몸풀기'],
+  '정신적 휴식': ['명상', '독서', '책', '집중', '고요', '조용', '마음', '생각', '뇌', '공부', '사색', '힐링', '마인드', '심리', '정신', '집중력', '뇌피셜', '묵상', '호흡'],
+  '감각적 휴식': ['음악', '향기', '아로마', '목욕', '온천', '사우나', '감각', '촉감', '소리', '맛', '향', '냄새', '따뜻', '포근', '욕조', '족욕', '노래', '플레이리스트'],
+  '정서적 휴식': ['감정', '울음', '치유', '위로', '슬픔', '기쁨', '행복', '감사', '눈물', '혼자', '일기', '감정', '마음챙김', '정서', '공감', '감동', '따뜻함'],
+  '사회적 휴식': ['친구', '가족', '대화', '모임', '파티', '함께', '소통', '만남', '수다', '술자리', '카페', '밥', '동료', '연인', '데이트', '놀이', '같이', '우리'],
+  '창조적 휴식': ['그림', '글쓰기', '음악', '악기', '공방', '만들기', '창작', '예술', '디자인', '사진', '영상', '코딩', '작업', '드로잉', '스케치', '핸드메이드', '레고', '뜨개질'],
+  '자연적 휴식': ['자연', '산', '바다', '공원', '숲', '하늘', '꽃', '나무', '캠핑', '등산', '강', '호수', '바람', '해변', '들판', '식물', '정원', '산책', '일출', '일몰'],
+};
+
+function detectCategory(text) {
+  if (!text || text.trim().length < 5) return null;
+  const scores = {};
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    scores[cat] = keywords.filter(kw => text.includes(kw)).length;
+  }
+  const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  return best[1] >= 1 ? best[0] : null;
+}
 
 const MAX_IMAGES = 5;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -28,6 +49,17 @@ function CommunityWrite() {
   const [images, setImages] = useState([]); // { file, preview }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [suggestedCategory, setSuggestedCategory] = useState(null);
+
+  // 제목+내용 변경 시 카테고리 자동 감지 (1초 디바운스)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (category) return; // 이미 수동 선택된 경우 추천 안 함
+      const detected = detectCategory(title + ' ' + content);
+      setSuggestedCategory(detected);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [title, content, category]);
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files || []);
@@ -124,6 +156,26 @@ function CommunityWrite() {
           <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">카테고리</p>
+
+              {/* AI 추천 배너 */}
+              {suggestedCategory && !category && (() => {
+                const cat = CATEGORIES.find(c => c.key === suggestedCategory);
+                if (!cat) return null;
+                return (
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3 cursor-pointer hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: cat.bg, border: `1.5px solid ${cat.color}40` }}
+                    onClick={() => { setCategory(cat.key); setSuggestedCategory(null); }}
+                  >
+                    <span className="material-icons text-sm" style={{ color: cat.color }}>auto_awesome</span>
+                    <span className="text-xs font-bold" style={{ color: cat.color }}>
+                      '{cat.label}' 카테고리는 어때요?
+                    </span>
+                    <span className="ml-auto text-[10px] font-bold" style={{ color: cat.color }}>탭해서 선택</span>
+                  </div>
+                );
+              })()}
+
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(cat => {
                   const isActive = category === cat.key;
@@ -131,7 +183,7 @@ function CommunityWrite() {
                     <button
                       key={cat.key}
                       type="button"
-                      onClick={() => setCategory(prev => prev === cat.key ? '' : cat.key)}
+                      onClick={() => { setCategory(prev => prev === cat.key ? '' : cat.key); setSuggestedCategory(null); }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
                       style={isActive
                         ? { backgroundColor: cat.color, color: '#fff', boxShadow: `0 2px 8px ${cat.color}55` }
