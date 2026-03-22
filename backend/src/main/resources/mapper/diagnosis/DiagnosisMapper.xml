@@ -93,4 +93,29 @@
         ORDER BY ranking
     </select>
 
+    <!--
+        스트레스 패턴 감지 — 고위험 사용자 조회
+        로직:
+          1. 사용자별 최근 recentCount회 진단의 평균 스트레스 지수 계산
+          2. 평균이 minAvgStress 이상인 사용자만 추출
+          3. 24시간 내 이미 'stress' 타입 알림을 받은 사용자 제외 (중복 방지)
+    -->
+    <select id="findHighStressUsers" resultType="string">
+        SELECT dr.`쉼표번호`
+        FROM diagnosis_results dr
+        WHERE dr.id IN (
+            SELECT id FROM diagnosis_results d2
+            WHERE d2.`쉼표번호` = dr.`쉼표번호`
+            ORDER BY d2.diagnosed_at DESC
+            LIMIT #{recentCount}
+        )
+        GROUP BY dr.`쉼표번호`
+        HAVING AVG(dr.stress_index) >= #{minAvgStress}
+          AND dr.`쉼표번호` NOT IN (
+            SELECT `쉼표번호` FROM notifications
+            WHERE type = 'stress'
+              AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        )
+    </select>
+
 </mapper>
