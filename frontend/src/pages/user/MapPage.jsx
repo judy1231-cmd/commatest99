@@ -54,6 +54,24 @@ function FlyToPlace({ center }) {
   return null;
 }
 
+// 지역 필터 선택 시 해당 지역 전체가 보이도록 지도 자동 이동
+function FitBoundsOnRegion({ places, regionL1, regionL2 }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!regionL1) return;
+    const valid = places.filter(p => p.latitude && p.longitude);
+    if (valid.length === 0) return;
+    if (valid.length === 1) {
+      map.flyTo([valid[0].latitude, valid[0].longitude], 13, { duration: 1.2 });
+      return;
+    }
+    const bounds = L.latLngBounds(valid.map(p => [p.latitude, p.longitude]));
+    map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionL1, regionL2]);
+  return null;
+}
+
 // 핀 위에 뜨는 장소 카드
 function PlaceCard({ place, currentType, onClose }) {
   const map = useMap();
@@ -228,21 +246,26 @@ function MapPage() {
     return parts[1] || null;
   };
 
-  // 현재 locationTab 기준 1차 지역 목록
-  const l1Options = [...new Set(
-    places
-      .filter(p => locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address))
-      .map(p => getL1(p.address))
-      .filter(Boolean)
-  )].sort();
+  // 현재 locationTab 기준 1차 지역 목록 (장소 수 포함)
+  const tabPlaces = places.filter(p =>
+    locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address)
+  );
+  const l1CountMap = tabPlaces.reduce((acc, p) => {
+    const l1 = getL1(p.address);
+    if (l1) acc[l1] = (acc[l1] || 0) + 1;
+    return acc;
+  }, {});
+  const l1Options = Object.keys(l1CountMap).sort((a, b) => l1CountMap[b] - l1CountMap[a]);
 
-  // 1차 선택 후 2차 목록
-  const l2Options = regionL1 ? [...new Set(
-    places
-      .filter(p => getL1(p.address) === regionL1)
-      .map(p => getL2(p.address))
-      .filter(Boolean)
-  )].sort() : [];
+  // 1차 선택 후 2차 목록 (장소 수 포함)
+  const l2CountMap = regionL1 ? places
+    .filter(p => getL1(p.address) === regionL1)
+    .reduce((acc, p) => {
+      const l2 = getL2(p.address);
+      if (l2) acc[l2] = (acc[l2] || 0) + 1;
+      return acc;
+    }, {}) : {};
+  const l2Options = Object.keys(l2CountMap).sort((a, b) => l2CountMap[b] - l2CountMap[a]);
 
 
   const filteredPlaces = places.filter(p => {
@@ -380,16 +403,21 @@ function MapPage() {
                 <p className="text-[10px] font-bold text-slate-400 mb-1.5">
                   {locationTab === 'domestic' ? '시·도' : '나라'}
                 </p>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {l1Options.map(opt => (
                     <button
                       key={opt}
                       onClick={() => setRegionL1(regionL1 === opt ? '' : opt)}
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                        regionL1 === opt ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                        regionL1 === opt
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
                       {opt}
+                      <span className={`text-[10px] font-normal ${regionL1 === opt ? 'text-white/80' : 'text-slate-400'}`}>
+                        {l1CountMap[opt]}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -401,16 +429,21 @@ function MapPage() {
                   <p className="text-[10px] font-bold text-slate-400 mb-1.5">
                     {locationTab === 'domestic' ? '구·군' : '도시'}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {l2Options.map(opt => (
                       <button
                         key={opt}
                         onClick={() => setRegionL2(regionL2 === opt ? '' : opt)}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                          regionL2 === opt ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                          regionL2 === opt
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
                         {opt}
+                        <span className={`text-[10px] font-normal ${regionL2 === opt ? 'text-white/80' : 'text-slate-400'}`}>
+                          {l2CountMap[opt]}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -575,6 +608,7 @@ function MapPage() {
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}
+            <FitBoundsOnRegion places={filteredPlaces} regionL1={regionL1} regionL2={regionL2} />
 
             {/* 내 위치 마커 */}
             {myLocation && (
