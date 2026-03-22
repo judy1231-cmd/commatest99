@@ -49,4 +49,23 @@
         ORDER BY r.recommended_at DESC
     </select>
 
+
+    <!--
+        개인 효과 이력 — 최근 30일 기록에서 유형별 평균 감정 향상도 계산
+        향상도 = emotion_after - emotion_before (양수: 좋아짐, 음수: 나빠짐)
+        rest_types.type_name이 RestTypeScore.restType과 동일한 영문 키
+    -->
+    <select id="findPersonalEffectiveness" resultType="map">
+        SELECT rt.type_name AS rest_type,
+               AVG(rl.emotion_after - rl.emotion_before) AS avg_improvement
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` = #{commaNo}
+          AND rl.deleted = 0
+          AND rl.emotion_before IS NOT NULL
+          AND rl.emotion_after IS NOT NULL
+          AND rl.start_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY rt.id, rt.type_name
+    </select>
+
 </mapper>
