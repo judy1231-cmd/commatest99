@@ -421,16 +421,25 @@ function MapPage() {
                       setFlyTarget([place.latitude, place.longitude]);
                     }
                   }}
-                  className="p-4 cursor-pointer transition-colors hover:bg-slate-50"
+                  className="p-3 cursor-pointer transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${currentType.color}20` }}
-                    >
-                      <span className="material-icons text-base" style={{ color: currentType.color }}>
-                        {currentType.icon}
-                      </span>
+                    {/* 썸네일 사진 */}
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                      {place.photoUrl ? (
+                        <img
+                          src={place.photoUrl}
+                          alt={place.name}
+                          className="w-full h-full object-cover"
+                          onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-full h-full items-center justify-center"
+                        style={{ display: place.photoUrl ? 'none' : 'flex', backgroundColor: `${currentType.color}20` }}
+                      >
+                        <span className="material-icons text-xl" style={{ color: currentType.color }}>{currentType.icon}</span>
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-slate-800 text-sm truncate">{place.name}</h3>
@@ -518,14 +527,37 @@ function MapPage() {
                   icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
                   eventHandlers={{ click: () => handleMarkerClick(place) }}
                 >
-                  <Popup>
-                    <div style={{ minWidth: '160px' }}>
-                      <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{place.name}</p>
-                      <p style={{ fontSize: '12px', color: '#64748B' }}>{place.address}</p>
+                  <Popup minWidth={200} maxWidth={240}>
+                    <div style={{ width: '200px' }}>
+                      {place.photoUrl && (
+                        <img
+                          src={place.photoUrl}
+                          alt={place.name}
+                          style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px', display: 'block' }}
+                        />
+                      )}
+                      <p style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px', color: '#1e293b' }}>{place.name}</p>
+                      <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>{place.address}</p>
                       {place.operatingHours && (
-                        <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+                        <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
                           {place.operatingHours}
                         </p>
+                      )}
+                      {place.aiScore && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '4px' }}>
+                          <span className="material-icons" style={{ fontSize: '12px', color: '#f59e0b' }}>star</span>
+                          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569' }}>{Number(place.aiScore).toFixed(1)}</span>
+                        </div>
+                      )}
+                      {place.tags?.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '4px' }}>
+                          {place.tags.slice(0, 3).map(tag => (
+                            <span key={tag} style={{ fontSize: '10px', background: '#f1f5f9', color: '#64748b', borderRadius: '20px', padding: '2px 7px', fontWeight: '600' }}>
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </Popup>
