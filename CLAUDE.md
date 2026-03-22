@@ -127,6 +127,32 @@ comma-main/
 
 ---
 
+## 🤖 YOLO 이미지 분석 서비스
+
+> 브랜치: `feature/yolo-classification` (develop 머지 전)
+> 디렉터리: `yolo_service/` (Python FastAPI, 포트 8090)
+
+### 역할
+1. **장소 사진 유형 자동 분류** — 관리자가 장소 승인 시, 첫 번째 사진을 YOLO에 보내 휴식 유형 태그 자동 등록
+2. **커뮤니티/리뷰 사진 검증** — 업로드 시 부적절 이미지(무기류, 사람만 가득한 사진) 거부
+
+### 실행 방법 (개발 시 선택)
+```bash
+cd yolo_service
+python3 -m venv venv && source venv/bin/activate  # 최초 1회
+pip install -r requirements.txt                   # 최초 1회
+uvicorn main:app --host 0.0.0.0 --port 8090 --reload
+```
+> YOLO 서버를 켜지 않아도 Spring Boot/React는 정상 동작함 (graceful degradation)
+
+### Spring Boot 연동 파일
+- `global/util/YoloService.java` — YOLO FastAPI 연동 유틸
+- `AdminService.java` — 장소 승인(approved) 시 `autoTagByYolo()` 자동 호출
+- `PostService.java` — 커뮤니티 사진 업로드 시 `validateUploadedPhoto()` 호출
+- `application.yml` — `yolo.service.url: ${YOLO_SERVICE_URL:http://localhost:8090}`
+
+---
+
 ## ⚠️ 개발 범위
 - **모바일 반응형 미구현** — 데스크탑(1280px 기준) 전용으로 개발
 
@@ -143,7 +169,7 @@ comma-main/
 | 배포 | Google Cloud (Cloud Run + Cloud SQL + Cloud Storage) ← 1순위 / AWS (EC2 + RDS + S3) ← 2순위 |
 | 웹서버 | Nginx |
 | 컨테이너 | Docker |
-| AI | Claude API |
+| AI | Claude API, YOLOv8 (ultralytics) |
 | 데이터수집 | Python, BeautifulSoup, 공공데이터포털 API |
 | 지도 | Leaflet (카카오맵 사용 안 함) |
 | 외부 API | 카카오 OAuth2, 구글 OAuth2, 기상청 API, 공공데이터포털 API |
@@ -487,11 +513,12 @@ chore: MyBatis 의존성 추가
 - StatsMapper.xml year_month 버그 수정 ✅
 - Galaxy Watch → 준비 중 UI 처리 완료 ✅ (HeartRateCheck.jsx)
 - place_photos DB 사진 교체 완료 ✅ (나팔리 코스트 트레일 place_id=545)
+- YOLO 이미지 분석 서비스 연동 ✅ (feature/yolo-classification 브랜치)
 - **공공데이터 크롤링 실행 (장소 Seed)** → 미완
 - 장소 CRUD, Leaflet 지도 + 공공데이터포털 API 연동 → 미완
 - recommendations 저장 로직 → 미완
 
-> 📅 마지막 작업: 2026-03-19
+> 📅 마지막 작업: 2026-03-22
 
 ### Phase 5 — 통계 / 마이페이지 / 알림
 - monthly_stats 집계 로직
