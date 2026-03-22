@@ -165,7 +165,7 @@ function SkeletonPost() {
 
 function Community() {
   const navigate = useNavigate();
-  const [sort, setSort] = useState('popular');
+  const [sort, setSort] = useState('latest');
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredCat, setHoveredCat] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -243,8 +243,8 @@ function Community() {
           {/* 정렬 토글 */}
           <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
             {[
-              { value: 'popular', icon: 'trending_up', label: '인기' },
               { value: 'latest',  icon: 'schedule',    label: '최신' },
+              { value: 'popular', icon: 'trending_up', label: '인기' },
             ].map(s => (
               <button
                 key={s.value}
