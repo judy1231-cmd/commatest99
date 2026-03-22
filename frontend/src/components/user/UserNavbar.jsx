@@ -300,8 +300,10 @@ function UserNavbar() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
   const [showNotif, setShowNotif] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const notifBtnRef = useRef(null);
+  const profileRef = useRef(null);
 
   const fetchUnread = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
@@ -358,9 +360,7 @@ function UserNavbar() {
             {isLoggedIn && JSON.parse(localStorage.getItem('user') || '{}').role === 'ADMIN' && (
               <Link to="/admin" className="text-sm font-medium px-3 py-1 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors">관리자</Link>
             )}
-            {isLoggedIn ? (
-              <button onClick={handleLogout} className="text-sm font-medium text-text-muted hover:text-red-500 transition-colors">로그아웃</button>
-            ) : (
+            {!isLoggedIn && (
               <>
                 <Link to="/login" className={`text-sm font-medium transition-colors ${isActive('/login') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>로그인</Link>
                 <Link to="/signup" className="text-sm font-medium px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">회원가입</Link>
@@ -388,12 +388,71 @@ function UserNavbar() {
                 />
               )}
             </div>
-            <button
-              onClick={() => !isLoggedIn && setShowLoginModal(true)}
-              className="w-9 h-9 rounded-full bg-pale-blue flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm hover:bg-slate-200 transition-colors"
-            >
-              <span className="material-icons text-text-muted">person</span>
-            </button>
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) { setShowLoginModal(true); return; }
+                  setShowProfile(v => !v);
+                  setShowNotif(false);
+                }}
+                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm hover:bg-slate-200 transition-colors"
+              >
+                {isLoggedIn && user.nickname
+                  ? <span className="text-[13px] font-extrabold text-primary">{user.nickname[0]}</span>
+                  : <span className="material-icons text-text-muted text-[20px]">person</span>
+                }
+              </button>
+
+              {/* 프로필 드롭다운 */}
+              {showProfile && isLoggedIn && (() => {
+                const closeProfile = () => setShowProfile(false);
+                // 외부 클릭 시 닫기
+                const handler = (e) => {
+                  if (profileRef.current && !profileRef.current.contains(e.target)) closeProfile();
+                };
+                document.addEventListener('mousedown', handler, { once: true });
+                return (
+                  <div
+                    className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[200]"
+                    style={{ animation: 'fadeInDown 0.18s ease' }}
+                  >
+                    {/* 닉네임 헤더 */}
+                    <div className="px-4 py-3.5 border-b border-slate-100">
+                      <p className="text-[13px] font-extrabold text-slate-800 truncate">{user.nickname}</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{user.email || user.username}</p>
+                    </div>
+                    {/* 메뉴 */}
+                    <div className="py-1">
+                      <Link
+                        to="/my"
+                        onClick={closeProfile}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px] text-slate-400">person</span>
+                        마이페이지
+                      </Link>
+                      <Link
+                        to="/rest-record"
+                        onClick={closeProfile}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px] text-slate-400">edit_note</span>
+                        휴식 기록
+                      </Link>
+                    </div>
+                    <div className="border-t border-slate-100 py-1">
+                      <button
+                        onClick={() => { closeProfile(); handleLogout(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px]">logout</span>
+                        로그아웃
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </nav>
