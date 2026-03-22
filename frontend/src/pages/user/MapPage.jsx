@@ -68,19 +68,6 @@ function createSelectedMarker() {
   });
 }
 
-// 강조 마커 (자연 연결 페이지에서 넘어온 장소)
-function createHighlightMarker(color = '#10B981') {
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width: 22px; height: 22px; border-radius: 50%;
-      background: ${color}; border: 3px solid white;
-      box-shadow: 0 0 0 4px ${color}55, 0 3px 10px rgba(0,0,0,0.4);
-    "></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-  });
-}
 
 function MapPage() {
   const location = useLocation();
@@ -417,6 +404,7 @@ function MapPage() {
                 <div
                   key={place.id}
                   onClick={() => {
+                    setSelectedPlaceId(place.id);
                     if (place.latitude && place.longitude) {
                       setFlyTarget([place.latitude, place.longitude]);
                     }
@@ -505,7 +493,7 @@ function MapPage() {
             {resolvedHighlight?.lat && (
               <Marker
                 position={[resolvedHighlight.lat, resolvedHighlight.lng]}
-                icon={createHighlightMarker(resolvedHighlight.color || '#10B981')}
+                icon={createSelectedMarker()}
               >
                 <Popup>
                   <div style={{ minWidth: '160px' }}>
