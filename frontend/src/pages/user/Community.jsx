@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
@@ -173,6 +173,8 @@ function Community() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [listVisible, setListVisible] = useState(true);
+  const prevCategory = useRef('all');
 
   const token = localStorage.getItem('accessToken');
   const isLoggedIn = !!token;
@@ -199,6 +201,15 @@ function Community() {
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
+
+  useEffect(() => {
+    if (prevCategory.current !== activeCategory || sort) {
+      setListVisible(false);
+      const t = setTimeout(() => setListVisible(true), 160);
+      prevCategory.current = activeCategory;
+      return () => clearTimeout(t);
+    }
+  }, [activeCategory, sort]);
 
   useEffect(() => {
     setPage(1);
@@ -328,7 +339,13 @@ function Community() {
 
         {/* 게시글 목록 — Twitter/Threads 스타일 */}
         {!loading && !error && posts.length > 0 && (
-          <div className="bg-white divide-y divide-slate-50">
+          <div
+            className="bg-white divide-y divide-slate-50 transition-all duration-200"
+            style={{
+              opacity: listVisible ? 1 : 0,
+              transform: listVisible ? 'translateY(0)' : 'translateY(6px)',
+            }}
+          >
             {posts.map(post => (
               <PostCard
                 key={post.id}
