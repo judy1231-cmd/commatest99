@@ -58,6 +58,29 @@
         WHERE place_id = #{placeId}
     </select>
 
+    <!-- ==================== AI 점수 배치 ==================== -->
+
+    <!--
+        ai_score 재계산 공식:
+          기반점수 = 평균 별점(1~5) × 20  →  20 ~ 100점
+          리뷰 없으면 기본 50점
+          + 북마크 수 × 2  (상한 없음, 총점 LEAST 100으로 제한)
+          + 추천 클릭 수 × 3
+        결과 범위: 0 ~ 100
+    -->
+    <update id="updateAllPlaceScores">
+        UPDATE places p
+        SET p.ai_score = LEAST(100,
+            COALESCE(
+                (SELECT AVG(r.rating) FROM place_reviews r WHERE r.place_id = p.id) * 20,
+                50
+            )
+            + (SELECT COUNT(*) FROM place_bookmarks b WHERE b.place_id = p.id) * 2
+            + (SELECT COUNT(*) FROM recommendations rc WHERE rc.place_id = p.id AND rc.clicked = 1) * 3
+        )
+        WHERE p.status = 'approved'
+    </update>
+
     <!-- ==================== 리뷰 ==================== -->
 
     <insert id="insertReview" parameterType="com.comma.domain.place.model.PlaceReview"
