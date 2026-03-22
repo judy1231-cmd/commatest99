@@ -524,6 +524,71 @@ function MyPage() {
 
         <div className="h-3" />
 
+        {/* ── 감정 변화 그래프 ── */}
+        {(() => {
+          const chartData = [...calendarLogs]
+            .filter(l => l.emotionBefore != null || l.emotionAfter != null)
+            .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+            .slice(-20)
+            .map(l => ({
+              date: (() => {
+                const d = new Date(l.startTime);
+                return `${d.getMonth() + 1}/${d.getDate()}`;
+              })(),
+              전: l.emotionBefore ?? null,
+              후: l.emotionAfter ?? null,
+            }));
+
+          if (chartData.length < 2) return null;
+
+          const validBefore = chartData.filter(d => d.전);
+          const validAfter  = chartData.filter(d => d.후);
+          const avgBefore = validBefore.length ? (validBefore.reduce((s, d) => s + d.전, 0) / validBefore.length).toFixed(1) : null;
+          const avgAfter  = validAfter.length  ? (validAfter.reduce((s, d) => s + d.후, 0) / validAfter.length).toFixed(1) : null;
+          const avgImprove = avgBefore && avgAfter ? (avgAfter - avgBefore).toFixed(1) : null;
+
+          return (
+            <>
+              <div className="px-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-sm font-bold text-slate-700">감정 변화 추이</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">최근 {chartData.length}개 기록 기준</p>
+                    </div>
+                    {avgImprove != null && (
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">평균 향상</p>
+                        <p className={`text-[17px] font-extrabold ${Number(avgImprove) >= 0 ? 'text-primary' : 'text-red-400'}`}>
+                          {Number(avgImprove) >= 0 ? '+' : ''}{avgImprove}점
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} />
+                      <YAxis domain={[1, 10]} ticks={[1, 5, 10]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                      <Tooltip
+                        contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        formatter={(value, name) => [`${value}점`, name === '전' ? '휴식 전' : '휴식 후']}
+                      />
+                      <ReferenceLine y={5} stroke="#e2e8f0" strokeDasharray="4 4" />
+                      <Legend formatter={(value) => value === '전' ? '휴식 전' : '휴식 후'} wrapperStyle={{ fontSize: 12, color: '#64748b' }} />
+                      <Line type="monotone" dataKey="전" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 3"
+                        dot={{ r: 3, fill: '#cbd5e1', strokeWidth: 0 }} activeDot={{ r: 5 }} connectNulls />
+                      <Line type="monotone" dataKey="후" stroke="#10b981" strokeWidth={2.5}
+                        dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 6 }} connectNulls />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="h-3" />
+            </>
+          );
+        })()}
+
         {/* ── 기간별 휴식 통계 ── */}
         <div className="px-4">
           <div className="bg-white rounded-2xl overflow-hidden">
@@ -716,70 +781,6 @@ function MyPage() {
             </div>
           )}
         </div>
-
-        <div className="h-3" />
-
-        {/* ── 감정 변화 그래프 ── */}
-        {(() => {
-          const chartData = [...calendarLogs]
-            .filter(l => l.emotionBefore != null || l.emotionAfter != null)
-            .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-            .slice(-20)
-            .map(l => ({
-              date: (() => {
-                const d = new Date(l.startTime);
-                return `${d.getMonth() + 1}/${d.getDate()}`;
-              })(),
-              전: l.emotionBefore ?? null,
-              후: l.emotionAfter ?? null,
-            }));
-
-          if (chartData.length < 2) return null;
-
-          const validBefore = chartData.filter(d => d.전);
-          const validAfter  = chartData.filter(d => d.후);
-          const avgBefore = validBefore.length ? (validBefore.reduce((s, d) => s + d.전, 0) / validBefore.length).toFixed(1) : null;
-          const avgAfter  = validAfter.length  ? (validAfter.reduce((s, d) => s + d.후, 0) / validAfter.length).toFixed(1) : null;
-          const avgImprove = avgBefore && avgAfter ? (avgAfter - avgBefore).toFixed(1) : null;
-
-          return (
-            <div className="px-4">
-              <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm font-bold text-slate-700">감정 변화 추이</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">최근 {chartData.length}개 기록 기준</p>
-                  </div>
-                  {avgImprove != null && (
-                    <div className="text-right">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">평균 향상</p>
-                      <p className={`text-[17px] font-extrabold ${Number(avgImprove) >= 0 ? 'text-primary' : 'text-red-400'}`}>
-                        {Number(avgImprove) >= 0 ? '+' : ''}{avgImprove}점
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <ResponsiveContainer width="100%" height={180}>
-                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} />
-                    <YAxis domain={[1, 10]} ticks={[1, 5, 10]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      formatter={(value, name) => [`${value}점`, name === '전' ? '휴식 전' : '휴식 후']}
-                    />
-                    <ReferenceLine y={5} stroke="#e2e8f0" strokeDasharray="4 4" />
-                    <Legend formatter={(value) => value === '전' ? '휴식 전' : '휴식 후'} wrapperStyle={{ fontSize: 12, color: '#64748b' }} />
-                    <Line type="monotone" dataKey="전" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 3"
-                      dot={{ r: 3, fill: '#cbd5e1', strokeWidth: 0 }} activeDot={{ r: 5 }} connectNulls />
-                    <Line type="monotone" dataKey="후" stroke="#10b981" strokeWidth={2.5}
-                      dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 6 }} connectNulls />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          );
-        })()}
 
         <div className="h-3" />
 
