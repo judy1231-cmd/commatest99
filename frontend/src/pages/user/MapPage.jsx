@@ -101,7 +101,12 @@ function MapPage() {
   useEffect(() => { setRegionL2(''); setRegionL3(''); }, [regionL1]);
   useEffect(() => { setRegionL3(''); }, [regionL2]);
 
-  const DOMESTIC_CITIES = ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
+  const DOMESTIC_CITIES = [
+    '서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '제주',
+    '경상남도', '경남', '경상북도', '경북',
+    '전라남도', '전남', '전라북도', '전북',
+    '충청남도', '충남', '충청북도', '충북',
+  ];
 
   const isDomestic = (address) =>
     DOMESTIC_CITIES.some(k => address?.includes(k));
