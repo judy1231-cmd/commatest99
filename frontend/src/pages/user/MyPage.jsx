@@ -246,6 +246,7 @@ function MyPage() {
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [calendarLogs, setCalendarLogs] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedPeriod, setSelectedPeriod] = useState('this');
@@ -268,11 +269,12 @@ function MyPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [profileRes, diagRes, logsRes, calRes] = await Promise.allSettled([
+      const [profileRes, diagRes, logsRes, calRes, bmRes] = await Promise.allSettled([
         fetchWithAuth('/api/user/profile'),
         fetchWithAuth('/api/diagnosis/latest'),
         fetchWithAuth('/api/rest-logs?page=1&size=5'),
         fetchWithAuth('/api/rest-logs?page=1&size=50'),
+        fetchWithAuth('/api/places/bookmarks'),
       ]);
 
       if (profileRes.status === 'fulfilled' && profileRes.value.success) {
@@ -286,6 +288,9 @@ function MyPage() {
       }
       if (calRes.status === 'fulfilled' && calRes.value.success) {
         setCalendarLogs(calRes.value.data?.logs || []);
+      }
+      if (bmRes.status === 'fulfilled' && bmRes.value.success) {
+        setBookmarks(bmRes.value.data || []);
       }
     } finally {
       setLoading(false);
@@ -640,6 +645,76 @@ function MyPage() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="h-3" />
+
+        {/* ── 찜한 장소 ── */}
+        <div className="px-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-bold text-slate-700">찜한 장소</p>
+            <button onClick={() => navigate('/map')} className="text-xs text-primary font-bold">
+              지도에서 보기
+            </button>
+          </div>
+          {bookmarks.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
+              {bookmarks.map((place) => {
+                const DIFFICULTY_MAP = {
+                  easy:   { label: '쉬움',   color: '#10b981' },
+                  medium: { label: '보통',   color: '#f59e0b' },
+                  hard:   { label: '어려움', color: '#ef4444' },
+                };
+                const diff = DIFFICULTY_MAP[place.difficulty];
+                const typeColor = place.firstRestType ? REST_TYPE_NAMES[place.firstRestType]?.color : '#10b981';
+                return (
+                  <button
+                    key={place.id}
+                    onClick={() => navigate(`/places/${place.id}`)}
+                    className="flex-shrink-0 w-[148px] rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm text-left"
+                  >
+                    {/* 사진 */}
+                    <div className="relative w-full h-[100px] bg-slate-100">
+                      {place.photoUrl ? (
+                        <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: (typeColor || '#10b981') + '18' }}>
+                          <span className="material-icons text-2xl" style={{ color: typeColor || '#10b981' }}>
+                            {place.firstRestType ? (REST_TYPE_NAMES[place.firstRestType]?.icon || 'place') : 'place'}
+                          </span>
+                        </div>
+                      )}
+                      {diff && (
+                        <span
+                          className="absolute bottom-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                          style={{ backgroundColor: diff.color }}
+                        >
+                          {diff.label}
+                        </span>
+                      )}
+                    </div>
+                    {/* 텍스트 */}
+                    <div className="px-3 py-2.5">
+                      <p className="text-[13px] font-bold text-slate-800 truncate">{place.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{place.address}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl py-8 text-center border border-slate-100">
+              <span className="material-icons text-3xl text-slate-200 block mb-2">favorite_border</span>
+              <p className="text-sm font-semibold text-slate-400">찜한 장소가 없어요</p>
+              <p className="text-xs text-slate-300 mt-1">마음에 드는 장소를 저장해보세요</p>
+              <button
+                onClick={() => navigate('/map')}
+                className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
+              >
+                장소 탐색하기
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="h-3" />
