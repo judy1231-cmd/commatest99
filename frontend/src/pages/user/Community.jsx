@@ -176,15 +176,15 @@ function Community() {
           <p className="text-xs text-slate-400 mt-0.5">휴식 경험을 나누고 서로 응원해요</p>
         </div>
 
-        {/* 카테고리 칩 — 전체 표시 */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* 카테고리 칩 — 4열 그리드 전체 표시 */}
+        <div className="grid grid-cols-4 gap-2 mb-5">
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.key;
             return (
               <button
                 key={cat.key}
                 onClick={() => setActiveCategory(cat.key)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all"
+                className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
                 style={isActive
                   ? { backgroundColor: cat.color, color: '#fff', boxShadow: `0 2px 8px ${cat.color}55` }
                   : { backgroundColor: cat.bg, color: cat.color, border: `1.5px solid ${cat.color}30` }
