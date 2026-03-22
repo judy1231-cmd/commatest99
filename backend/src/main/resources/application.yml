@@ -60,6 +60,10 @@ claude:
     key: ${CLAUDE_API_KEY:}
   model: claude-sonnet-4-20250514
 
+yolo:
+  service:
+    url: ${YOLO_SERVICE_URL:http://localhost:8090}
+
 logging:
   level:
     com.comma: DEBUG

@@ -3,9 +3,14 @@ package com.comma.domain.admin.service;
 import com.comma.domain.admin.mapper.AdminMapper;
 import com.comma.domain.admin.model.AuditLog;
 import com.comma.domain.admin.model.BlockedKeyword;
+import com.comma.domain.place.mapper.PlaceMapper;
 import com.comma.domain.place.model.Place;
+import com.comma.domain.place.model.PlacePhoto;
+import com.comma.domain.place.model.PlaceTag;
 import com.comma.domain.user.model.User;
+import com.comma.global.util.YoloService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
     private final AdminMapper adminMapper;
+    private final PlaceMapper placeMapper;
+    private final YoloService yoloService;
 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -71,6 +79,32 @@ public class AdminService {
     public void updatePlaceStatus(String admin쉼표번호, Long placeId, String status) {
         adminMapper.updatePlaceStatus(placeId, status);
         logAudit(admin쉼표번호, "change_place_status_to_" + status, "place", String.valueOf(placeId));
+
+        // 승인 시 YOLO로 장소 사진 자동 분류 → 휴식 유형 태그 추가
+        if ("approved".equals(status)) {
+            autoTagByYolo(placeId);
+        }
+    }
+
+    /**
+     * 장소 사진 첫 번째 URL을 YOLO에 보내 휴식 유형을 분류하고,
+     * 결과가 있으면 place_tags 테이블에 자동으로 태그를 추가한다.
+     * YOLO 서버가 꺼져 있거나 분류 실패해도 승인 자체는 그대로 진행된다.
+     */
+    private void autoTagByYolo(Long placeId) {
+        List<PlacePhoto> photos = placeMapper.findPhotosByPlaceId(placeId);
+        if (photos == null || photos.isEmpty()) return;
+
+        String photoUrl = photos.get(0).getPhotoUrl();
+        String suggestedCategory = yoloService.classifyByUrl(photoUrl);
+        if (suggestedCategory == null) return;
+
+        PlaceTag tag = new PlaceTag();
+        tag.setPlaceId(placeId);
+        tag.setTagName(suggestedCategory);
+        tag.setRestType(suggestedCategory);
+        placeMapper.insertPlaceTag(tag);
+        log.info("YOLO 자동 태그 추가: place_id={}, category={}", placeId, suggestedCategory);
     }
 
     public Map<String, Object> getAnalytics() {

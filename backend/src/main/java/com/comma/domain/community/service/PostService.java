@@ -7,6 +7,7 @@ import com.comma.domain.community.model.Comment;
 import com.comma.domain.community.model.Post;
 import com.comma.domain.community.model.PostPhoto;
 import com.comma.global.util.FileUploadService;
+import com.comma.global.util.YoloService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class PostService {
     private final PostPhotoMapper postPhotoMapper;
     private final CommentMapper commentMapper;
     private final FileUploadService fileUploadService;
+    private final YoloService yoloService;
 
     // 게시글 목록 조회
     public Map<String, Object> getPosts(String category, String sort, String commaNo, int page, int size) {
@@ -58,6 +60,12 @@ public class PostService {
         postMapper.insertPost(post);
 
         if (images != null && !images.isEmpty()) {
+            // YOLO 검증: 부적절한 사진이 포함되어 있으면 업로드 거부
+            for (MultipartFile image : images) {
+                if (!yoloService.validateUploadedPhoto(image)) {
+                    throw new IllegalArgumentException("부적절한 이미지가 포함되어 있어 업로드할 수 없어요.");
+                }
+            }
             List<String> photoUrls = fileUploadService.uploadPostPhotos(images);
             for (String url : photoUrls) {
                 postPhotoMapper.insertPhoto(post.getId(), url);
