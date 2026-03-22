@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -166,11 +166,20 @@ function createSelectedMarker() {
 
 function MapPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   // 자연 연결 등 다른 페이지에서 클릭해 넘어온 장소
   const highlightPlace = location.state?.highlightPlace || null;
   const flyToMyLocation = location.state?.flyToMyLocation || false;
   const incomingRestType = location.state?.restType || '';
   const incomingLocationTab = location.state?.locationTab || 'all';
+
+  // 새로고침 시 state가 남지 않도록 히스토리에서 즉시 제거
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [selectedType, setSelectedType] = useState(incomingRestType);
   const [places, setPlaces] = useState([]);
