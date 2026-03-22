@@ -123,9 +123,9 @@ function PlaceCard({ place, currentType, onClose }) {
         <div className="relative h-32">
           <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          {/* 사진 좌하단 — 휴식유형 뱃지 (중복 표시) */}
+          {/* 사진 좌상단 — 휴식유형 뱃지 (중복 표시) */}
           {place.restTypes?.length > 0 && (
-            <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+            <div className="absolute top-2 left-2 flex flex-wrap gap-1">
               {place.restTypes.map(rt => {
                 const t = REST_TYPES.find(r => r.key === rt);
                 if (!t) return null;

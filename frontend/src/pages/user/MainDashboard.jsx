@@ -614,9 +614,9 @@ function MainDashboard() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
                       />
-                      {/* 좌하단 — 휴식유형 중복 뱃지 */}
+                      {/* 좌상단 — 휴식유형 중복 뱃지 */}
                       {(place.restTypes?.length > 0 || place.firstRestType) && (
-                        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+                        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                           {(place.restTypes?.length > 0
                             ? place.restTypes
                             : [place.firstRestType]
