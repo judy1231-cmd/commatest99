@@ -74,6 +74,7 @@ function PlaceDetail() {
 
   const [place, setPlace]           = useState(null);
   const [tags, setTags]             = useState([]);
+  const [photos, setPhotos]         = useState([]);
   const [reviews, setReviews]       = useState([]);
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading]       = useState(true);
@@ -100,6 +101,7 @@ function PlaceDetail() {
       if (data.success && data.data) {
         setPlace(data.data.place);
         setTags(data.data.tags || []);
+        setPhotos(data.data.photos || []);
         setReviews(data.data.reviews || []);
       } else {
         navigate('/map');
@@ -401,10 +403,10 @@ function PlaceDetail() {
       {place.latitude && place.longitude && (
         <div className="mb-2 shadow-sm flex overflow-hidden" style={{ height: '450px' }}>
           {/* 왼쪽 사진 */}
-          {place.photoUrl && (
+          {photos[0]?.photoUrl && (
             <div className="w-2/5 shrink-0 overflow-hidden">
               <img
-                src={place.photoUrl}
+                src={photos[0].photoUrl}
                 alt={place.name}
                 className="w-full h-full object-cover"
               />
