@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const navItems = [
   { path: '/admin', icon: 'dashboard', label: '대시보드' },
@@ -11,7 +11,6 @@ const navItems = [
 
 function AdminSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const isActive = (path) => path === '/admin' ? location.pathname === path : location.pathname.startsWith(path);
 
   const user = (() => {
@@ -19,13 +18,6 @@ function AdminSidebar() {
   })();
   const displayName = user.nickname || user.username || '관리자';
   const displayEmail = user.email || 'admin@comma.com';
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    navigate('/admin/login');
-  };
 
   return (
     <aside className="w-64 bg-white dark:bg-[#1a110c] border-r border-slate-200 dark:border-white/10 flex flex-col shrink-0">
@@ -58,8 +50,8 @@ function AdminSidebar() {
         ))}
       </nav>
 
-      {/* 프로필 + 로그아웃 */}
-      <div className="p-4 border-t border-slate-200 dark:border-white/10 space-y-2">
+      {/* 프로필 표시 */}
+      <div className="p-4 border-t border-slate-200 dark:border-white/10">
         <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-xl">
           <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
             <span className="material-icons-round text-[18px]">admin_panel_settings</span>
@@ -69,13 +61,6 @@ function AdminSidebar() {
             <p className="text-[11px] text-slate-500 truncate">{displayEmail}</p>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors text-sm"
-        >
-          <span className="material-icons-round text-[18px]">logout</span>
-          <span>로그아웃</span>
-        </button>
       </div>
     </aside>
   );
