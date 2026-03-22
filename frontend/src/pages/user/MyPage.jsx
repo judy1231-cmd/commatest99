@@ -83,7 +83,7 @@ function MenuGroup({ title, children }) {
   );
 }
 
-function TypeRatioChart({ typeRatios, period, recordCount, totalRestMinutes, avgEmotionScore }) {
+function TypeRatioChart({ typeRatios, recordCount, totalRestMinutes, avgEmotionScore }) {
   return (
     <div>
       {/* 요약 인라인 — 한 줄 */}
@@ -461,7 +461,6 @@ function MyPage() {
               ) : (
                 <TypeRatioChart
                   typeRatios={typeRatios}
-                  period={selectedPeriod}
                   recordCount={periodStats?.recordCount}
                   totalRestMinutes={periodStats?.totalRestMinutes}
                   avgEmotionScore={periodStats?.avgEmotionScore}
