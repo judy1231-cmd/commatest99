@@ -82,8 +82,11 @@ public class RecommendationService {
         // 개인 효과 이력 조회 (최근 30일 기록 기반)
         Map<String, Double> personalBoostMap = buildPersonalBoostMap(쉼표번호);
 
-        // 날씨·시간대 + 개인 효과 이력 보정이 반영된 상위 3개 유형 선정
-        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, personalBoostMap)
+        // 협업 필터링 — 유사 사용자 효과 이력 조회 (최근 90일 기반)
+        Map<String, Double> collabBoostMap = buildCollabBoostMap(쉼표번호);
+
+        // 날씨·시간대 + 개인 이력 + 협업 필터링 보정이 반영된 상위 3개 유형 선정
+        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, personalBoostMap, collabBoostMap)
                 .stream()
                 .limit(3)
                 .toList();
@@ -96,7 +99,7 @@ public class RecommendationService {
                 rec.set쉼표번호(쉼표번호);
                 rec.setDiagnosisResultId(diagnosisResultId);
                 rec.setPlaceId(place.getId());
-                rec.setCriteria(buildCriteria(typeScore, weather, personalBoostMap));
+                rec.setCriteria(buildCriteria(typeScore, weather, personalBoostMap, collabBoostMap));
                 rec.setClicked(false);
                 rec.setSaved(false);
                 rec.setRecommendedAt(LocalDateTime.now());
@@ -108,11 +111,15 @@ public class RecommendationService {
     }
 
     /**
-     * 날씨·시간대 + 개인 효과 이력 가중치를 반영해 유형 점수를 재정렬한다.
+     * 날씨·시간대 + 개인 이력 + 협업 필터링 가중치를 반영해 유형 점수를 재정렬한다.
      * 원본 RestTypeScore는 수정하지 않고 새 리스트를 반환한다.
+     *
+     * 보정 우선순위 (낮을수록 개인화 비중 높음):
+     *   날씨/시간대(컨텍스트) → 개인 이력 → 협업 필터링
      */
     private List<RestTypeScore> applyWeatherBoost(
-            List<RestTypeScore> scores, WeatherContext weather, Map<String, Double> personalBoostMap) {
+            List<RestTypeScore> scores, WeatherContext weather,
+            Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap) {
 
         Map<String, Integer> conditionBoost = switch (weather.condition()) {
             case RAINY  -> RAINY_BOOST;
@@ -138,8 +145,11 @@ public class RecommendationService {
                 boost += EVENING_BOOST.getOrDefault(copy.getRestType(), 0);
             }
 
-            // 개인 효과 이력 보정 (최근 30일 기록 기반)
+            // 개인 효과 이력 보정 (최근 30일)
             boost += personalBoostMap.getOrDefault(copy.getRestType(), 0.0).intValue();
+
+            // 협업 필터링 보정 (유사 사용자 집단 경험, 최근 90일)
+            boost += collabBoostMap.getOrDefault(copy.getRestType(), 0.0).intValue();
 
             copy.setScore(Math.max(0, copy.getScore() + boost));
             adjusted.add(copy);
@@ -185,10 +195,48 @@ public class RecommendationService {
     }
 
     /**
-     * 추천 기준 문자열 — recommendations.criteria 컬럼에 저장
-     * 날씨 + 개인 이력 적용 여부를 기록해 통계 화면에서 "왜 추천됐나" 설명에 활용
+     * 협업 필터링 부스트 맵 생성
+     * 유사 사용자들의 평균 감정 향상도를 점수로 변환
+     *   향상도 ≥ 4 → +15pt  (강한 집단 효과)
+     *   향상도 ≥ 2 → +8pt   (보통 집단 효과)
+     *   향상도 < 0 → -8pt   (집단적으로 별로였던 유형)
      */
-    private String buildCriteria(RestTypeScore typeScore, WeatherContext weather, Map<String, Double> personalBoostMap) {
+    private Map<String, Double> buildCollabBoostMap(String 쉼표번호) {
+        try {
+            List<Map<String, Object>> rows = recommendationMapper.findCollaborativeEffectiveness(쉼표번호);
+            Map<String, Double> boostMap = new java.util.HashMap<>();
+            for (Map<String, Object> row : rows) {
+                String restType = (String) row.get("rest_type");
+                double avgImprovement = ((Number) row.get("avg_improvement")).doubleValue();
+
+                double boost;
+                if (avgImprovement >= 4.0) {
+                    boost = 15.0;
+                } else if (avgImprovement >= 2.0) {
+                    boost = 8.0;
+                } else if (avgImprovement < 0) {
+                    boost = -8.0;
+                } else {
+                    boost = 0.0;
+                }
+                boostMap.put(restType, boost);
+            }
+            if (!boostMap.isEmpty()) {
+                log.info("협업 필터링 보정 적용: {}", boostMap);
+            }
+            return boostMap;
+        } catch (Exception e) {
+            log.warn("협업 필터링 조회 실패, 보정 생략: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /**
+     * 추천 기준 문자열 — recommendations.criteria 컬럼에 저장
+     * 날씨·개인이력·협업필터링 적용 내역을 기록 (추후 통계/디버깅에 활용)
+     */
+    private String buildCriteria(RestTypeScore typeScore, WeatherContext weather,
+                                  Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap) {
         StringBuilder sb = new StringBuilder();
         sb.append(typeScore.getRestType())
           .append(" 유형 매칭 (점수: ").append(typeScore.getScore()).append(")")
@@ -198,6 +246,12 @@ public class RecommendationService {
         if (personalBoost != null && personalBoost != 0.0) {
             sb.append(" | 개인이력: ").append(personalBoost > 0 ? "+" : "").append(personalBoost.intValue()).append("pt");
         }
+
+        Double collabBoost = collabBoostMap.get(typeScore.getRestType());
+        if (collabBoost != null && collabBoost != 0.0) {
+            sb.append(" | 협업필터: ").append(collabBoost > 0 ? "+" : "").append(collabBoost.intValue()).append("pt");
+        }
+
         return sb.toString();
     }
 

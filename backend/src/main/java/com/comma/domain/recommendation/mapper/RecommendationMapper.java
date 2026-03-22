@@ -28,4 +28,12 @@ public interface RecommendationMapper {
      * emotion_before / emotion_after 둘 다 입력된 기록만 집계
      */
     List<Map<String, Object>> findPersonalEffectiveness(@Param("commaNo") String commaNo);
+
+    /**
+     * 협업 필터링 — 유사 사용자들의 유형별 효과 집계
+     * 나와 같은 휴식 유형을 2개 이상 사용한 사용자를 "유사 사용자"로 정의
+     * 그들의 최근 90일 기록에서 유형별 평균 감정 향상도를 반환
+     * 샘플 3개 미만인 유형은 제외 (신뢰도 확보)
+     */
+    List<Map<String, Object>> findCollaborativeEffectiveness(@Param("commaNo") String commaNo);
 }
