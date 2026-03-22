@@ -299,6 +299,7 @@ function UserNavbar() {
   const isActive = (path) => location.pathname === path;
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
