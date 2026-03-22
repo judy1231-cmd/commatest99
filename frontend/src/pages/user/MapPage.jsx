@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -12,6 +12,13 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+
+const DOMESTIC_CITIES = [
+  '서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '제주',
+  '경상남도', '경남', '경상북도', '경북',
+  '전라남도', '전남', '전라북도', '전북',
+  '충청남도', '충남', '충청북도', '충북',
+];
 
 const REST_TYPES = [
   { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
@@ -76,7 +83,6 @@ function createHighlightMarker(color = '#10B981') {
 }
 
 function MapPage() {
-  const navigate = useNavigate();
   const location = useLocation();
   // 자연 연결 등 다른 페이지에서 클릭해 넘어온 장소
   const highlightPlace = location.state?.highlightPlace || null;
@@ -94,17 +100,13 @@ function MapPage() {
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const [flyTarget, setFlyTarget] = useState(
+    highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
+  );
 
   // locationTab 변경 시 지역 선택 초기화
   useEffect(() => { setRegionL1(''); setRegionL2(''); }, [locationTab]);
   useEffect(() => { setRegionL2(''); }, [regionL1]);
-
-  const DOMESTIC_CITIES = [
-    '서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '제주',
-    '경상남도', '경남', '경상북도', '경북',
-    '전라남도', '전남', '전라북도', '전북',
-    '충청남도', '충남', '충청북도', '충북',
-  ];
 
   const isDomestic = (address) =>
     DOMESTIC_CITIES.some(k => address?.includes(k));
@@ -154,13 +156,29 @@ function MapPage() {
     if (regionL2 && getL2(p.address) !== regionL2) return false;
     return true;
   });
-  const [flyTarget, setFlyTarget] = useState(
-    highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
-  );
+
+  const loadPlaces = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: 1, size: 1000 });
+      if (selectedType) params.append('restType', selectedType);
+      if (keyword.trim()) params.append('keyword', keyword.trim());
+
+      const res = await fetch(`/api/places?${params}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setPlaces(data.data.places || []);
+      }
+    } catch {
+      // 서버 미연결 시 조용히 빈 목록
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedType, keyword]);
 
   useEffect(() => {
     loadPlaces();
-  }, [selectedType]);
+  }, [loadPlaces]);
 
   // 맞춤 추천에서 넘어온 경우 placeId로 좌표 fetch
   useEffect(() => {
@@ -180,7 +198,7 @@ function MapPage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [highlightPlace]);
 
   // 내 주변 명소 찾기: 현재 위치로 flyTo
   useEffect(() => {
@@ -198,31 +216,13 @@ function MapPage() {
     );
   }, [flyToMyLocation]);
 
-  const loadPlaces = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: 1, size: 1000 });
-      if (selectedType) params.append('restType', selectedType);
-      if (keyword.trim()) params.append('keyword', keyword.trim());
-
-      const res = await fetch(`/api/places?${params}`);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setPlaces(data.data.places || []);
-      }
-    } catch {
-      // 서버 미연결 시 조용히 빈 목록
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
     loadPlaces();
   };
 
   const handleMarkerClick = (place) => {
+    setSelectedPlaceId(place.id);
     if (place.latitude && place.longitude) {
       setFlyTarget([place.latitude, place.longitude]);
     }
@@ -516,7 +516,7 @@ function MapPage() {
                   key={place.id}
                   position={[place.latitude, place.longitude]}
                   icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
-                  eventHandlers={{ click: () => setSelectedPlaceId(place.id) }}
+                  eventHandlers={{ click: () => handleMarkerClick(place) }}
                 >
                   <Popup>
                     <div style={{ minWidth: '160px' }}>
