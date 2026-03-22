@@ -212,7 +212,7 @@ function MapPage() {
   const loadPlaces = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: 1, size: 50 });
+      const params = new URLSearchParams({ page: 1, size: 1000 });
       if (selectedType) params.append('restType', selectedType);
       if (keyword.trim()) params.append('keyword', keyword.trim());
 
