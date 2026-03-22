@@ -176,8 +176,8 @@ function Community() {
           <p className="text-xs text-slate-400 mt-0.5">휴식 경험을 나누고 서로 응원해요</p>
         </div>
 
-        {/* 카테고리 칩 — 가로 스크롤 */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        {/* 카테고리 칩 — 전체 표시 */}
+        <div className="flex flex-wrap gap-2 mb-4">
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.key;
             return (
