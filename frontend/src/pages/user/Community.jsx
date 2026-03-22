@@ -68,9 +68,6 @@ function PostCard({ post, onLike, onClick }) {
           </div>
           <span className="text-[11px] text-slate-400">{timeAgo(post.createdAt)}</span>
         </div>
-        <button className="text-slate-300 hover:text-slate-500 transition-colors p-1">
-          <span className="material-icons text-base">more_horiz</span>
-        </button>
       </div>
 
       {/* 본문 */}

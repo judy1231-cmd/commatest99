@@ -1,5 +1,6 @@
 package com.comma.domain.community.controller;
 
+import com.comma.domain.community.model.Comment;
 import com.comma.domain.community.model.Post;
 import com.comma.domain.community.model.PostPhoto;
 import com.comma.domain.community.service.PostService;
@@ -92,6 +93,48 @@ public class PostController {
         String commaNo = (String) request.getAttribute("쉼표번호");
         Map<String, Object> result = postService.toggleLike(id, commaNo);
         return ResponseEntity.ok(ApiResponse.ok(result, "좋아요 처리 완료"));
+    }
+
+    // GET /api/posts/{id}/comments
+    @GetMapping("/api/posts/{id}/comments")
+    public ResponseEntity<ApiResponse<List<Comment>>> getComments(@PathVariable Long id) {
+        List<Comment> comments = postService.getComments(id);
+        return ResponseEntity.ok(ApiResponse.ok(comments, "댓글 조회 성공"));
+    }
+
+    // POST /api/posts/{id}/comments  [JWT 필요]
+    @PostMapping("/api/posts/{id}/comments")
+    public ResponseEntity<ApiResponse<Comment>> writeComment(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        String commaNo = (String) request.getAttribute("쉼표번호");
+        if (commaNo == null) return ResponseEntity.status(401).body(ApiResponse.fail("로그인이 필요합니다."));
+        try {
+            String content = (String) body.get("content");
+            Comment comment = postService.writeComment(commaNo, id, content);
+            return ResponseEntity.ok(ApiResponse.ok(comment, "댓글이 등록되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    // DELETE /api/posts/{postId}/comments/{commentId}  [JWT 필요]
+    @DeleteMapping("/api/posts/{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
+            HttpServletRequest request,
+            @PathVariable Long postId,
+            @PathVariable Long commentId) {
+        String commaNo = (String) request.getAttribute("쉼표번호");
+        if (commaNo == null) return ResponseEntity.status(401).body(ApiResponse.fail("로그인이 필요합니다."));
+        try {
+            postService.deleteComment(commaNo, commentId);
+            return ResponseEntity.ok(ApiResponse.ok(null, "댓글이 삭제되었습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(ApiResponse.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
     }
 
     // GET /api/admin/posts?page=1&size=20  [ADMIN]

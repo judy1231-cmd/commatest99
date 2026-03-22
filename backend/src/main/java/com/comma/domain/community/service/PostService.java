@@ -1,7 +1,9 @@
 package com.comma.domain.community.service;
 
+import com.comma.domain.community.mapper.CommentMapper;
 import com.comma.domain.community.mapper.PostMapper;
 import com.comma.domain.community.mapper.PostPhotoMapper;
+import com.comma.domain.community.model.Comment;
 import com.comma.domain.community.model.Post;
 import com.comma.domain.community.model.PostPhoto;
 import com.comma.global.util.FileUploadService;
@@ -21,6 +23,7 @@ public class PostService {
 
     private final PostMapper postMapper;
     private final PostPhotoMapper postPhotoMapper;
+    private final CommentMapper commentMapper;
     private final FileUploadService fileUploadService;
 
     // 게시글 목록 조회
@@ -89,6 +92,32 @@ public class PostService {
     // 관리자용 상태 변경
     public void updatePostStatus(Long id, String status) {
         postMapper.updatePostStatus(id, status);
+    }
+
+    // 댓글 목록 조회
+    public List<Comment> getComments(Long postId) {
+        return commentMapper.findByPostId(postId);
+    }
+
+    // 댓글 작성
+    @Transactional
+    public Comment writeComment(String commaNo, Long postId, String content) {
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+        Comment comment = new Comment();
+        comment.set쉼표번호(commaNo);
+        comment.setPostId(postId);
+        comment.setContent(content.trim());
+        commentMapper.insertComment(comment);
+        return commentMapper.findById(comment.getId());
+    }
+
+    // 댓글 삭제
+    @Transactional
+    public void deleteComment(String commaNo, Long commentId) {
+        Comment comment = commentMapper.findById(commentId);
+        if (comment == null) throw new IllegalArgumentException("댓글을 찾을 수 없습니다.");
+        if (!comment.get쉼표번호().equals(commaNo)) throw new SecurityException("삭제 권한이 없습니다.");
+        commentMapper.softDeleteComment(commentId, commaNo);
     }
 
     // 관리자용 목록
