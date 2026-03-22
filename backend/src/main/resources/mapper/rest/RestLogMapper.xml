@@ -100,6 +100,44 @@
         LIMIT 200
     </select>
 
+    <!--
+        재참여 타이밍 개인화 — 사용자별 평균 기록 주기 학습
+
+        로직:
+          1) 사용자별 기록 5회 이상인 활성 사용자만 대상
+          2) 최근 90일 기록의 날짜 간격 평균 → 개인 주기(avgCycleDays)
+          3) 마지막 기록 후 경과 일수가 (개인 주기 × 1.5)를 초과하면 이탈로 판단
+          4) 24시간 내 'reengagement' 알림 받은 사용자 제외 (중복 방지)
+
+        예시: 평소 5일마다 기록 → 7.5일 초과 시 알림
+              평소 14일마다 기록 → 21일 초과 시 알림
+    -->
+    <select id="findUsersExceedingPersonalCycle" resultType="map">
+        SELECT r.`쉼표번호`                                              AS comma_no,
+               ROUND(AVG(r.day_gap), 1)                                AS avg_cycle_days,
+               DATEDIFF(NOW(), MAX(r.start_time))                      AS days_since_last
+        FROM (
+            SELECT `쉼표번호`,
+                   start_time,
+                   DATEDIFF(
+                       start_time,
+                       LAG(start_time) OVER (PARTITION BY `쉼표번호` ORDER BY start_time)
+                   ) AS day_gap
+            FROM rest_logs
+            WHERE deleted = 0
+              AND start_time >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+        ) r
+        WHERE r.day_gap IS NOT NULL
+        GROUP BY r.`쉼표번호`
+        HAVING COUNT(*) >= 5
+           AND DATEDIFF(NOW(), MAX(r.start_time)) > ROUND(AVG(r.day_gap) * 1.5)
+           AND r.`쉼표번호` NOT IN (
+               SELECT `쉼표번호` FROM notifications
+               WHERE type = 'reengagement'
+                 AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+           )
+    </select>
+
     <select id="findContentById" resultType="map">
         SELECT ra.id,
                ra.activity_name AS title,

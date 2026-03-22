@@ -44,4 +44,13 @@ public interface RestLogMapper {
     // ==================== 감정 기록 (emotion_logs = rest_logs 재활용) ====================
 
     List<Map<String, Object>> findEmotionLogs(@Param("쉼표번호") String 쉼표번호);
+
+    // ==================== 재참여 타이밍 학습 ====================
+
+    /**
+     * 재참여 이탈 감지용 — 사용자별 평균 기록 주기(일) + 마지막 기록일 조회
+     * 5회 이상 기록한 사용자만 포함 (주기 계산 신뢰도 확보)
+     * 24시간 내 'reengagement' 알림 수신자 제외 (중복 방지)
+     */
+    List<Map<String, Object>> findUsersExceedingPersonalCycle();
 }
