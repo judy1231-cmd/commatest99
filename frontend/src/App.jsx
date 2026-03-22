@@ -86,11 +86,9 @@ import RecommendHistory from './pages/user/recommend/RecommendHistory';
 
 // Records Pages
 import RecordsRest from './pages/user/records/RecordsRest';
-import RecordsEmotion from './pages/user/records/RecordsEmotion';
 import RecordsDiagnosis from './pages/user/records/RecordsDiagnosis';
 
 // Stats Pages
-import StatsEmotion from './pages/user/stats/StatsEmotion';
 import StatsRest from './pages/user/stats/StatsRest';
 import StatsDiagnosis from './pages/user/stats/StatsDiagnosis';
 
@@ -233,11 +231,9 @@ function App() {
 
       {/* 기록 */}
       <Route path="/records/rest" element={<PrivateRoute><RecordsRest /></PrivateRoute>} />
-      <Route path="/records/emotion" element={<PrivateRoute><RecordsEmotion /></PrivateRoute>} />
       <Route path="/records/diagnosis" element={<PrivateRoute><RecordsDiagnosis /></PrivateRoute>} />
 
       {/* 통계 */}
-      <Route path="/stats/emotion" element={<PrivateRoute><StatsEmotion /></PrivateRoute>} />
       <Route path="/stats/rest" element={<PrivateRoute><StatsRest /></PrivateRoute>} />
       <Route path="/stats/diagnosis" element={<PrivateRoute><StatsDiagnosis /></PrivateRoute>} />
 
