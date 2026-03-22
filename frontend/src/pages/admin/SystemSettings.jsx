@@ -4,8 +4,6 @@ import AdminHeader from '../../components/admin/AdminHeader';
 import Toast from '../../components/common/Toast';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 
-const STORAGE_KEY = 'admin_system_settings';
-
 const SECTIONS = [
   {
     key: 'service',
@@ -45,22 +43,11 @@ const SECTIONS = [
   },
 ];
 
-// localStorage에서 설정 불러오기 (없으면 default값 사용)
-function loadSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const result = {};
-    SECTIONS.forEach((sec) => {
-      sec.items.forEach((item) => {
-        result[item.key] = item.key in saved ? saved[item.key] : item.defaultOn;
-      });
-    });
-    return result;
-  } catch {
-    const result = {};
-    SECTIONS.forEach((sec) => sec.items.forEach((item) => { result[item.key] = item.defaultOn; }));
-    return result;
-  }
+// 기본값 (API 로딩 전 초기값)
+function defaultSettings() {
+  const result = {};
+  SECTIONS.forEach((sec) => sec.items.forEach((item) => { result[item.key] = item.defaultOn; }));
+  return result;
 }
 
 function Toggle({ on, onChange }) {
@@ -102,20 +89,30 @@ function ConfirmModal({ open, title, desc, confirmLabel, confirmCls, onConfirm, 
 }
 
 function SystemSettings() {
-  const [settings, setSettings] = useState(loadSettings);
-  const [savedSettings, setSavedSettings] = useState(loadSettings);
+  const [settings, setSettings] = useState(defaultSettings);
+  const [savedSettings, setSavedSettings] = useState(defaultSettings);
   const [toast, setToast] = useState({ message: '', type: 'success' });
   const [modal, setModal] = useState(null);
   const [sysStatus, setSysStatus] = useState(null);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
-  // 대시보드 API로 시스템 현황 불러오기
+  // 설정 + 대시보드 현황 동시 로드
   useEffect(() => {
-    fetchWithAuth('/api/admin/dashboard')
+    fetchWithAuth('/api/admin/settings')
       .then((data) => {
-        if (data.success) setSysStatus(data.data);
+        if (data.success && data.data) {
+          // API 값(string "true"/"false") → boolean 변환
+          const parsed = {};
+          Object.entries(data.data).forEach(([k, v]) => { parsed[k] = v === 'true'; });
+          setSettings(parsed);
+          setSavedSettings(parsed);
+        }
       })
+      .catch(() => {});
+
+    fetchWithAuth('/api/admin/dashboard')
+      .then((data) => { if (data.success) setSysStatus(data.data); })
       .catch(() => {});
   }, []);
 
@@ -129,9 +126,24 @@ function SystemSettings() {
   };
 
   const handleSave = (sectionKey) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    setSavedSettings({ ...settings });
-    showToast('설정이 저장되었습니다.', 'success');
+    // boolean → string 변환 후 API 저장
+    const payload = {};
+    Object.entries(settings).forEach(([k, v]) => { payload[k] = String(v); });
+
+    fetchWithAuth('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((data) => {
+        if (data.success) {
+          setSavedSettings({ ...settings });
+          showToast('설정이 저장되었습니다.', 'success');
+        } else {
+          showToast('저장에 실패했습니다.', 'error');
+        }
+      })
+      .catch(() => showToast('저장 중 오류가 발생했습니다.', 'error'));
   };
 
   const handleCacheReset = () => {
@@ -141,7 +153,6 @@ function SystemSettings() {
       confirmLabel: '초기화',
       confirmCls: 'text-amber-600 hover:bg-amber-50',
       onConfirm: () => {
-        // 세션 스토리지 캐시 클리어
         sessionStorage.clear();
         setModal(null);
         showToast('캐시가 초기화되었습니다.', 'info');
@@ -152,16 +163,27 @@ function SystemSettings() {
   const handleSettingsReset = () => {
     setModal({
       title: '설정 초기화',
-      desc: '모든 시스템 설정을 기본값으로 초기화합니다. 이 작업은 되돌릴 수 없습니다.',
+      desc: '모든 시스템 설정을 기본값으로 되돌립니다. 이 작업은 되돌릴 수 없습니다.',
       confirmLabel: '초기화',
       confirmCls: 'text-red-600 hover:bg-red-50',
       onConfirm: () => {
-        localStorage.removeItem(STORAGE_KEY);
-        const defaults = loadSettings();
-        setSettings(defaults);
-        setSavedSettings(defaults);
+        const defaults = defaultSettings();
+        const payload = {};
+        Object.entries(defaults).forEach(([k, v]) => { payload[k] = String(v); });
+
+        fetchWithAuth('/api/admin/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then(() => {
+            setSettings(defaults);
+            setSavedSettings(defaults);
+            showToast('설정이 초기화되었습니다.', 'info');
+          })
+          .catch(() => showToast('초기화 중 오류가 발생했습니다.', 'error'));
+
         setModal(null);
-        showToast('설정이 초기화되었습니다.', 'info');
       },
     });
   };
