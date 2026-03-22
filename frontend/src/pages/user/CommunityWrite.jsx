@@ -4,8 +4,13 @@ import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const CATEGORIES = [
-  '신체적 휴식', '정신적 휴식', '감각적 휴식',
-  '정서적 휴식', '사회적 휴식', '자연적 휴식', '창조적 휴식',
+  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5' },
+  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#EFF6FF' },
+  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F3FF' },
+  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F6' },
+  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF7ED' },
+  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
+  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBEB' },
 ];
 
 const MAX_IMAGES = 5;
@@ -120,20 +125,24 @@ function CommunityWrite() {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">카테고리</p>
               <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map(cat => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategory(prev => prev === cat ? '' : cat)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                      category === cat
-                        ? 'bg-primary text-white border-primary shadow-sm shadow-emerald-100'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                {CATEGORIES.map(cat => {
+                  const isActive = category === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => setCategory(prev => prev === cat.key ? '' : cat.key)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+                      style={isActive
+                        ? { backgroundColor: cat.color, color: '#fff', boxShadow: `0 2px 8px ${cat.color}55` }
+                        : { backgroundColor: cat.bg, color: cat.color, border: `1.5px solid ${cat.color}30` }
+                      }
+                    >
+                      <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
