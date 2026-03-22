@@ -6,7 +6,6 @@ const navItems = [
   { path: '/admin/places', icon: 'place', label: '장소 승인' },
   { path: '/admin/challenges', icon: 'emoji_events', label: '챌린지 관리' },
   { path: '/admin/community', icon: 'forum', label: '커뮤니티 관리' },
-  { path: '/admin/analytics', icon: 'insights', label: '통계 및 분석' },
   { path: '/admin/settings', icon: 'settings', label: '시스템 설정' },
 ];
 
