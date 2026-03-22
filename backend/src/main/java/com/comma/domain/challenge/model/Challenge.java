@@ -15,7 +15,7 @@ public class Challenge {
     private String description;
     private Integer durationDays;
     private String verificationType;   // photo | check | text
-    private Long achievementBadgeId;
+    private String badgeName;
     private Boolean isActive;
     private LocalDateTime createdAt;
 
