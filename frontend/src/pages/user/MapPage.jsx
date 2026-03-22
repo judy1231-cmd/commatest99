@@ -57,19 +57,19 @@ function FlyToPlace({ center }) {
 // 핀 위에 뜨는 장소 카드
 function PlaceCard({ place, currentType, onClose }) {
   const map = useMap();
-  const [pos, setPos] = useState(null);
+  const calcPos = () => {
+    const point = map.latLngToContainerPoint([place.latitude, place.longitude]);
+    return { x: point.x, y: point.y };
+  };
+  const [pos, setPos] = useState(calcPos);
 
   useEffect(() => {
-    const update = () => {
-      const point = map.latLngToContainerPoint([place.latitude, place.longitude]);
-      setPos({ x: point.x, y: point.y });
-    };
-    update();
+    setPos(calcPos());
+    const update = () => setPos(calcPos());
     map.on('moveend zoomend', update);
     return () => map.off('moveend zoomend', update);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place, map]);
-
-  if (!pos) return null;
 
   const cardWidth = 280;
   const cardEstHeight = place.photoUrl ? 300 : 180;
@@ -318,6 +318,7 @@ function MapPage() {
   };
 
   const handleMarkerClick = (place) => {
+    if (selectedPlaceId === place.id) return;
     setSelectedPlaceId(place.id);
   };
 
