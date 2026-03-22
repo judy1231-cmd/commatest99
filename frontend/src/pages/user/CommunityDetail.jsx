@@ -342,7 +342,7 @@ function CommunityDetail() {
           ) : (
             <div className="divide-y divide-slate-50">
               {comments.map(comment => {
-                const isMyComment = myCommaNo && comment.쉼표번호 === myCommaNo;
+                const isMyComment = myCommaNo && (comment['쉼표번호'] || comment.commaNo) === myCommaNo;
                 const avatarLetter = (comment.nickname || '?')[0];
                 return (
                   <div key={comment.id} className="flex gap-3 px-5 py-4">
