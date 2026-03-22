@@ -397,23 +397,36 @@ function PlaceDetail() {
         </div>
       )}
 
-      {/* ===== 지도 ===== */}
+      {/* ===== 지도 + 사진 ===== */}
       {place.latitude && place.longitude && (
-        <div className="mb-2 overflow-hidden shadow-sm" style={{ height: '450px' }}>
-          <MapContainer
-            center={[place.latitude, place.longitude]}
-            zoom={15}
-            style={{ width: '100%', height: '100%' }}
-            zoomControl={true}
-          >
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[place.latitude, place.longitude]}>
-              <Popup>{place.name}</Popup>
-            </Marker>
-          </MapContainer>
+        <div className="mb-2 shadow-sm flex overflow-hidden" style={{ height: '450px' }}>
+          {/* 왼쪽 사진 */}
+          {place.photoUrl && (
+            <div className="w-2/5 shrink-0 overflow-hidden">
+              <img
+                src={place.photoUrl}
+                alt={place.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          {/* 오른쪽 지도 */}
+          <div className="flex-1">
+            <MapContainer
+              center={[place.latitude, place.longitude]}
+              zoom={15}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={true}
+            >
+              <TileLayer
+                attribution='&copy; OpenStreetMap'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[place.latitude, place.longitude]}>
+                <Popup>{place.name}</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
         </div>
       )}
 
