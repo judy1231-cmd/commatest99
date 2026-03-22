@@ -19,14 +19,17 @@ public class RecommendationController {
     private final RecommendationService recommendationService;
 
     // POST /api/recommendations  [JWT 필요]
+    // body: { diagnosisResultId, lat(optional), lng(optional) }
     @PostMapping
     public ResponseEntity<ApiResponse<List<Recommendation>>> create(
             HttpServletRequest request,
-            @RequestBody Map<String, Long> body) {
+            @RequestBody Map<String, Object> body) {
         String 쉼표번호 = (String) request.getAttribute("쉼표번호");
         try {
-            Long diagnosisResultId = body.get("diagnosisResultId");
-            List<Recommendation> recs = recommendationService.createRecommendations(쉼표번호, diagnosisResultId);
+            Long diagnosisResultId = ((Number) body.get("diagnosisResultId")).longValue();
+            Double lat = body.get("lat") != null ? ((Number) body.get("lat")).doubleValue() : null;
+            Double lng = body.get("lng") != null ? ((Number) body.get("lng")).doubleValue() : null;
+            List<Recommendation> recs = recommendationService.createRecommendations(쉼표번호, diagnosisResultId, lat, lng);
             return ResponseEntity.ok(ApiResponse.ok(recs, "추천이 생성되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
