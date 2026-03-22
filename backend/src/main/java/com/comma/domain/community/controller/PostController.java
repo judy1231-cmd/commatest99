@@ -119,6 +119,26 @@ public class PostController {
         }
     }
 
+    // PUT /api/posts/{postId}/comments/{commentId}  [JWT 필요]
+    @PutMapping("/api/posts/{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Comment>> updateComment(
+            HttpServletRequest request,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @RequestBody Map<String, Object> body) {
+        String commaNo = (String) request.getAttribute("쉼표번호");
+        if (commaNo == null) return ResponseEntity.status(401).body(ApiResponse.fail("로그인이 필요합니다."));
+        try {
+            String content = (String) body.get("content");
+            Comment comment = postService.updateComment(commaNo, commentId, content);
+            return ResponseEntity.ok(ApiResponse.ok(comment, "댓글이 수정되었습니다."));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(ApiResponse.fail(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // DELETE /api/posts/{postId}/comments/{commentId}  [JWT 필요]
     @DeleteMapping("/api/posts/{postId}/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(

@@ -28,6 +28,12 @@
         WHERE c.id = #{id}
     </select>
 
+    <update id="updateComment">
+        UPDATE comments
+        SET content = #{content}
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo} AND status = 'visible'
+    </update>
+
     <update id="softDeleteComment">
         UPDATE comments
         SET status = 'deleted'

@@ -40,6 +40,8 @@ function CommunityDetail() {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
 
   useEffect(() => {
     loadPost();
@@ -112,6 +114,35 @@ function CommunityDetail() {
       });
       const data = await res.json();
       if (data.success) setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch {
+      // 무시
+    }
+  };
+
+  const startEdit = (comment) => {
+    setEditingId(comment.id);
+    setEditText(comment.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const handleCommentUpdate = async (commentId) => {
+    if (!editText.trim()) return;
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/posts/${id}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ content: editText }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComments(prev => prev.map(c => c.id === commentId ? data.data : c));
+        cancelEdit();
+      }
     } catch {
       // 무시
     }
@@ -325,16 +356,51 @@ function CommunityDetail() {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-bold text-slate-700">{comment.nickname || '알 수 없음'}</span>
                         <span className="text-[11px] text-slate-400">{timeAgo(comment.createdAt)}</span>
-                        {isMyComment && (
-                          <button
-                            onClick={() => handleCommentDelete(comment.id)}
-                            className="ml-auto text-[11px] text-slate-400 hover:text-red-500 transition-colors"
-                          >
-                            삭제
-                          </button>
+                        {isMyComment && editingId !== comment.id && (
+                          <div className="ml-auto flex items-center gap-2">
+                            <button
+                              onClick={() => startEdit(comment)}
+                              className="text-[11px] text-slate-400 hover:text-primary transition-colors"
+                            >
+                              수정
+                            </button>
+                            <button
+                              onClick={() => handleCommentDelete(comment.id)}
+                              className="text-[11px] text-slate-400 hover:text-red-500 transition-colors"
+                            >
+                              삭제
+                            </button>
+                          </div>
                         )}
                       </div>
-                      <p className="text-sm text-slate-600 leading-relaxed">{comment.content}</p>
+
+                      {editingId === comment.id ? (
+                        <div className="mt-1">
+                          <textarea
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none transition-all"
+                          />
+                          <div className="flex gap-2 mt-1.5">
+                            <button
+                              onClick={() => handleCommentUpdate(comment.id)}
+                              disabled={!editText.trim()}
+                              className="px-3 py-1 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-40 transition-all"
+                            >
+                              저장
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-slate-600 leading-relaxed">{comment.content}</p>
+                      )}
                     </div>
                   </div>
                 );

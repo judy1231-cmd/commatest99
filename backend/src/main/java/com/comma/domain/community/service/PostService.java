@@ -111,6 +111,17 @@ public class PostService {
         return commentMapper.findById(comment.getId());
     }
 
+    // 댓글 수정
+    @Transactional
+    public Comment updateComment(String commaNo, Long commentId, String content) {
+        if (content == null || content.isBlank()) throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+        Comment comment = commentMapper.findById(commentId);
+        if (comment == null) throw new IllegalArgumentException("댓글을 찾을 수 없습니다.");
+        if (!comment.get쉼표번호().equals(commaNo)) throw new SecurityException("수정 권한이 없습니다.");
+        commentMapper.updateComment(commentId, commaNo, content.trim());
+        return commentMapper.findById(commentId);
+    }
+
     // 댓글 삭제
     @Transactional
     public void deleteComment(String commaNo, Long commentId) {
