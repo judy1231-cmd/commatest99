@@ -132,10 +132,10 @@ function PlaceCard({ place, currentType, onClose }) {
                 return (
                   <span
                     key={rt}
-                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white backdrop-blur-sm"
-                    style={{ background: 'rgba(0,0,0,0.45)', borderLeft: `2px solid ${t.color}` }}
+                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
+                    style={{ backgroundColor: `${t.color}cc` }}
                   >
-                    <span className="material-icons" style={{ fontSize: '9px', color: t.color }}>{t.icon}</span>
+                    <span className="material-icons" style={{ fontSize: '9px' }}>{t.icon}</span>
                     {t.label}
                   </span>
                 );
@@ -590,7 +590,7 @@ function MapPage() {
                           />
                           {/* 사진 위 휴식유형 아이콘 닷 */}
                           {place.restTypes?.length > 0 && (
-                            <div className="absolute bottom-1 left-1 flex gap-0.5">
+                            <div className="absolute top-1 left-1 flex gap-0.5">
                               {place.restTypes.slice(0, 4).map(rt => {
                                 const t = REST_TYPES.find(r => r.key === rt);
                                 if (!t) return null;

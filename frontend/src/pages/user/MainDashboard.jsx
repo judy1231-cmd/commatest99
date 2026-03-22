@@ -626,10 +626,10 @@ function MainDashboard() {
                             return (
                               <div
                                 key={rt}
-                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full backdrop-blur-sm"
-                                style={{ background: 'rgba(0,0,0,0.45)', borderLeft: `2px solid ${t.color}` }}
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                                style={{ backgroundColor: `${t.color}cc` }}
                               >
-                                <span className="material-icons text-[10px]" style={{ color: t.color }}>{t.icon}</span>
+                                <span className="material-icons text-[10px] text-white">{t.icon}</span>
                                 <span className="text-[9px] font-bold text-white">{t.label}</span>
                               </div>
                             );
