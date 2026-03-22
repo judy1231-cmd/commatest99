@@ -570,6 +570,7 @@ function MapPage() {
                 <div
                   key={place.id}
                   onClick={() => {
+                    if (selectedPlaceId === place.id) return;
                     setSelectedPlaceId(place.id);
                     if (place.latitude && place.longitude) {
                       setFlyTarget([place.latitude, place.longitude]);
