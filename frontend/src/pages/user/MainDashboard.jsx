@@ -38,6 +38,12 @@ const REST_TYPE_LABELS = {
   nature:    '자연의 연결',
 };
 
+const DIFFICULTY_MAP = {
+  easy:   { label: '쉬움',   color: '#10b981', bg: 'rgba(16,185,129,0.15)',  icon: 'directions_walk' },
+  medium: { label: '보통',   color: '#F59E0B', bg: 'rgba(245,158,11,0.15)',  icon: 'directions_run'  },
+  hard:   { label: '어려움', color: '#EF4444', bg: 'rgba(239,68,68,0.15)',   icon: 'fitness_center'  },
+};
+
 const REST_TYPE_MAP = {
   physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,175,130,0.18)',  badge: 'rgba(76,175,130,0.85)'  },
   mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)', badge: 'rgba(91,141,239,0.85)' },
@@ -521,6 +527,17 @@ function MainDashboard() {
                     <div className="absolute top-2 right-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                       <span className="material-icons text-[10px]">auto_awesome</span>맞춤
                     </div>
+                    {/* 우하단 — 난이도 */}
+                    {rec.placeDifficulty && DIFFICULTY_MAP[rec.placeDifficulty] && (() => {
+                      const d = DIFFICULTY_MAP[rec.placeDifficulty];
+                      return (
+                        <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full backdrop-blur-sm"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                          <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                          <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   {/* 내용 */}
                   <div className="p-3 flex flex-col flex-1">
@@ -643,6 +660,17 @@ function MainDashboard() {
                           <span className="text-[10px] font-bold text-white">{place.aiScore.toFixed(1)}</span>
                         </div>
                       )}
+                      {/* 우하단 — 난이도 */}
+                      {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+                        const d = DIFFICULTY_MAP[place.difficulty];
+                        return (
+                          <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                            <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                            <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* 텍스트 */}

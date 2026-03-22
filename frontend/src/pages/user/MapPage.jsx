@@ -31,6 +31,12 @@ const REST_TYPES = [
   { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', badge: 'rgba(46,204,154,0.85)',   path: '/rest/nature'    },
 ];
 
+const DIFFICULTY_MAP = {
+  easy:   { label: '쉬움',   color: '#10b981', icon: 'directions_walk' },
+  medium: { label: '보통',   color: '#F59E0B', icon: 'directions_run'  },
+  hard:   { label: '어려움', color: '#EF4444', icon: 'fitness_center'  },
+};
+
 // 유형별 색상 마커 생성
 function createColorMarker(color) {
   return L.divIcon({
@@ -173,6 +179,17 @@ function PlaceCard({ place, currentType, onClose }) {
               <span className="text-[10px] font-bold text-white">{Number(place.aiScore).toFixed(1)}</span>
             </div>
           )}
+          {/* 우하단 — 난이도 */}
+          {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+            const d = DIFFICULTY_MAP[place.difficulty];
+            return (
+              <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+              </div>
+            );
+          })()}
         </div>
       )}
       <div className="p-3">

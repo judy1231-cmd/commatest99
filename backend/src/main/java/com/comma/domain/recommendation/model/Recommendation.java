@@ -29,4 +29,5 @@ public class Recommendation {
     private Integer placeReviewCount;
     private Integer placeBookmarkCount;
     private String placeFirstRestType;
+    private String placeDifficulty;     // easy / medium / hard
 }

@@ -20,6 +20,7 @@ public class Place {
     private Double longitude;
     private String operatingHours;
     private Double aiScore;
+    private String difficulty;      // easy / medium / hard
     private String status;          // pending / approved / rejected
     private LocalDateTime createdAt;
 
