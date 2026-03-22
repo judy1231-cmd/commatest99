@@ -118,8 +118,13 @@ function MapPage() {
   const getL2 = (address) => {
     if (!address) return null;
     if (isDomestic(address)) {
-      const m = address.match(/([가-힣]+(?:구|군|시(?!도|특별|광역|자치)))/);
-      return m ? m[1] : null;
+      // 구/군 우선 매칭
+      const mGu = address.match(/([가-힣]+(?:구|군))/);
+      if (mGu) return mGu[1];
+      // 특별시/광역시/자치시 제외한 일반 시 매칭
+      const allSi = [...address.matchAll(/([가-힣]+시)/g)].map(m => m[1]);
+      const normalSi = allSi.filter(s => !/특별시$|광역시$|자치시$/.test(s));
+      return normalSi[0] || null;
     }
     const parts = address.trim().split(/\s+/);
     return parts[1] || null;
