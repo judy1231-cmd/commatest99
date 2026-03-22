@@ -59,15 +59,30 @@ function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
   const map = useMap();
   useEffect(() => {
     if (!regionL1) return;
-    // 국내: 한반도 범위(lat 33~38.6, lng 124.5~130.9)만 신뢰, 해외: 0,0 제외
-    const valid = places.filter(p => {
+
+    // 1차 유효성: null·0·범위 밖 좌표 제거
+    let valid = places.filter(p => {
       if (!p.latitude || !p.longitude) return false;
       if (isDomestic(p.address)) {
         return p.latitude >= 33 && p.latitude <= 38.6 &&
                p.longitude >= 124.5 && p.longitude <= 130.9;
       }
-      return Math.abs(p.latitude) > 0.1 && Math.abs(p.longitude) > 0.1;
+      return Math.abs(p.latitude) > 0.1 && Math.abs(p.longitude) > 0.1 &&
+             Math.abs(p.latitude) <= 90 && Math.abs(p.longitude) <= 180;
     });
+
+    // 2차: 중앙값 기준 이상치 제거 (잘못된 좌표가 bounds를 바다로 끌어당기는 문제 방지)
+    if (valid.length >= 3) {
+      const sortedLats = [...valid].map(p => p.latitude).sort((a, b) => a - b);
+      const sortedLngs = [...valid].map(p => p.longitude).sort((a, b) => a - b);
+      const medLat = sortedLats[Math.floor(sortedLats.length / 2)];
+      const medLng = sortedLngs[Math.floor(sortedLngs.length / 2)];
+      const cleaned = valid.filter(p =>
+        Math.abs(p.latitude - medLat) <= 15 && Math.abs(p.longitude - medLng) <= 20
+      );
+      if (cleaned.length > 0) valid = cleaned;
+    }
+
     if (valid.length === 0) return;
     if (valid.length === 1) {
       map.flyTo([valid[0].latitude, valid[0].longitude], 13, { duration: 1.2 });
@@ -76,7 +91,6 @@ function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
     const bounds = L.latLngBounds(valid.map(p => [p.latitude, p.longitude]));
     const zoom = map.getBoundsZoom(bounds, false, [60, 60]);
     if (zoom < 8) {
-      // 너무 축소되면 중심점으로 적당한 줌
       map.flyTo(bounds.getCenter(), 9, { duration: 1.2 });
     } else {
       map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
