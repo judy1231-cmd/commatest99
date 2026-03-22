@@ -27,7 +27,7 @@ function CommunityDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('accessToken');
-  const myCommaNo = JSON.parse(localStorage.getItem('user') || '{}').commaNo;
+  const myCommaNo = JSON.parse(localStorage.getItem('user') || '{}')['쉼표번호'];
 
   const [post, setPost] = useState(null);
   const [photos, setPhotos] = useState([]);
@@ -342,7 +342,7 @@ function CommunityDetail() {
           ) : (
             <div className="divide-y divide-slate-50">
               {comments.map(comment => {
-                const isMyComment = myCommaNo && (comment['쉼표번호'] || comment.commaNo) === myCommaNo;
+                const isMyComment = myCommaNo && comment['쉼표번호'] === myCommaNo;
                 const avatarLetter = (comment.nickname || '?')[0];
                 return (
                   <div key={comment.id} className="flex gap-3 px-5 py-4">
