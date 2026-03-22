@@ -216,6 +216,7 @@ function MapPage() {
   };
 
   const currentType = REST_TYPES.find(t => t.key === selectedType) || REST_TYPES[0];
+  const selectedPlace = selectedPlaceId ? places.find(p => p.id === selectedPlaceId) : null;
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
@@ -515,39 +516,9 @@ function MapPage() {
                   icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
                   eventHandlers={{ click: () => handleMarkerClick(place) }}
                 >
-                  <Popup minWidth={200} maxWidth={240}>
-                    <div style={{ width: '200px' }}>
-                      {place.photoUrl && (
-                        <img
-                          src={place.photoUrl}
-                          alt={place.name}
-                          style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px', display: 'block' }}
-                        />
-                      )}
-                      <p style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px', color: '#1e293b' }}>{place.name}</p>
-                      <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>{place.address}</p>
-                      {place.operatingHours && (
-                        <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
-                          {place.operatingHours}
-                        </p>
-                      )}
-                      {place.aiScore && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '4px' }}>
-                          <span className="material-icons" style={{ fontSize: '12px', color: '#f59e0b' }}>star</span>
-                          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569' }}>{Number(place.aiScore).toFixed(1)}</span>
-                        </div>
-                      )}
-                      {place.tags?.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '4px' }}>
-                          {place.tags.slice(0, 3).map(tag => (
-                            <span key={tag} style={{ fontSize: '10px', background: '#f1f5f9', color: '#64748b', borderRadius: '20px', padding: '2px 7px', fontWeight: '600' }}>
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  <Popup minWidth={160}>
+                    <p style={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b', margin: 0 }}>{place.name}</p>
+                    <p style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>{place.address}</p>
                   </Popup>
                 </Marker>
               ) : null
@@ -559,6 +530,64 @@ function MapPage() {
             <div className="absolute bottom-6 right-4 bg-white rounded-xl shadow-md border border-slate-200 px-3 py-2 flex items-center gap-2 z-[1000]">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentType.color }} />
               <span className="text-xs font-bold text-slate-700">{currentType.label}</span>
+            </div>
+          )}
+
+          {/* 장소 선택 플로팅 카드 */}
+          {selectedPlace && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+              {selectedPlace.photoUrl && (
+                <div className="relative h-36">
+                  <img
+                    src={selectedPlace.photoUrl}
+                    alt={selectedPlace.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                </div>
+              )}
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className="font-bold text-slate-800 text-sm leading-snug flex-1">{selectedPlace.name}</h3>
+                  <button
+                    onClick={() => setSelectedPlaceId(null)}
+                    className="shrink-0 text-slate-400 hover:text-slate-600"
+                  >
+                    <span className="material-icons text-base">close</span>
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 mb-2 truncate">{selectedPlace.address}</p>
+                <div className="flex items-center gap-3 mb-3">
+                  {selectedPlace.aiScore && (
+                    <div className="flex items-center gap-0.5">
+                      <span className="material-icons text-amber-400 text-xs">star</span>
+                      <span className="text-xs font-bold text-slate-600">{Number(selectedPlace.aiScore).toFixed(1)}</span>
+                    </div>
+                  )}
+                  {selectedPlace.operatingHours && (
+                    <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
+                      <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
+                      {selectedPlace.operatingHours}
+                    </p>
+                  )}
+                </div>
+                {selectedPlace.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {selectedPlace.tags.slice(0, 4).map(tag => (
+                      <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <Link
+                  to={`/places/${selectedPlace.id}`}
+                  className="block w-full text-center py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: currentType.color }}
+                >
+                  상세보기
+                </Link>
+              </div>
             </div>
           )}
         </div>
