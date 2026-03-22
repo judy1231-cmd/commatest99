@@ -96,6 +96,8 @@ function MainDashboard() {
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
+  const [insightMessage, setInsightMessage] = useState(null);
+  const [insightLoading, setInsightLoading] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -103,6 +105,7 @@ function MainDashboard() {
       loadRecommendations();
       loadMyBookmarks();
       loadLatestDiagnosis();
+      loadInsightMessage();
     } else {
       loadPlaces(null);
     }
@@ -156,6 +159,20 @@ function MainDashboard() {
       }
     } catch {
       // 무시
+    }
+  };
+
+  const loadInsightMessage = async () => {
+    setInsightLoading(true);
+    try {
+      const data = await fetchWithAuth('/api/insight/message');
+      if (data.success && data.data?.message) {
+        setInsightMessage(data.data.message);
+      }
+    } catch {
+      // 메시지 로드 실패 시 표시 안 함
+    } finally {
+      setInsightLoading(false);
     }
   };
 
@@ -233,6 +250,21 @@ function MainDashboard() {
             <p className="text-[14px] text-slate-400 mt-1.5">
               <Link to="/login" className="text-primary font-bold hover:underline">로그인</Link>하고 맞춤 휴식을 시작해요
             </p>
+          )}
+
+          {/* AI 인사이트 메시지 */}
+          {isLoggedIn && (insightLoading || insightMessage) && (
+            <div className="mt-4 flex items-start gap-3 bg-[#F0FBF7] border border-primary/20 rounded-2xl px-4 py-3">
+              <span className="material-icons text-primary text-[20px] mt-0.5 flex-shrink-0">auto_awesome</span>
+              {insightLoading ? (
+                <div className="flex-1 space-y-1.5 pt-0.5">
+                  <div className="h-3 bg-emerald-100 rounded animate-pulse w-4/5" />
+                  <div className="h-3 bg-emerald-100 rounded animate-pulse w-3/5" />
+                </div>
+              ) : (
+                <p className="text-[13px] text-slate-600 leading-relaxed">{insightMessage}</p>
+              )}
+            </div>
           )}
         </div>
       </div>
