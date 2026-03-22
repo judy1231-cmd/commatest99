@@ -2,15 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
+// 메인페이지와 동일한 칩 스타일 데이터
 const CATEGORIES = [
-  { key: 'all',      label: '전체',       icon: 'apps' },
-  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center' },
-  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa' },
-  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off' },
-  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite' },
-  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups' },
-  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush' },
-  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest' },
+  { key: 'all',      label: '전체',       icon: 'apps',           iconHex: '#10b981', bgHex: '#ECFDF5' },
+  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center', iconHex: '#4CAF82', bgHex: '#F0FAF5' },
+  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa',            iconHex: '#5B8DEF', bgHex: '#F0F5FF' },
+  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off', iconHex: '#9B6DFF', bgHex: '#F5F0FF' },
+  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite',       iconHex: '#FF7BAC', bgHex: '#FFF0F5' },
+  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups',         iconHex: '#FF9A3C', bgHex: '#FFF5EC' },
+  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          iconHex: '#FFB830', bgHex: '#FFFBF0' },
+  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         iconHex: '#2ECC9A', bgHex: '#F0FBF7' },
 ];
 
 const CATEGORY_COLOR = {
@@ -166,6 +167,7 @@ function Community() {
   const navigate = useNavigate();
   const [sort, setSort] = useState('popular');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [hoveredCat, setHoveredCat] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -222,10 +224,10 @@ function Community() {
       {/* 헤더 + 탭 — sticky */}
       <div className="sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
         {/* 상단 타이틀 + 정렬 */}
-        <div className="max-w-2xl mx-auto px-4 pt-4 pb-2 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-6 pt-5 pb-2 flex items-center justify-between">
           <div>
-            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">커뮤니티</h1>
-            <p className="text-[11px] text-slate-400">휴식 경험을 나누고 서로 응원해요</p>
+            <h1 className="text-[22px] font-extrabold tracking-tight text-slate-900">커뮤니티</h1>
+            <p className="text-[12px] text-slate-400 mt-0.5">휴식 경험을 나누고 서로 응원해요</p>
           </div>
           {/* 정렬 토글 */}
           <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
@@ -249,25 +251,36 @@ function Community() {
           </div>
         </div>
 
-        {/* 카테고리 가로 스크롤 */}
+        {/* 카테고리 가로 스크롤 — 메인페이지와 동일한 칩 스타일 */}
         <div className="max-w-2xl mx-auto overflow-x-auto pb-3 px-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex gap-2 w-max">
-            {CATEGORIES.map(cat => {
+          <div className="flex gap-2.5 w-max">
+            {CATEGORIES.map((cat, i) => {
               const isActive = activeCategory === cat.key;
-              const color = cat.key === 'all' ? '#10b981' : (CATEGORY_COLOR[cat.key] || '#10b981');
               return (
                 <button
                   key={cat.key}
                   onClick={() => setActiveCategory(cat.key)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap transition-all"
-                  style={isActive
-                    ? { backgroundColor: color, color: '#fff', boxShadow: `0 2px 8px ${color}44` }
-                    : { backgroundColor: '#F1F5F9', color: '#64748B' }
-                  }
+                  onMouseEnter={() => setHoveredCat(i)}
+                  onMouseLeave={() => setHoveredCat(null)}
+                  className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 transition-all duration-200 hover:scale-[1.03] shadow-sm"
+                  style={{
+                    borderColor: (isActive || hoveredCat === i) ? cat.iconHex : cat.iconHex + '50',
+                    backgroundColor: (isActive || hoveredCat === i) ? cat.bgHex : '#ffffff',
+                  }}
                 >
-                  <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
-                  {cat.label}
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: cat.bgHex }}
+                  >
+                    <span className="material-icons text-[16px]" style={{ color: cat.iconHex }}>{cat.icon}</span>
+                  </div>
+                  <span
+                    className="text-[13px] font-bold whitespace-nowrap transition-colors"
+                    style={{ color: (isActive || hoveredCat === i) ? cat.iconHex : '#475569' }}
+                  >
+                    {cat.label}
+                  </span>
                 </button>
               );
             })}
@@ -275,7 +288,7 @@ function Community() {
         </div>
       </div>
 
-      <main className="max-w-2xl mx-auto pb-28">
+      <main className="max-w-2xl mx-auto pb-28 bg-[#F7F7F8]">
 
         {/* 게시글 수 */}
         {!loading && posts.length > 0 && (
