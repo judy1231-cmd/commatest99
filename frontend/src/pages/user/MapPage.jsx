@@ -122,7 +122,33 @@ function PlaceCard({ place, currentType, onClose }) {
       {place.photoUrl && (
         <div className="relative h-32">
           <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          {/* 사진 좌하단 — 휴식유형 뱃지 (중복 표시) */}
+          {place.restTypes?.length > 0 && (
+            <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+              {place.restTypes.map(rt => {
+                const t = REST_TYPES.find(r => r.key === rt);
+                if (!t) return null;
+                return (
+                  <span
+                    key={rt}
+                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white backdrop-blur-sm"
+                    style={{ background: 'rgba(0,0,0,0.45)', borderLeft: `2px solid ${t.color}` }}
+                  >
+                    <span className="material-icons" style={{ fontSize: '9px', color: t.color }}>{t.icon}</span>
+                    {t.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {/* 우상단 — AI 별점 */}
+          {place.aiScore && (
+            <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
+              <span className="material-icons text-amber-400 text-[11px]">star</span>
+              <span className="text-[10px] font-bold text-white">{Number(place.aiScore).toFixed(1)}</span>
+            </div>
+          )}
         </div>
       )}
       <div className="p-3">
@@ -133,37 +159,11 @@ function PlaceCard({ place, currentType, onClose }) {
           </button>
         </div>
         <p className="text-xs text-slate-400 mb-2 truncate">{place.address}</p>
-        <div className="flex items-center gap-3 mb-2">
-          {place.aiScore && (
-            <div className="flex items-center gap-0.5">
-              <span className="material-icons text-amber-400 text-xs">star</span>
-              <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
-            </div>
-          )}
-          {place.operatingHours && (
-            <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
-              <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
-              {place.operatingHours}
-            </p>
-          )}
-        </div>
-        {place.restTypes?.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {place.restTypes.map(rt => {
-              const t = REST_TYPES.find(r => r.key === rt);
-              if (!t) return null;
-              return (
-                <span
-                  key={rt}
-                  className="text-[10px] font-bold rounded-full px-2 py-0.5 flex items-center gap-0.5"
-                  style={{ backgroundColor: t.bg, color: t.color }}
-                >
-                  <span className="material-icons" style={{ fontSize: '10px' }}>{t.icon}</span>
-                  {t.label}
-                </span>
-              );
-            })}
-          </div>
+        {place.operatingHours && (
+          <p className="text-xs text-slate-400 flex items-center gap-1 mb-2 truncate">
+            <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
+            {place.operatingHours}
+          </p>
         )}
         <Link
           to={`/places/${place.id}`}
@@ -579,21 +579,42 @@ function MapPage() {
                 >
                   <div className="flex items-start gap-3">
                     {/* 썸네일 사진 */}
-                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
                       {place.photoUrl ? (
-                        <img
-                          src={place.photoUrl}
-                          alt={place.name}
-                          className="w-full h-full object-cover"
-                          onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                        />
-                      ) : null}
-                      <div
-                        className="w-full h-full items-center justify-center"
-                        style={{ display: place.photoUrl ? 'none' : 'flex', backgroundColor: `${currentType.color}20` }}
-                      >
-                        <span className="material-icons text-xl" style={{ color: currentType.color }}>{currentType.icon}</span>
-                      </div>
+                        <>
+                          <img
+                            src={place.photoUrl}
+                            alt={place.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* 사진 위 휴식유형 아이콘 닷 */}
+                          {place.restTypes?.length > 0 && (
+                            <div className="absolute bottom-1 left-1 flex gap-0.5">
+                              {place.restTypes.slice(0, 4).map(rt => {
+                                const t = REST_TYPES.find(r => r.key === rt);
+                                if (!t) return null;
+                                return (
+                                  <div
+                                    key={rt}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center"
+                                    style={{ background: 'rgba(0,0,0,0.55)' }}
+                                    title={t.label}
+                                  >
+                                    <span className="material-icons" style={{ fontSize: '9px', color: t.color }}>{t.icon}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ backgroundColor: `${currentType.color}20` }}
+                        >
+                          <span className="material-icons text-xl" style={{ color: currentType.color }}>{currentType.icon}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-slate-800 text-sm truncate">{place.name}</h3>
