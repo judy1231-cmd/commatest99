@@ -13,7 +13,11 @@ const REST_TYPE_NAMES = {
   creative:  { label: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 };
 
-const TYPE_RATIO_COLORS = ['#4CAF82', '#5B8DEF', '#9B6DFF', '#FF7BAC', '#FF9A3C', '#FFB830', '#2ECC9A'];
+const PERIOD_TABS = [
+  { key: 'this',  label: '이번 달' },
+  { key: 'last',  label: '지난 달' },
+  { key: 'week',  label: '이번 주' },
+];
 
 function formatMinutes(minutes) {
   if (!minutes) return '0분';
@@ -29,6 +33,16 @@ function formatDate(dateStr) {
   if (diffDays === 0) return '오늘';
   if (diffDays === 1) return '어제';
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+function getPeriodYearMonth(period) {
+  const now = new Date();
+  if (period === 'last') {
+    const y = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const m = now.getMonth() === 0 ? 12 : now.getMonth();
+    return `${y}-${String(m).padStart(2, '0')}`;
+  }
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function MenuRow({ icon, iconBg, iconColor, label, sublabel, onClick, red }) {
@@ -69,13 +83,72 @@ function MenuGroup({ title, children }) {
   );
 }
 
+function TypeRatioChart({ typeRatios, period, recordCount, totalRestMinutes, avgEmotionScore }) {
+  return (
+    <div>
+      {/* 요약 인라인 — 한 줄 */}
+      <div className="flex items-center gap-3 mb-4 px-1">
+        <div className="flex-1 text-center">
+          <p className="text-[18px] font-black text-slate-800">{recordCount || 0}</p>
+          <p className="text-[11px] text-slate-400">기록</p>
+        </div>
+        <div className="w-px h-8 bg-slate-100" />
+        <div className="flex-1 text-center">
+          <p className="text-[18px] font-black text-slate-800">{formatMinutes(totalRestMinutes)}</p>
+          <p className="text-[11px] text-slate-400">휴식 시간</p>
+        </div>
+        <div className="w-px h-8 bg-slate-100" />
+        <div className="flex-1 text-center">
+          <p className="text-[18px] font-black text-slate-800">
+            {avgEmotionScore ? avgEmotionScore.toFixed(1) : '-'}
+          </p>
+          <p className="text-[11px] text-slate-400">평균 기분</p>
+        </div>
+      </div>
+
+      {/* 유형별 바 차트 */}
+      {typeRatios.length > 0 ? (
+        <div className="space-y-3">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">휴식 유형 비율</p>
+          {typeRatios.map((item) => (
+            <div key={item.type}>
+              <div className="flex justify-between items-center text-xs mb-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-icons text-[13px]" style={{ color: item.color }}>{item.icon}</span>
+                  <span className="font-medium text-slate-600">{item.label}</span>
+                </div>
+                <span className="font-bold tabular-nums" style={{ color: item.color }}>{item.pct}%</span>
+              </div>
+              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${item.pct}%`, backgroundColor: item.color }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-6">
+          <span className="material-icons text-3xl text-slate-200 block mb-2">bar_chart</span>
+          <p className="text-sm text-slate-400 font-semibold">이 기간의 기록이 없어요</p>
+          <p className="text-xs text-slate-300 mt-0.5">휴식을 기록하면 통계가 나타나요</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MyPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
-  const [monthlyStats, setMonthlyStats] = useState(null);
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [selectedPeriod, setSelectedPeriod] = useState('this');
+  const [periodStats, setPeriodStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const [nicknameEditing, setNicknameEditing] = useState(false);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -86,21 +159,21 @@ function MyPage() {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    loadPeriodStats(selectedPeriod);
+  }, [selectedPeriod]);
+
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [profileRes, statsRes, diagRes, logsRes] = await Promise.allSettled([
+      const [profileRes, diagRes, logsRes] = await Promise.allSettled([
         fetchWithAuth('/api/user/profile'),
-        fetchWithAuth('/api/stats/monthly'),
         fetchWithAuth('/api/diagnosis/latest'),
         fetchWithAuth('/api/rest-logs?page=1&size=5'),
       ]);
 
       if (profileRes.status === 'fulfilled' && profileRes.value.success) {
         setProfile(profileRes.value.data);
-      }
-      if (statsRes.status === 'fulfilled' && statsRes.value.success) {
-        setMonthlyStats(statsRes.value.data);
       }
       if (diagRes.status === 'fulfilled' && diagRes.value.success) {
         setLatestDiagnosis(diagRes.value.data);
@@ -110,6 +183,28 @@ function MyPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPeriodStats = async (period) => {
+    setStatsLoading(true);
+    try {
+      let url = '/api/stats/monthly';
+      if (period === 'last') {
+        url = `/api/stats/monthly?yearMonth=${getPeriodYearMonth('last')}`;
+      } else if (period === 'week') {
+        url = '/api/stats/weekly';
+      }
+      const data = await fetchWithAuth(url);
+      if (data.success) {
+        setPeriodStats(data.data);
+      } else {
+        setPeriodStats(null);
+      }
+    } catch {
+      setPeriodStats(null);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -155,13 +250,14 @@ function MyPage() {
 
   // typeRatioJson 파싱
   let typeRatios = [];
-  if (monthlyStats?.typeRatioJson) {
+  if (periodStats?.typeRatioJson) {
     try {
-      const parsed = JSON.parse(monthlyStats.typeRatioJson);
+      const parsed = JSON.parse(periodStats.typeRatioJson);
       typeRatios = Object.entries(parsed)
         .map(([type, pct]) => ({ type, pct, ...REST_TYPE_NAMES[type] }))
+        .filter(item => item.pct > 0)
         .sort((a, b) => b.pct - a.pct)
-        .slice(0, 4);
+        .slice(0, 5);
     } catch {
       // 파싱 실패 시 무시
     }
@@ -266,19 +362,15 @@ function MyPage() {
             )}
           </div>
 
-          {/* 빠른 통계 스트립 */}
-          <div className="grid grid-cols-3 mt-6 pt-5 border-t border-slate-100">
+          {/* 누적 통계 스트립 */}
+          <div className="grid grid-cols-2 mt-6 pt-5 border-t border-slate-100">
             <div className="text-center">
               <p className="text-lg font-black text-slate-800">{formatMinutes(stats.totalRestMinutes)}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">총 휴식 시간</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">누적 휴식 시간</p>
             </div>
-            <div className="text-center border-x border-slate-100">
+            <div className="text-center border-l border-slate-100">
               <p className="text-lg font-black text-slate-800">{stats.totalLogs || 0}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">총 기록</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-black text-slate-800">{profile?.badgeCount || 0}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">배지</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">총 기록 횟수</p>
             </div>
           </div>
         </div>
@@ -321,72 +413,61 @@ function MyPage() {
 
         <div className="h-3" />
 
-        {/* ── 이번 달 요약 ── */}
+        {/* ── 기간별 휴식 통계 ── */}
         <div className="px-4">
-          <div className="bg-white rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-bold text-slate-700">이번 달 휴식 요약</p>
-              <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
-                전체 보기
-              </button>
+          <div className="bg-white rounded-2xl overflow-hidden">
+            {/* 헤더 + 기간 탭 */}
+            <div className="px-5 pt-5 pb-3">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-slate-700">휴식 통계</p>
+                <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                  기록 보기
+                </button>
+              </div>
+
+              {/* 기간 탭 버튼 */}
+              <div className="flex gap-2">
+                {PERIOD_TABS.map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setSelectedPeriod(tab.key)}
+                    className={`flex-1 py-2 rounded-xl text-[12px] font-bold transition-all ${
+                      selectedPeriod === tab.key
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {monthlyStats ? (
-              <>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {[
-                    { label: '기록', value: monthlyStats.recordCount || 0, unit: '회' },
-                    { label: '휴식 시간', value: formatMinutes(monthlyStats.totalRestMinutes), unit: '' },
-                    { label: '평균 기분', value: monthlyStats.avgEmotionScore ? monthlyStats.avgEmotionScore.toFixed(1) : '-', unit: monthlyStats.avgEmotionScore ? '점' : '' },
-                  ].map((s) => (
-                    <div key={s.label} className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-base font-black text-slate-800">{s.value}{s.unit}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+            {/* 통계 콘텐츠 */}
+            <div className="px-5 pb-5">
+              {statsLoading ? (
+                <div className="space-y-3 animate-pulse">
+                  <div className="flex gap-3 mb-4">
+                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
+                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
+                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
+                  </div>
+                  {[80, 60, 40, 25].map(w => (
+                    <div key={w}>
+                      <div className="h-2.5 bg-slate-100 rounded-full" style={{ width: `${w}%` }} />
                     </div>
                   ))}
                 </div>
-
-                {typeRatios.length > 0 ? (
-                  <div className="space-y-2.5">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">휴식 유형 비율</p>
-                    {typeRatios.map((item, i) => (
-                      <div key={item.type}>
-                        <div className="flex justify-between text-xs mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="material-icons text-[13px]" style={{ color: item.color }}>{item.icon}</span>
-                            <span className="font-medium text-slate-600">{item.label}</span>
-                          </div>
-                          <span className="font-bold" style={{ color: item.color }}>{item.pct}%</span>
-                        </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${item.pct}%`, backgroundColor: item.color }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <span className="material-icons text-2xl text-slate-200 block mb-1">pie_chart</span>
-                    <p className="text-xs text-slate-400">유형별 비율 데이터가 없어요</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <span className="material-icons text-3xl text-slate-200 block mb-2">insert_chart</span>
-                <p className="text-sm font-semibold text-slate-400">아직 이번 달 기록이 없어요</p>
-                <p className="text-xs text-slate-300 mt-1">휴식을 기록하면 통계가 나타나요</p>
-                <button
-                  onClick={() => navigate('/rest-record')}
-                  className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
-                >
-                  첫 기록 남기기
-                </button>
-              </div>
-            )}
+              ) : (
+                <TypeRatioChart
+                  typeRatios={typeRatios}
+                  period={selectedPeriod}
+                  recordCount={periodStats?.recordCount}
+                  totalRestMinutes={periodStats?.totalRestMinutes}
+                  avgEmotionScore={periodStats?.avgEmotionScore}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -445,15 +526,6 @@ function MyPage() {
           <MenuRow icon="event_note"     iconBg="#ECFDF5" iconColor="#10b981" label="휴식 기록"   onClick={() => navigate('/rest-record')} />
           <MenuRow icon="psychology"     iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 기록"   sublabel="진단 유형 히스토리" onClick={() => navigate('/records/diagnosis')} />
           <MenuRow icon="favorite"       iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 기록"   sublabel="감정 변화 히스토리" onClick={() => navigate('/records/emotion')} />
-        </MenuGroup>
-
-        <div className="h-3" />
-
-        {/* ── 메뉴 그룹: 통계 ── */}
-        <MenuGroup title="통계">
-          <MenuRow icon="bar_chart"   iconBg="#ECFDF5" iconColor="#10b981" label="휴식 활동 통계" onClick={() => navigate('/stats/rest')} />
-          <MenuRow icon="analytics"  iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 유형 통계" onClick={() => navigate('/stats/diagnosis')} />
-          <MenuRow icon="show_chart" iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 변화 통계" onClick={() => navigate('/stats/emotion')} />
         </MenuGroup>
 
         <div className="h-3" />

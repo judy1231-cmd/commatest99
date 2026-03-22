@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const CATEGORIES = [
-  { key: 'all',      label: '전체',       icon: 'apps',           color: '#10B981', bg: '#F0FDF4' },
-  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5' },
-  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#EFF6FF' },
-  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F3FF' },
-  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F6' },
-  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF7ED' },
-  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBEB' },
-  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
+  { key: 'all',      label: '전체',       icon: 'apps' },
+  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center' },
+  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa' },
+  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off' },
+  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite' },
+  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups' },
+  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush' },
+  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest' },
 ];
 
 const CATEGORY_COLOR = {
@@ -33,76 +33,130 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
-function PostCard({ post, onLike, onClick }) {
-  const catColor = CATEGORY_COLOR[post.category] || '#10b981';
-  const avatarLetter = (post.nickname || '?')[0];
-
+function Avatar({ nickname, isAnonymous, size = 'md' }) {
+  const letter = (nickname || '?')[0];
+  const sz = size === 'sm' ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-base';
+  if (isAnonymous) {
+    return (
+      <div className={`${sz} rounded-full bg-slate-200 flex items-center justify-center shrink-0`}>
+        <span className="material-icons text-slate-400" style={{ fontSize: size === 'sm' ? '14px' : '18px' }}>
+          person_off
+        </span>
+      </div>
+    );
+  }
+  const colors = ['#10b981', '#5B8DEF', '#9B6DFF', '#FF7BAC', '#FF9A3C', '#FFB830', '#2ECC9A'];
+  const bg = colors[(letter.charCodeAt(0) || 0) % colors.length];
   return (
     <div
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
+      className={`${sz} rounded-full flex items-center justify-center text-white font-bold shrink-0`}
+      style={{ background: `linear-gradient(135deg, ${bg} 0%, ${bg}cc 100%)` }}
+    >
+      {letter}
+    </div>
+  );
+}
+
+function PostCard({ post, onLike, onClick }) {
+  const catColor = CATEGORY_COLOR[post.category] || '#10b981';
+  const likeCount = post.likeCount ?? 0;
+  const commentCount = post.commentCount ?? 0;
+
+  return (
+    <article
+      className="bg-white cursor-pointer hover:bg-slate-50/60 transition-colors"
       onClick={onClick}
     >
-      {/* 상단: 작성자 정보 */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-          style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
-        >
-          {post.isAnonymous ? (
-            <span className="material-icons text-base">person_off</span>
-          ) : avatarLetter}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-bold text-slate-800 truncate">
-              {post.isAnonymous ? '익명' : post.nickname}
-            </span>
-            {post.category && (
-              <span
-                className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                style={{ backgroundColor: `${catColor}18`, color: catColor }}
-              >
-                {post.category}
-              </span>
+      <div className="px-4 pt-4 pb-0">
+        {/* 작성자 행 */}
+        <div className="flex items-start gap-3">
+          <Avatar nickname={post.nickname} isAnonymous={post.isAnonymous} />
+          <div className="flex-1 min-w-0 pb-4 border-b border-slate-100">
+            {/* 닉네임 + 시간 */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[14px] font-bold text-slate-900 truncate">
+                  {post.isAnonymous ? '익명' : (post.nickname || '알 수 없음')}
+                </span>
+                {post.category && (
+                  <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                    style={{ backgroundColor: `${catColor}18`, color: catColor }}
+                  >
+                    {post.category}
+                  </span>
+                )}
+              </div>
+              <span className="text-[12px] text-slate-400 shrink-0 ml-2">{timeAgo(post.createdAt)}</span>
+            </div>
+
+            {/* 제목 */}
+            <h2 className="text-[15px] font-semibold text-slate-800 leading-snug mb-1">
+              {post.title}
+            </h2>
+
+            {/* 본문 미리보기 */}
+            {post.content && (
+              <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-3 mb-3">
+                {post.content}
+              </p>
             )}
+
+            {/* 반응 바 */}
+            <div className="flex items-center gap-4 mt-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
+                className={`flex items-center gap-1.5 text-[13px] font-medium transition-colors ${
+                  post.likedByMe
+                    ? 'text-rose-500'
+                    : 'text-slate-400 hover:text-rose-400'
+                }`}
+              >
+                <span className="material-icons text-[18px]">
+                  {post.likedByMe ? 'favorite' : 'favorite_border'}
+                </span>
+                {likeCount > 0 && <span>{likeCount}</span>}
+              </button>
+
+              <button
+                className="flex items-center gap-1.5 text-[13px] font-medium text-slate-400 hover:text-primary transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="material-icons text-[18px]">chat_bubble_outline</span>
+                {commentCount > 0 && <span>{commentCount}</span>}
+              </button>
+
+              <div className="flex-1" />
+
+              <button
+                className="text-slate-300 hover:text-primary transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="material-icons text-[18px]">bookmark_border</span>
+              </button>
+            </div>
           </div>
-          <span className="text-[11px] text-slate-400">{timeAgo(post.createdAt)}</span>
         </div>
       </div>
+    </article>
+  );
+}
 
-      {/* 본문 */}
-      <div className="px-4 pb-3">
-        <h2 className="text-[15px] font-bold text-slate-800 leading-snug mb-1.5 line-clamp-2">
-          {post.title}
-        </h2>
-        {post.content && (
-          <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-            {post.content}
-          </p>
-        )}
-      </div>
-
-      {/* 하단: 반응 */}
-      <div className="flex items-center gap-4 px-4 py-3 border-t border-slate-50">
-        <button
-          onClick={(e) => { e.stopPropagation(); onLike(post.id); }}
-          className={`flex items-center gap-1 text-xs font-semibold transition-colors ${
-            post.likedByMe ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'
-          }`}
-        >
-          <span className="material-icons text-base">
-            {post.likedByMe ? 'favorite' : 'favorite_border'}
-          </span>
-          {post.likeCount ?? 0}
-        </button>
-        <button className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-primary transition-colors">
-          <span className="material-icons text-base">chat_bubble_outline</span>
-          {post.commentCount ?? 0}
-        </button>
-        <div className="flex-1" />
-        <button className="text-slate-300 hover:text-primary transition-colors">
-          <span className="material-icons text-base">bookmark_border</span>
-        </button>
+function SkeletonPost() {
+  return (
+    <div className="bg-white px-4 pt-4 pb-0 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 bg-slate-100 rounded-full shrink-0" />
+        <div className="flex-1 pb-4 border-b border-slate-100">
+          <div className="h-3 bg-slate-100 rounded w-24 mb-2" />
+          <div className="h-4 bg-slate-100 rounded w-3/4 mb-1.5" />
+          <div className="h-3 bg-slate-100 rounded w-full mb-1" />
+          <div className="h-3 bg-slate-100 rounded w-2/3 mb-3" />
+          <div className="flex gap-4">
+            <div className="h-3 bg-slate-100 rounded w-12" />
+            <div className="h-3 bg-slate-100 rounded w-12" />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -127,7 +181,7 @@ function Community() {
       setError(null);
       const cat = activeCategory === 'all' ? '' : `&category=${encodeURIComponent(activeCategory)}`;
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch(`/api/posts?sort=${sort}&page=${page}&size=10${cat}`, { headers });
+      const res = await fetch(`/api/posts?sort=${sort}&page=${page}&size=20${cat}`, { headers });
       const data = await res.json();
       if (data.success) {
         setPosts(data.data.posts || []);
@@ -165,87 +219,109 @@ function Community() {
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      <main className="max-w-2xl mx-auto px-4 pt-5 pb-28">
-
-        {/* 헤더 */}
-        <div className="mb-5">
-          <h1 className="text-[22px] font-extrabold tracking-tight text-slate-800">커뮤니티</h1>
-          <p className="text-xs text-slate-400 mt-0.5">휴식 경험을 나누고 서로 응원해요</p>
-        </div>
-
-        {/* 카테고리 칩 — 4열 그리드 전체 표시 */}
-        <div className="grid grid-cols-4 gap-2 mb-5">
-          {CATEGORIES.map(cat => {
-            const isActive = activeCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
-                className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all"
-                style={isActive
-                  ? { backgroundColor: cat.color, color: '#fff', boxShadow: `0 2px 8px ${cat.color}55` }
-                  : { backgroundColor: cat.bg, color: cat.color, border: `1.5px solid ${cat.color}30` }
-                }
-              >
-                <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* 정렬 + 게시글 수 */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs text-slate-400">
-            {!loading && `${posts.length}개 게시글`}
-          </p>
-          <div className="flex bg-white border border-slate-200 rounded-xl p-0.5 gap-0.5">
+      {/* 헤더 + 탭 — sticky */}
+      <div className="sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
+        {/* 상단 타이틀 + 정렬 */}
+        <div className="max-w-2xl mx-auto px-4 pt-4 pb-2 flex items-center justify-between">
+          <div>
+            <h1 className="text-[20px] font-extrabold tracking-tight text-slate-900">커뮤니티</h1>
+            <p className="text-[11px] text-slate-400">휴식 경험을 나누고 서로 응원해요</p>
+          </div>
+          {/* 정렬 토글 */}
+          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
             {[
-              { value: 'latest',  label: '최신순' },
-              { value: 'popular', label: '인기순' },
+              { value: 'popular', icon: 'trending_up', label: '인기' },
+              { value: 'latest',  icon: 'schedule',    label: '최신' },
             ].map(s => (
               <button
                 key={s.value}
                 onClick={() => setSort(s.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
                   sort === s.value
-                    ? 'bg-primary text-white shadow-sm'
+                    ? 'bg-white text-slate-800 shadow-sm'
                     : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
+                <span className="material-icons text-[14px]">{s.icon}</span>
                 {s.label}
               </button>
             ))}
           </div>
         </div>
 
+        {/* 카테고리 가로 스크롤 */}
+        <div className="max-w-2xl mx-auto overflow-x-auto pb-3 px-4"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-2 w-max">
+            {CATEGORIES.map(cat => {
+              const isActive = activeCategory === cat.key;
+              const color = cat.key === 'all' ? '#10b981' : (CATEGORY_COLOR[cat.key] || '#10b981');
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold whitespace-nowrap transition-all"
+                  style={isActive
+                    ? { backgroundColor: color, color: '#fff', boxShadow: `0 2px 8px ${color}44` }
+                    : { backgroundColor: '#F1F5F9', color: '#64748B' }
+                  }
+                >
+                  <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-2xl mx-auto pb-28">
+
+        {/* 게시글 수 */}
+        {!loading && posts.length > 0 && (
+          <div className="px-4 py-2.5 bg-white border-b border-slate-50">
+            <p className="text-[12px] text-slate-400 font-medium">게시글 {posts.length}개</p>
+          </div>
+        )}
+
         {/* 로딩 */}
         {loading && (
-          <div className="flex justify-center items-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="bg-white divide-y divide-slate-50">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonPost key={i} />)}
           </div>
         )}
 
         {/* 에러 */}
         {!loading && error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600 flex items-center gap-2">
-            <span className="material-icons text-base">error_outline</span>
-            {error}
+          <div className="m-4 bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center gap-3">
+            <span className="material-icons text-red-400 text-base">error_outline</span>
+            <p className="text-sm text-red-500 font-medium">{error}</p>
           </div>
         )}
 
         {/* 빈 상태 */}
         {!loading && !error && posts.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-            <span className="material-icons text-5xl text-slate-200 mb-3 block">forum</span>
-            <p className="font-semibold text-slate-500 mb-1">아직 게시글이 없어요</p>
-            <p className="text-sm text-slate-400">첫 번째 글을 작성해보세요.</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <span className="material-icons text-slate-300 text-3xl">forum</span>
+            </div>
+            <p className="font-bold text-slate-500 mb-1">아직 게시글이 없어요</p>
+            <p className="text-sm text-slate-400">첫 번째 글을 작성해보세요!</p>
+            {isLoggedIn && (
+              <button
+                onClick={() => navigate('/community/write')}
+                className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-sm"
+              >
+                <span className="material-icons text-base">edit</span>
+                글 작성하기
+              </button>
+            )}
           </div>
         )}
 
-        {/* 게시글 목록 */}
+        {/* 게시글 목록 — Twitter/Threads 스타일 */}
         {!loading && !error && posts.length > 0 && (
-          <div className="space-y-3">
+          <div className="bg-white divide-y divide-slate-50">
             {posts.map(post => (
               <PostCard
                 key={post.id}
@@ -259,31 +335,35 @@ function Community() {
 
         {/* 페이지네이션 */}
         {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-8">
+          <div className="flex items-center justify-center gap-2 py-6 bg-white border-t border-slate-50">
             <button
               onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0); }}
               disabled={page === 1}
-              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors disabled:opacity-30"
+              className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-30"
             >
               <span className="material-icons text-base">chevron_left</span>
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button
-                key={p}
-                onClick={() => { setPage(p); window.scrollTo(0, 0); }}
-                className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
-                  p === page
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:border-primary hover:text-primary'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              const p = i + Math.max(1, page - 3);
+              if (p > totalPages) return null;
+              return (
+                <button
+                  key={p}
+                  onClick={() => { setPage(p); window.scrollTo(0, 0); }}
+                  className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
+                    p === page
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
             <button
               onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0); }}
               disabled={page === totalPages}
-              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-primary hover:text-primary transition-colors disabled:opacity-30"
+              className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-30"
             >
               <span className="material-icons text-base">chevron_right</span>
             </button>
@@ -292,7 +372,7 @@ function Community() {
 
       </main>
 
-      {/* FAB — 글쓰기 버튼 */}
+      {/* FAB — 글쓰기 */}
       {isLoggedIn && (
         <button
           onClick={() => navigate('/community/write')}
