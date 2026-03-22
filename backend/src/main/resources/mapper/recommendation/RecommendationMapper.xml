@@ -115,4 +115,35 @@
         ORDER BY avg_improvement DESC
     </select>
 
+    <!--
+        개인 최적 패턴 학습 — 요일 × 시간대별 평균 감정 향상도
+
+        timeSlot: morning(06~11), afternoon(12~17), evening(18~21), night(22~05)
+        DAYOFWEEK(): 1=일, 2=월, ..., 7=토
+
+        "이 사람은 월요일 저녁에 감각적 휴식이 가장 효과적이었다" 같은 패턴을 발견
+        샘플 2개 이상 축적된 유형만 반환 (초기 데이터 부족 시 패턴 미적용)
+    -->
+    <select id="findBestTypeByDayAndTime" resultType="map">
+        SELECT rt.type_name                                AS rest_type,
+               AVG(rl.emotion_after - rl.emotion_before)  AS avg_improvement
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` = #{commaNo}
+          AND rl.deleted = 0
+          AND rl.emotion_before IS NOT NULL
+          AND rl.emotion_after  IS NOT NULL
+          AND (DAYOFWEEK(rl.start_time) - 1) = #{dayOfWeek}
+          AND (
+              (#{timeSlot} = 'morning'   AND HOUR(rl.start_time) BETWEEN 6  AND 11) OR
+              (#{timeSlot} = 'afternoon' AND HOUR(rl.start_time) BETWEEN 12 AND 17) OR
+              (#{timeSlot} = 'evening'   AND HOUR(rl.start_time) BETWEEN 18 AND 21) OR
+              (#{timeSlot} = 'night'     AND (HOUR(rl.start_time) >= 22 OR HOUR(rl.start_time) <= 5))
+          )
+        GROUP BY rt.id, rt.type_name
+        HAVING COUNT(*) >= 2
+        ORDER BY avg_improvement DESC
+        LIMIT 3
+    </select>
+
 </mapper>

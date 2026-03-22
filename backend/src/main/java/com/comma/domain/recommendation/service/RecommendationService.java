@@ -85,8 +85,11 @@ public class RecommendationService {
         // 협업 필터링 — 유사 사용자 효과 이력 조회 (최근 90일 기반)
         Map<String, Double> collabBoostMap = buildCollabBoostMap(쉼표번호);
 
-        // 날씨·시간대 + 개인 이력 + 협업 필터링 보정이 반영된 상위 3개 유형 선정
-        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, personalBoostMap, collabBoostMap)
+        // 개인 최적 패턴 — 현재 요일·시간대에 이 사람에게 가장 효과적인 유형
+        Map<String, Double> patternBoostMap = buildPatternBoostMap(쉼표번호, weather.hour());
+
+        // 날씨·시간대 + 개인 이력 + 협업 필터링 + 패턴 학습 보정이 반영된 상위 3개 유형 선정
+        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, personalBoostMap, collabBoostMap, patternBoostMap)
                 .stream()
                 .limit(3)
                 .toList();
@@ -99,7 +102,7 @@ public class RecommendationService {
                 rec.set쉼표번호(쉼표번호);
                 rec.setDiagnosisResultId(diagnosisResultId);
                 rec.setPlaceId(place.getId());
-                rec.setCriteria(buildCriteria(typeScore, weather, personalBoostMap, collabBoostMap));
+                rec.setCriteria(buildCriteria(typeScore, weather, personalBoostMap, collabBoostMap, patternBoostMap));
                 rec.setClicked(false);
                 rec.setSaved(false);
                 rec.setRecommendedAt(LocalDateTime.now());
@@ -111,15 +114,19 @@ public class RecommendationService {
     }
 
     /**
-     * 날씨·시간대 + 개인 이력 + 협업 필터링 가중치를 반영해 유형 점수를 재정렬한다.
+     * 날씨·시간대 + 개인 이력 + 협업 필터링 + 패턴 학습 가중치를 반영해 유형 점수를 재정렬한다.
      * 원본 RestTypeScore는 수정하지 않고 새 리스트를 반환한다.
      *
-     * 보정 우선순위 (낮을수록 개인화 비중 높음):
-     *   날씨/시간대(컨텍스트) → 개인 이력 → 협업 필터링
+     * 보정 레이어 (아래로 갈수록 개인화 비중 높음):
+     *   1. 날씨/시간대 (외부 컨텍스트)
+     *   2. 개인 효과 이력 (최근 30일 내 경험)
+     *   3. 협업 필터링 (유사 사용자 집단 경험)
+     *   4. 개인 최적 패턴 (요일×시간대 학습)
      */
     private List<RestTypeScore> applyWeatherBoost(
             List<RestTypeScore> scores, WeatherContext weather,
-            Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap) {
+            Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap,
+            Map<String, Double> patternBoostMap) {
 
         Map<String, Integer> conditionBoost = switch (weather.condition()) {
             case RAINY  -> RAINY_BOOST;
@@ -150,6 +157,9 @@ public class RecommendationService {
 
             // 협업 필터링 보정 (유사 사용자 집단 경험, 최근 90일)
             boost += collabBoostMap.getOrDefault(copy.getRestType(), 0.0).intValue();
+
+            // 개인 최적 패턴 보정 (이 사람의 요일×시간대 학습)
+            boost += patternBoostMap.getOrDefault(copy.getRestType(), 0.0).intValue();
 
             copy.setScore(Math.max(0, copy.getScore() + boost));
             adjusted.add(copy);
@@ -232,11 +242,45 @@ public class RecommendationService {
     }
 
     /**
+     * 개인 최적 패턴 보정 맵 생성
+     * 현재 요일·시간대에 이 사람에게 효과적이었던 유형을 찾아 가중치 부여
+     *   1위 유형 → +12pt, 2위 → +6pt (데이터 쌓일수록 패턴 정교해짐)
+     */
+    private Map<String, Double> buildPatternBoostMap(String 쉼표번호, int currentHour) {
+        try {
+            int dayOfWeek = java.time.LocalDate.now().getDayOfWeek().getValue() % 7; // 0=일, 1=월 ... 6=토
+            String timeSlot = toTimeSlot(currentHour);
+
+            List<Map<String, Object>> rows = recommendationMapper.findBestTypeByDayAndTime(쉼표번호, dayOfWeek, timeSlot);
+            Map<String, Double> boostMap = new java.util.HashMap<>();
+            for (int i = 0; i < rows.size(); i++) {
+                String restType = (String) rows.get(i).get("rest_type");
+                boostMap.put(restType, i == 0 ? 12.0 : 6.0);
+            }
+            if (!boostMap.isEmpty()) {
+                log.info("개인 패턴 보정 적용 ({}요일 {}): {}", dayOfWeek, timeSlot, boostMap);
+            }
+            return boostMap;
+        } catch (Exception e) {
+            log.warn("개인 패턴 조회 실패, 보정 생략: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
+    private String toTimeSlot(int hour) {
+        if (hour >= 6  && hour <= 11) return "morning";
+        if (hour >= 12 && hour <= 17) return "afternoon";
+        if (hour >= 18 && hour <= 21) return "evening";
+        return "night";
+    }
+
+    /**
      * 추천 기준 문자열 — recommendations.criteria 컬럼에 저장
-     * 날씨·개인이력·협업필터링 적용 내역을 기록 (추후 통계/디버깅에 활용)
+     * 모든 보정 레이어 적용 내역을 기록 (추후 통계/디버깅에 활용)
      */
     private String buildCriteria(RestTypeScore typeScore, WeatherContext weather,
-                                  Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap) {
+                                  Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap,
+                                  Map<String, Double> patternBoostMap) {
         StringBuilder sb = new StringBuilder();
         sb.append(typeScore.getRestType())
           .append(" 유형 매칭 (점수: ").append(typeScore.getScore()).append(")")
@@ -250,6 +294,11 @@ public class RecommendationService {
         Double collabBoost = collabBoostMap.get(typeScore.getRestType());
         if (collabBoost != null && collabBoost != 0.0) {
             sb.append(" | 협업필터: ").append(collabBoost > 0 ? "+" : "").append(collabBoost.intValue()).append("pt");
+        }
+
+        Double patternBoost = patternBoostMap.get(typeScore.getRestType());
+        if (patternBoost != null && patternBoost != 0.0) {
+            sb.append(" | 패턴학습: +").append(patternBoost.intValue()).append("pt");
         }
 
         return sb.toString();
