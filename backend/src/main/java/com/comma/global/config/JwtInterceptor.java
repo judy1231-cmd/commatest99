@@ -52,7 +52,9 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/posts/*",
             "/api/posts/*/comments",
             "/api/posts/*/photos",
-            "/api/diagnosis/measurements/device"
+            "/api/diagnosis/measurements/device",
+            "/api/challenges",
+            "/api/challenges/*"
     };
 
     @Override
