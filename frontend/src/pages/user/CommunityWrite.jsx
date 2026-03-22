@@ -115,39 +115,40 @@ function CommunityWrite() {
             </div>
           )}
 
-          {/* 카테고리 */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">카테고리</p>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(prev => prev === cat ? '' : cat)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                    category === cat
-                      ? 'bg-slate-800 text-white border-slate-800'
-                      : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+          {/* 카테고리 + 제목 */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">카테고리</p>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(prev => prev === cat ? '' : cat)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      category === cat
+                        ? 'bg-primary text-white border-primary shadow-sm shadow-emerald-100'
+                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* 제목 */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-4">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">제목</p>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              maxLength={100}
-              placeholder="제목을 입력해주세요"
-              className="w-full text-[15px] font-semibold text-slate-800 placeholder:text-slate-300 outline-none"
-            />
-            <p className="text-right text-[11px] text-slate-300 mt-1">{title.length}/100</p>
+            <div className="border-t border-slate-50 pt-4">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">제목</p>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                maxLength={100}
+                placeholder="제목을 입력해주세요"
+                className="w-full text-[15px] font-semibold text-slate-800 placeholder:text-slate-300 outline-none"
+              />
+              <p className="text-right text-[11px] text-slate-300 mt-1">{title.length}/100</p>
+            </div>
           </div>
 
           {/* 내용 */}
