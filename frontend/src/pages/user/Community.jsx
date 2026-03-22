@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const CATEGORIES = [
-  { key: 'all',      label: '전체',       icon: 'grid_view' },
-  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center' },
-  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa' },
-  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off' },
-  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite' },
-  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups' },
-  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest' },
-  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush' },
+  { key: 'all',      label: '전체',       icon: 'apps',           color: '#10B981', bg: '#F0FDF4' },
+  { key: '신체적 휴식', label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5' },
+  { key: '정신적 휴식', label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#EFF6FF' },
+  { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F3FF' },
+  { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F6' },
+  { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF7ED' },
+  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
+  { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBEB' },
 ];
 
 const CATEGORY_COLOR = {
@@ -178,20 +178,23 @@ function Community() {
 
         {/* 카테고리 칩 — 가로 스크롤 */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.key}
-              onClick={() => setActiveCategory(cat.key)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all ${
-                activeCategory === cat.key
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
-              }`}
-            >
-              <span className="material-icons text-xs">{cat.icon}</span>
-              {cat.label}
-            </button>
-          ))}
+          {CATEGORIES.map(cat => {
+            const isActive = activeCategory === cat.key;
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shrink-0 transition-all"
+                style={isActive
+                  ? { backgroundColor: cat.color, color: '#fff', boxShadow: `0 2px 8px ${cat.color}55` }
+                  : { backgroundColor: cat.bg, color: cat.color, border: `1.5px solid ${cat.color}30` }
+                }
+              >
+                <span className="material-icons" style={{ fontSize: '13px' }}>{cat.icon}</span>
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* 정렬 + 게시글 수 */}
@@ -209,7 +212,7 @@ function Community() {
                 onClick={() => setSort(s.value)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   sort === s.value
-                    ? 'bg-slate-800 text-white shadow-sm'
+                    ? 'bg-primary text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
