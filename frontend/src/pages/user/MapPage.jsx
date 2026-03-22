@@ -55,18 +55,32 @@ function FlyToPlace({ center }) {
 }
 
 // 지역 필터 선택 시 해당 지역 전체가 보이도록 지도 자동 이동
-function FitBoundsOnRegion({ places, regionL1, regionL2 }) {
+function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
   const map = useMap();
   useEffect(() => {
     if (!regionL1) return;
-    const valid = places.filter(p => p.latitude && p.longitude);
+    // 국내: 한반도 범위(lat 33~38.6, lng 124.5~130.9)만 신뢰, 해외: 0,0 제외
+    const valid = places.filter(p => {
+      if (!p.latitude || !p.longitude) return false;
+      if (isDomestic(p.address)) {
+        return p.latitude >= 33 && p.latitude <= 38.6 &&
+               p.longitude >= 124.5 && p.longitude <= 130.9;
+      }
+      return Math.abs(p.latitude) > 0.1 && Math.abs(p.longitude) > 0.1;
+    });
     if (valid.length === 0) return;
     if (valid.length === 1) {
       map.flyTo([valid[0].latitude, valid[0].longitude], 13, { duration: 1.2 });
       return;
     }
     const bounds = L.latLngBounds(valid.map(p => [p.latitude, p.longitude]));
-    map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
+    const zoom = map.getBoundsZoom(bounds, false, [60, 60]);
+    if (zoom < 8) {
+      // 너무 축소되면 중심점으로 적당한 줌
+      map.flyTo(bounds.getCenter(), 9, { duration: 1.2 });
+    } else {
+      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [regionL1, regionL2]);
   return null;
@@ -608,7 +622,7 @@ function MapPage() {
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}
-            <FitBoundsOnRegion places={filteredPlaces} regionL1={regionL1} regionL2={regionL2} />
+            <FitBoundsOnRegion places={filteredPlaces} regionL1={regionL1} regionL2={regionL2} isDomestic={isDomestic} />
 
             {/* 내 위치 마커 */}
             {myLocation && (
