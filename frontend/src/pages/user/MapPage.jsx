@@ -21,14 +21,14 @@ const DOMESTIC_CITIES = [
 ];
 
 const REST_TYPES = [
-  { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
-  { key: 'physical',  label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5', path: '/rest/physical'  },
-  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF', path: '/rest/mental'    },
-  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF', path: '/rest/sensory'   },
-  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5', path: '/rest/emotional' },
-  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF5EC', path: '/rest/social'    },
-  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBF0', path: '/rest/creative'  },
-  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', path: '/rest/nature'    },
+  { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', badge: 'rgba(16,185,129,0.85)',   path: null              },
+  { key: 'physical',  label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5', badge: 'rgba(76,175,130,0.85)',   path: '/rest/physical'  },
+  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF', badge: 'rgba(91,141,239,0.85)',   path: '/rest/mental'    },
+  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF', badge: 'rgba(155,109,255,0.85)', path: '/rest/sensory'   },
+  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5', badge: 'rgba(255,123,172,0.85)', path: '/rest/emotional' },
+  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF5EC', badge: 'rgba(255,154,60,0.85)',   path: '/rest/social'    },
+  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBF0', badge: 'rgba(255,184,48,0.85)',   path: '/rest/creative'  },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', badge: 'rgba(46,204,154,0.85)',   path: '/rest/nature'    },
 ];
 
 // 유형별 색상 마커 생성
@@ -133,7 +133,7 @@ function PlaceCard({ place, currentType, onClose }) {
                   <span
                     key={rt}
                     className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
-                    style={{ backgroundColor: `${t.color}cc` }}
+                    style={{ backgroundColor: t.badge }}
                   >
                     <span className="material-icons" style={{ fontSize: '9px' }}>{t.icon}</span>
                     {t.label}

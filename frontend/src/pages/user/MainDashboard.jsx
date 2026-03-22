@@ -39,13 +39,13 @@ const REST_TYPE_LABELS = {
 };
 
 const REST_TYPE_MAP = {
-  physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,207,130,0.18)' },
-  mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)' },
-  sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)' },
-  emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)' },
-  social:    { icon: 'groups',         label: '사회적 휴식', color: '#FF9A3C', bg: 'rgba(255,154,60,0.18)' },
-  creative:  { icon: 'brush',          label: '창조적 몰입', color: '#FFB830', bg: 'rgba(255,184,48,0.18)' },
-  nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)' },
+  physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,175,130,0.18)',  badge: 'rgba(76,175,130,0.85)'  },
+  mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)', badge: 'rgba(91,141,239,0.85)' },
+  sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)',badge: 'rgba(155,109,255,0.85)'},
+  emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)',badge: 'rgba(255,123,172,0.85)'},
+  social:    { icon: 'groups',         label: '사회적 휴식', color: '#FF9A3C', bg: 'rgba(255,154,60,0.18)', badge: 'rgba(255,154,60,0.85)' },
+  creative:  { icon: 'brush',          label: '창조적 몰입', color: '#FFB830', bg: 'rgba(255,184,48,0.18)', badge: 'rgba(255,184,48,0.85)' },
+  nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)', badge: 'rgba(46,204,154,0.85)' },
 };
 
 function formatMinutes(minutes) {
@@ -627,7 +627,7 @@ function MainDashboard() {
                               <div
                                 key={rt}
                                 className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                                style={{ backgroundColor: `${t.color}cc` }}
+                                style={{ backgroundColor: t.badge }}
                               >
                                 <span className="material-icons text-[10px] text-white">{t.icon}</span>
                                 <span className="text-[9px] font-bold text-white">{t.label}</span>
