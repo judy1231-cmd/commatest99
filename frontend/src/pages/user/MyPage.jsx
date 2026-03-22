@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const REST_TYPE_NAMES = {
   physical:  { label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82' },
@@ -83,57 +84,154 @@ function MenuGroup({ title, children }) {
   );
 }
 
-function TypeRatioChart({ typeRatios, recordCount, totalRestMinutes, avgEmotionScore }) {
+function StatsSummary({ recordCount, totalRestMinutes, avgEmotionScore }) {
   return (
-    <div>
-      {/* 요약 인라인 — 한 줄 */}
-      <div className="flex items-center gap-3 mb-4 px-1">
-        <div className="flex-1 text-center">
-          <p className="text-[18px] font-black text-slate-800">{recordCount || 0}</p>
-          <p className="text-[11px] text-slate-400">기록</p>
-        </div>
-        <div className="w-px h-8 bg-slate-100" />
-        <div className="flex-1 text-center">
-          <p className="text-[18px] font-black text-slate-800">{formatMinutes(totalRestMinutes)}</p>
-          <p className="text-[11px] text-slate-400">휴식 시간</p>
-        </div>
-        <div className="w-px h-8 bg-slate-100" />
-        <div className="flex-1 text-center">
-          <p className="text-[18px] font-black text-slate-800">
-            {avgEmotionScore ? avgEmotionScore.toFixed(1) : '-'}
-          </p>
-          <p className="text-[11px] text-slate-400">평균 기분</p>
-        </div>
+    <div className="flex items-center gap-3 mb-5 px-1">
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">{recordCount || 0}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">기록</p>
       </div>
+      <div className="w-px h-8 bg-slate-100" />
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">{formatMinutes(totalRestMinutes)}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">휴식 시간</p>
+      </div>
+      <div className="w-px h-8 bg-slate-100" />
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">
+          {avgEmotionScore ? avgEmotionScore.toFixed(1) : '-'}
+        </p>
+        <p className="text-[11px] text-slate-400 mt-0.5">평균 기분</p>
+      </div>
+    </div>
+  );
+}
 
-      {/* 유형별 바 차트 */}
-      {typeRatios.length > 0 ? (
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">휴식 유형 비율</p>
+function DonutChart({ typeRatios }) {
+  const topType = typeRatios[0];
+  return (
+    <div className="mb-5">
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">휴식 유형 분포</p>
+      <div className="flex items-center gap-5">
+        {/* 도넛 차트 */}
+        <div className="relative flex-shrink-0 w-[130px] h-[130px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={typeRatios}
+                cx="50%"
+                cy="50%"
+                innerRadius={38}
+                outerRadius={60}
+                paddingAngle={2}
+                dataKey="pct"
+                startAngle={90}
+                endAngle={-270}
+              >
+                {typeRatios.map((entry) => (
+                  <Cell key={entry.type} fill={entry.color} stroke="none" />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, _name, props) => [`${value}%`, props.payload.label || props.payload.type]}
+                contentStyle={{ fontSize: 11, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          {topType && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="material-icons text-[16px]" style={{ color: topType.color }}>{topType.icon}</span>
+              <span className="text-[9px] font-bold text-slate-500 mt-0.5 text-center leading-tight px-1">
+                {topType.label}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 범례 */}
+        <div className="flex-1 space-y-1.5">
           {typeRatios.map((item) => (
-            <div key={item.type}>
-              <div className="flex justify-between items-center text-xs mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="material-icons text-[13px]" style={{ color: item.color }}>{item.icon}</span>
-                  <span className="font-medium text-slate-600">{item.label}</span>
-                </div>
-                <span className="font-bold tabular-nums" style={{ color: item.color }}>{item.pct}%</span>
-              </div>
-              <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${item.pct}%`, backgroundColor: item.color }}
-                />
-              </div>
+            <div key={item.type} className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+              <span className="text-[12px] text-slate-600 flex-1 truncate">{item.label}</span>
+              <span className="text-[12px] font-bold tabular-nums" style={{ color: item.color }}>{item.pct}%</span>
             </div>
           ))}
         </div>
-      ) : (
-        <div className="text-center py-6">
-          <span className="material-icons text-3xl text-slate-200 block mb-2">bar_chart</span>
-          <p className="text-sm text-slate-400 font-semibold">이 기간의 기록이 없어요</p>
-          <p className="text-xs text-slate-300 mt-0.5">휴식을 기록하면 통계가 나타나요</p>
-        </div>
+      </div>
+    </div>
+  );
+}
+
+// 활동 달력 — 현재 월 기준으로 rest_logs 날짜를 점으로 표시
+function ActivityCalendar({ recentLogs, selectedPeriod }) {
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth(); // 0-indexed
+
+  if (selectedPeriod === 'last') {
+    month = month === 0 ? 11 : month - 1;
+    year = month === 11 ? year - 1 : year;
+  }
+
+  const firstDay = new Date(year, month, 1).getDay(); // 0=일
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // recentLogs에서 날짜 추출 (YYYY-MM-DD 형태)
+  const activeDays = new Set(
+    recentLogs
+      .filter(log => {
+        const d = new Date(log.startTime);
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .map(log => new Date(log.startTime).getDate())
+  );
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const today = now.getDate();
+  const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
+
+  return (
+    <div>
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+        활동 달력 — {year}년 {month + 1}월
+      </p>
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 mb-1">
+        {['일','월','화','수','목','금','토'].map(d => (
+          <div key={d} className="text-center text-[10px] font-bold text-slate-400 py-1">{d}</div>
+        ))}
+      </div>
+      {/* 날짜 그리드 */}
+      <div className="grid grid-cols-7 gap-y-1">
+        {cells.map((day, i) => {
+          if (!day) return <div key={`empty-${i}`} />;
+          const isActive = activeDays.has(day);
+          const isToday = isCurrentMonth && day === today;
+          return (
+            <div key={day} className="flex items-center justify-center py-0.5">
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all ${
+                  isActive
+                    ? 'bg-primary text-white'
+                    : isToday
+                    ? 'border-2 border-primary text-primary'
+                    : 'text-slate-400'
+                }`}
+              >
+                {day}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {activeDays.size > 0 && (
+        <p className="text-[11px] text-slate-400 mt-2 text-center">
+          이 달 <span className="font-bold text-primary">{activeDays.size}일</span> 휴식 기록
+        </p>
       )}
     </div>
   );
@@ -144,6 +242,7 @@ function MyPage() {
   const [profile, setProfile] = useState(null);
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
+  const [calendarLogs, setCalendarLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedPeriod, setSelectedPeriod] = useState('this');
@@ -166,10 +265,11 @@ function MyPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [profileRes, diagRes, logsRes] = await Promise.allSettled([
+      const [profileRes, diagRes, logsRes, calRes] = await Promise.allSettled([
         fetchWithAuth('/api/user/profile'),
         fetchWithAuth('/api/diagnosis/latest'),
         fetchWithAuth('/api/rest-logs?page=1&size=5'),
+        fetchWithAuth('/api/rest-logs?page=1&size=50'),
       ]);
 
       if (profileRes.status === 'fulfilled' && profileRes.value.success) {
@@ -180,6 +280,9 @@ function MyPage() {
       }
       if (logsRes.status === 'fulfilled' && logsRes.value.success) {
         setRecentLogs(logsRes.value.data?.logs || []);
+      }
+      if (calRes.status === 'fulfilled' && calRes.value.success) {
+        setCalendarLogs(calRes.value.data?.logs || []);
       }
     } finally {
       setLoading(false);
@@ -448,23 +551,41 @@ function MyPage() {
               {statsLoading ? (
                 <div className="space-y-3 animate-pulse">
                   <div className="flex gap-3 mb-4">
-                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
-                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
-                    <div className="flex-1 h-12 bg-slate-100 rounded-xl" />
+                    {[1,2,3].map(i => <div key={i} className="flex-1 h-14 bg-slate-100 rounded-xl" />)}
                   </div>
-                  {[80, 60, 40, 25].map(w => (
-                    <div key={w}>
-                      <div className="h-2.5 bg-slate-100 rounded-full" style={{ width: `${w}%` }} />
+                  <div className="flex gap-4">
+                    <div className="w-[130px] h-[130px] bg-slate-100 rounded-full" />
+                    <div className="flex-1 space-y-2 pt-2">
+                      {[100,80,60,45].map(w => (
+                        <div key={w} className="h-3 bg-slate-100 rounded-full" style={{ width: `${w}%` }} />
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
+              ) : typeRatios.length > 0 ? (
+                <>
+                  <StatsSummary
+                    recordCount={periodStats?.recordCount}
+                    totalRestMinutes={periodStats?.totalRestMinutes}
+                    avgEmotionScore={periodStats?.avgEmotionScore}
+                  />
+                  <DonutChart typeRatios={typeRatios} />
+                  <div className="mt-5 pt-5 border-t border-slate-100">
+                    <ActivityCalendar recentLogs={calendarLogs} selectedPeriod={selectedPeriod} />
+                  </div>
+                </>
               ) : (
-                <TypeRatioChart
-                  typeRatios={typeRatios}
-                  recordCount={periodStats?.recordCount}
-                  totalRestMinutes={periodStats?.totalRestMinutes}
-                  avgEmotionScore={periodStats?.avgEmotionScore}
-                />
+                <div className="text-center py-8">
+                  <span className="material-icons text-3xl text-slate-200 block mb-2">insert_chart</span>
+                  <p className="text-sm font-semibold text-slate-400">이 기간의 기록이 없어요</p>
+                  <p className="text-xs text-slate-300 mt-1">휴식을 기록하면 통계가 나타나요</p>
+                  <button
+                    onClick={() => navigate('/rest-record')}
+                    className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
+                  >
+                    기록 남기기
+                  </button>
+                </div>
               )}
             </div>
           </div>
