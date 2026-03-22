@@ -138,7 +138,7 @@
               (#{timeSlot} = 'morning'   AND HOUR(rl.start_time) BETWEEN 6  AND 11) OR
               (#{timeSlot} = 'afternoon' AND HOUR(rl.start_time) BETWEEN 12 AND 17) OR
               (#{timeSlot} = 'evening'   AND HOUR(rl.start_time) BETWEEN 18 AND 21) OR
-              (#{timeSlot} = 'night'     AND (HOUR(rl.start_time) >= 22 OR HOUR(rl.start_time) <= 5))
+              (#{timeSlot} = 'night'     AND (HOUR(rl.start_time) >= 22 OR HOUR(rl.start_time) &lt;= 5))
           )
         GROUP BY rt.id, rt.type_name
         HAVING COUNT(*) >= 2
