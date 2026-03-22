@@ -21,9 +21,11 @@
     </insert>
 
     <select id="findById" resultType="com.comma.domain.community.model.Comment">
-        SELECT id, post_id, `쉼표번호`, parent_id, content, status, created_at
-        FROM comments
-        WHERE id = #{id}
+        SELECT c.id, c.post_id, c.`쉼표번호`, c.parent_id, c.content, c.status, c.created_at,
+               u.nickname
+        FROM comments c
+        LEFT JOIN users u ON c.`쉼표번호` = u.`쉼표번호`
+        WHERE c.id = #{id}
     </select>
 
     <update id="softDeleteComment">
