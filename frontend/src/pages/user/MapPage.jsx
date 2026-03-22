@@ -65,8 +65,8 @@ function PlaceCard({ place, currentType, onClose }) {
       setPos({ x: point.x, y: point.y });
     };
     update();
-    map.on('move zoom moveend zoomend', update);
-    return () => map.off('move zoom moveend zoomend', update);
+    map.on('moveend zoomend', update);
+    return () => map.off('moveend zoomend', update);
   }, [place, map]);
 
   if (!pos) return null;
@@ -319,9 +319,6 @@ function MapPage() {
 
   const handleMarkerClick = (place) => {
     setSelectedPlaceId(place.id);
-    if (place.latitude && place.longitude) {
-      setFlyTarget([place.latitude, place.longitude]);
-    }
   };
 
   const currentType = REST_TYPES.find(t => t.key === selectedType) || REST_TYPES[0];
