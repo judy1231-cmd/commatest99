@@ -24,13 +24,14 @@ public class PlaceService {
         List<Place> places = placeMapper.findPlaces(keyword, restType, offset, size);
         int total = placeMapper.countPlaces(keyword, restType);
 
-        // GROUP_CONCAT으로 받은 tagsStr을 List<String> tags로 변환
+        // GROUP_CONCAT으로 받은 tagsStr/restTypesStr을 List로 변환
         places.forEach(p -> {
-            if (p.getTagsStr() != null && !p.getTagsStr().isBlank()) {
-                p.setTags(Arrays.asList(p.getTagsStr().split(",")));
-            } else {
-                p.setTags(Collections.emptyList());
-            }
+            p.setTags(p.getTagsStr() != null && !p.getTagsStr().isBlank()
+                    ? Arrays.asList(p.getTagsStr().split(","))
+                    : Collections.emptyList());
+            p.setRestTypes(p.getRestTypesStr() != null && !p.getRestTypesStr().isBlank()
+                    ? Arrays.asList(p.getRestTypesStr().split(","))
+                    : Collections.emptyList());
         });
 
         Map<String, Object> result = new HashMap<>();

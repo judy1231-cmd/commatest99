@@ -33,4 +33,9 @@ public class Place {
     @JsonIgnore
     private String tagsStr;         // MyBatis: GROUP_CONCAT → 서비스에서 tags로 변환
     private List<String> tags;      // API 응답으로 내려가는 태그 배열
+
+    // 휴식 유형 목록 (place_tags.rest_type 중복 없이)
+    @JsonIgnore
+    private String restTypesStr;    // MyBatis: GROUP_CONCAT → 서비스에서 restTypes로 변환
+    private List<String> restTypes; // API 응답으로 내려가는 휴식유형 배열 (e.g. ["nature","mental"])
 }

@@ -147,11 +147,22 @@ function PlaceCard({ place, currentType, onClose }) {
             </p>
           )}
         </div>
-        {place.tags?.length > 0 && (
+        {place.restTypes?.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
-            {place.tags.slice(0, 3).map(tag => (
-              <span key={tag} className="text-[10px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">#{tag}</span>
-            ))}
+            {place.restTypes.map(rt => {
+              const t = REST_TYPES.find(r => r.key === rt);
+              if (!t) return null;
+              return (
+                <span
+                  key={rt}
+                  className="text-[10px] font-bold rounded-full px-2 py-0.5 flex items-center gap-0.5"
+                  style={{ backgroundColor: t.bg, color: t.color }}
+                >
+                  <span className="material-icons" style={{ fontSize: '10px' }}>{t.icon}</span>
+                  {t.label}
+                </span>
+              );
+            })}
           </div>
         )}
         <Link
@@ -593,10 +604,30 @@ function MapPage() {
                           {place.operatingHours}
                         </p>
                       )}
-                      {place.aiScore && (
-                        <div className="flex items-center gap-0.5 mt-1">
-                          <span className="material-icons text-amber-400 text-xs">star</span>
-                          <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+                      {place.restTypes?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {place.restTypes.map(rt => {
+                            const t = REST_TYPES.find(r => r.key === rt);
+                            if (!t) return null;
+                            return (
+                              <span
+                                key={rt}
+                                className="text-[9px] font-bold rounded-full px-1.5 py-0.5 flex items-center gap-0.5"
+                                style={{ backgroundColor: t.bg, color: t.color }}
+                              >
+                                <span className="material-icons" style={{ fontSize: '9px' }}>{t.icon}</span>
+                                {t.label}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

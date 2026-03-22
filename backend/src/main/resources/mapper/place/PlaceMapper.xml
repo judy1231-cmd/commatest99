@@ -13,7 +13,8 @@
                (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS review_count,
                (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS bookmark_count,
                (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS first_rest_type,
-               (SELECT GROUP_CONCAT(DISTINCT tag_name ORDER BY tag_name SEPARATOR ',') FROM place_tags WHERE place_id = p.id) AS tags_str
+               (SELECT GROUP_CONCAT(DISTINCT tag_name ORDER BY tag_name SEPARATOR ',') FROM place_tags WHERE place_id = p.id) AS tags_str,
+               (SELECT GROUP_CONCAT(DISTINCT rest_type ORDER BY rest_type SEPARATOR ',') FROM place_tags WHERE place_id = p.id) AS rest_types_str
         FROM places p
         <if test="restType != null and restType != ''">
             INNER JOIN place_tags pt ON p.id = pt.place_id AND pt.rest_type = #{restType}

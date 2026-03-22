@@ -251,9 +251,9 @@ function Community() {
           </div>
         </div>
 
-        {/* 카테고리 칩 — 전체 표시 (2줄 wrap) */}
+        {/* 카테고리 칩 — 4×2 그리드 전체 표시 */}
         <div className="max-w-2xl mx-auto px-4 pb-3">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {CATEGORIES.map((cat, i) => {
               const isActive = activeCategory === cat.key;
               return (
@@ -262,20 +262,15 @@ function Community() {
                   onClick={() => setActiveCategory(cat.key)}
                   onMouseEnter={() => setHoveredCat(i)}
                   onMouseLeave={() => setHoveredCat(null)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all duration-200 shadow-sm"
+                  className="flex items-center justify-center gap-1 px-2 py-2 rounded-full border-2 transition-all duration-200 shadow-sm w-full"
                   style={{
                     borderColor: (isActive || hoveredCat === i) ? cat.iconHex : cat.iconHex + '50',
                     backgroundColor: (isActive || hoveredCat === i) ? cat.bgHex : '#ffffff',
                   }}
                 >
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: cat.bgHex }}
-                  >
-                    <span className="material-icons text-[14px]" style={{ color: cat.iconHex }}>{cat.icon}</span>
-                  </div>
+                  <span className="material-icons text-[14px]" style={{ color: cat.iconHex }}>{cat.icon}</span>
                   <span
-                    className="text-[12px] font-bold whitespace-nowrap transition-colors"
+                    className="text-[11px] font-bold whitespace-nowrap transition-colors"
                     style={{ color: (isActive || hoveredCat === i) ? cat.iconHex : '#475569' }}
                   >
                     {cat.label}
