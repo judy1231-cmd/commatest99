@@ -674,6 +674,16 @@ function MapPage() {
                             <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
                           </div>
                         )}
+                        {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+                          const d = DIFFICULTY_MAP[place.difficulty];
+                          return (
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                              style={{ backgroundColor: `${d.color}18` }}>
+                              <span className="material-icons" style={{ fontSize: '9px', color: d.color }}>{d.icon}</span>
+                              <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       {place.restTypes?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
