@@ -9,8 +9,8 @@ const CATEGORIES = [
   { key: '감각적 휴식', label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F3FF' },
   { key: '정서적 휴식', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F6' },
   { key: '사회적 휴식', label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF7ED' },
-  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
   { key: '창조적 휴식', label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBEB' },
+  { key: '자연적 휴식', label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7' },
 ];
 
 const CATEGORY_COLOR = {
