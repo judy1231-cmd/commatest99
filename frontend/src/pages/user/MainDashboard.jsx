@@ -616,19 +616,28 @@ function MainDashboard() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
                       />
-                      {/* 좌상단 — 휴식유형 아이콘 + 라벨 */}
-                      {(() => {
-                        const restType = place.firstRestType || firstTag?.restType;
-                        const t = REST_TYPE_MAP[restType];
-                        if (!t) return null;
-                        return (
-                          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
-                            style={{ background: 'rgba(0,0,0,0.45)' }}>
-                            <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
-                            <span className="text-[9px] font-bold text-white">{t.label}</span>
-                          </div>
-                        );
-                      })()}
+                      {/* 좌하단 — 휴식유형 중복 뱃지 */}
+                      {(place.restTypes?.length > 0 || place.firstRestType) && (
+                        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+                          {(place.restTypes?.length > 0
+                            ? place.restTypes
+                            : [place.firstRestType]
+                          ).map(rt => {
+                            const t = REST_TYPE_MAP[rt];
+                            if (!t) return null;
+                            return (
+                              <div
+                                key={rt}
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full backdrop-blur-sm"
+                                style={{ background: 'rgba(0,0,0,0.45)', borderLeft: `2px solid ${t.color}` }}
+                              >
+                                <span className="material-icons text-[10px]" style={{ color: t.color }}>{t.icon}</span>
+                                <span className="text-[9px] font-bold text-white">{t.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       {/* 우상단 — AI 별점 */}
                       {place.aiScore != null && (
                         <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
