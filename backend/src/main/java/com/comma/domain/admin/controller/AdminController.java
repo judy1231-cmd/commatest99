@@ -68,10 +68,19 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("장소 상태가 변경되었습니다."));
     }
 
-    // GET /api/admin/analytics  [ADMIN 전용]
+    // GET /api/admin/analytics?startDate=2026-01-01&endDate=2026-03-24  [ADMIN 전용]
     @GetMapping("/analytics")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics() {
-        Map<String, Object> analytics = adminService.getAnalytics();
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        // 기본값: 최근 30일
+        if (startDate == null || startDate.isBlank()) {
+            startDate = java.time.LocalDate.now().minusDays(29).toString();
+        }
+        if (endDate == null || endDate.isBlank()) {
+            endDate = java.time.LocalDate.now().toString();
+        }
+        Map<String, Object> analytics = adminService.getAnalytics(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(analytics, "분석 데이터 조회 성공"));
     }
 

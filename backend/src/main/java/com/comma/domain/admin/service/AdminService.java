@@ -107,11 +107,11 @@ public class AdminService {
         log.info("YOLO 자동 태그 추가: place_id={}, category={}", placeId, suggestedCategory);
     }
 
-    public Map<String, Object> getAnalytics() {
+    public Map<String, Object> getAnalytics(String startDate, String endDate) {
         Map<String, Object> analytics = new HashMap<>();
-        analytics.put("dailySignups", adminMapper.getDailySignups());
-        analytics.put("dailyRestLogs", adminMapper.getDailyRestLogs());
-        analytics.put("restTypePopularity", adminMapper.getRestTypePopularity());
+        analytics.put("dailySignups", adminMapper.getDailySignups(startDate, endDate));
+        analytics.put("dailyRestLogs", adminMapper.getDailyRestLogs(startDate, endDate));
+        analytics.put("restTypePopularity", adminMapper.getRestTypePopularity(startDate, endDate));
         return analytics;
     }
 

@@ -46,11 +46,11 @@ public interface AdminMapper {
 
     // ==================== 분석 ====================
 
-    List<Map<String, Object>> getDailySignups();
+    List<Map<String, Object>> getDailySignups(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    List<Map<String, Object>> getDailyRestLogs();
+    List<Map<String, Object>> getDailyRestLogs(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    List<Map<String, Object>> getRestTypePopularity();
+    List<Map<String, Object>> getRestTypePopularity(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
     // ==================== 감사 로그 ====================
 

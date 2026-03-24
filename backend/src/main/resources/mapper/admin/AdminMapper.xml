@@ -85,12 +85,14 @@
         UPDATE places SET status = #{status} WHERE id = #{id}
     </update>
 
-    <!-- ==================== 분석 — 최근 30일 ==================== -->
+    <!-- ==================== 분석 — 기간 필터 지원 ==================== -->
 
     <select id="getDailySignups" resultType="map">
         SELECT DATE(created_at) AS date, COUNT(*) AS count
         FROM users
-        WHERE role = 'USER' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE role = 'USER'
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY DATE(created_at)
         ORDER BY date
     </select>
@@ -98,7 +100,9 @@
     <select id="getDailyRestLogs" resultType="map">
         SELECT DATE(created_at) AS date, COUNT(*) AS count
         FROM rest_logs
-        WHERE deleted = 0 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE deleted = 0
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY DATE(created_at)
         ORDER BY date
     </select>
@@ -108,6 +112,8 @@
         FROM rest_logs rl
         INNER JOIN rest_types rt ON rl.rest_type_id = rt.id
         WHERE rl.deleted = 0
+          AND rl.created_at &gt;= #{startDate}
+          AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY rl.rest_type_id, rt.type_name
         ORDER BY count DESC
     </select>

@@ -16,31 +16,70 @@ const PERIOD_TABS = [
   { key: 'custom', label: '직접입력' },
 ];
 
+function toDateString(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getPeriodDates(periodTab, dateFrom, dateTo) {
+  const today = new Date();
+  if (periodTab === 'today')  return { startDate: toDateString(today), endDate: toDateString(today) };
+  if (periodTab === '7d')     return { startDate: toDateString(new Date(today - 6 * 86400000)), endDate: toDateString(today) };
+  if (periodTab === '30d')    return { startDate: toDateString(new Date(today - 29 * 86400000)), endDate: toDateString(today) };
+  if (periodTab === 'custom') return { startDate: dateFrom, endDate: dateTo };
+  return { startDate: toDateString(new Date(today - 29 * 86400000)), endDate: toDateString(today) };
+}
+
 function AdminDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [pendingPlaces, setPendingPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [periodTab, setPeriodTab] = useState('30d');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
   useEffect(() => { loadAll(); }, []);
 
+  useEffect(() => {
+    if (periodTab !== 'custom') loadAnalytics();
+  }, [periodTab]);
+
   const loadAll = async () => {
     setLoading(true);
     try {
+      const { startDate, endDate } = getPeriodDates('30d', '', '');
       const [dashRes, analyticsRes, placesRes] = await Promise.allSettled([
         fetchWithAuth('/api/admin/dashboard'),
-        fetchWithAuth('/api/admin/analytics'),
+        fetchWithAuth(`/api/admin/analytics?startDate=${startDate}&endDate=${endDate}`),
         fetchWithAuth('/api/admin/places?status=pending&page=1&size=5'),
       ]);
-      if (dashRes.status === 'fulfilled' && dashRes.value.success)      setDashboard(dashRes.value.data);
+      if (dashRes.status === 'fulfilled' && dashRes.value.success)           setDashboard(dashRes.value.data);
       if (analyticsRes.status === 'fulfilled' && analyticsRes.value.success) setAnalytics(analyticsRes.value.data);
-      if (placesRes.status === 'fulfilled' && placesRes.value.success)   setPendingPlaces(placesRes.value.data?.places || []);
+      if (placesRes.status === 'fulfilled' && placesRes.value.success)       setPendingPlaces(placesRes.value.data?.places || []);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAnalytics = async (customFrom, customTo) => {
+    const { startDate, endDate } = getPeriodDates(
+      periodTab,
+      customFrom ?? dateFrom,
+      customTo ?? dateTo
+    );
+    if (!startDate || !endDate) return;
+    setAnalyticsLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/analytics?startDate=${startDate}&endDate=${endDate}`);
+      if (res.success) setAnalytics(res.data);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const handleCustomApply = () => {
+    if (dateFrom && dateTo) loadAnalytics(dateFrom, dateTo);
   };
 
   const handlePlaceStatus = async (placeId, status) => {
@@ -94,9 +133,15 @@ function AdminDashboard() {
                 <span className="text-xs text-gray-400">~</span>
                 <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                   className="h-7 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 bg-gray-50 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                <button
+                  onClick={handleCustomApply}
+                  className="h-7 px-3 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary/90 transition-all"
+                >
+                  적용
+                </button>
               </div>
             )}
-            <span className="text-xs text-gray-400 ml-1">* 기간 필터는 API 연동 후 적용됩니다</span>
+            {analyticsLoading && <span className="text-xs text-gray-400 animate-pulse">데이터 로딩 중...</span>}
           </div>
 
           {/* ── KPI 카드 ── */}
