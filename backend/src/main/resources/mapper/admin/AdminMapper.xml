@@ -70,7 +70,7 @@
                 p.status = #{status}
             </if>
         </where>
-        ORDER BY p.created_at DESC
+        ORDER BY p.created_at DESC, p.id DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
