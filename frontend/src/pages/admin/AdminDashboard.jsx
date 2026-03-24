@@ -309,26 +309,33 @@ function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {(analytics?.regionStats || [
-                    { region: '서울', pct: 42, count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.42) : 0 },
-                    { region: '경기', pct: 23, count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.23) : 0 },
-                    { region: '부산', pct: 9,  count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.09) : 0 },
-                    { region: '인천', pct: 7,  count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.07) : 0 },
-                    { region: '기타', pct: 19, count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.19) : 0 },
-                  ]).map((r, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-gray-600 w-8 shrink-0">{r.region}</span>
-                      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${r.pct}%` }} />
-                      </div>
-                      <span className="text-xs font-bold text-primary w-8 text-right tabular-nums">{r.pct}%</span>
-                      <span className="text-xs text-gray-400 w-16 text-right tabular-nums">{r.count?.toLocaleString()}명</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ) : (() => {
+                const regionStats = analytics?.regionStats || [];
+                if (regionStats.length === 0) return (
+                  <div className="flex flex-col items-center justify-center h-40 text-gray-300">
+                    <span className="material-icons text-4xl mb-2">location_off</span>
+                    <p className="text-sm text-gray-400">기간 내 장소 기록이 없습니다</p>
+                  </div>
+                );
+                const maxRegionCount = Math.max(...regionStats.map(r => Number(r.count) || 0), 1);
+                return (
+                  <div className="space-y-3">
+                    {regionStats.map((r, i) => {
+                      const pct = Math.round((Number(r.count) / maxRegionCount) * 100);
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-gray-600 w-10 shrink-0">{r.region}</span>
+                          <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-xs font-bold text-primary w-8 text-right tabular-nums">{pct}%</span>
+                          <span className="text-xs text-gray-400 w-12 text-right tabular-nums">{Number(r.count).toLocaleString()}명</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* 사용자 여정 퍼널 */}
@@ -348,27 +355,35 @@ function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {[
-                    { step: '방문자',   count: dashboard?.totalUsers ? dashboard.totalUsers * 2 : 0,                         pct: 100 },
-                    { step: '회원가입', count: dashboard?.totalUsers || 0,                                                    pct: 50  },
-                    { step: '진단 완료', count: dashboard?.totalUsers ? Math.round(dashboard.totalUsers * 0.74) : 0,          pct: 37  },
-                    { step: '기록 등록', count: dashboard?.totalRestLogs || 0,                                                pct: 25  },
-                    { step: '재방문',   count: dashboard?.activeUsers || 0,                                                   pct: 18  },
-                  ].map((f, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                      <span className="text-xs font-semibold text-gray-700 w-16 shrink-0">{f.step}</span>
-                      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary/60 rounded-full" style={{ width: `${f.pct}%` }} />
+              ) : (() => {
+                const f = analytics?.funnelStats;
+                const signups   = f?.signups   || 0;
+                const diagnosed = f?.diagnosed || 0;
+                const logged    = f?.logged    || 0;
+                const revisited = f?.revisited || 0;
+                const maxVal = Math.max(signups, 1);
+                const steps = [
+                  { step: '신규 가입', count: signups,   pct: 100 },
+                  { step: '진단 완료', count: diagnosed, pct: Math.round((diagnosed / maxVal) * 100) },
+                  { step: '기록 등록', count: logged,    pct: Math.round((logged    / maxVal) * 100) },
+                  { step: '재방문',   count: revisited,  pct: Math.round((revisited / maxVal) * 100) },
+                ];
+                return (
+                  <div className="space-y-3">
+                    {steps.map((s, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                        <span className="text-xs font-semibold text-gray-700 w-16 shrink-0">{s.step}</span>
+                        <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary/60 rounded-full transition-all" style={{ width: `${s.pct}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-700 w-14 text-right tabular-nums">{s.count.toLocaleString()}</span>
+                        <span className="text-[10px] text-gray-400 w-8 text-right">{s.pct}%</span>
                       </div>
-                      <span className="text-xs font-bold text-gray-700 w-16 text-right tabular-nums">{f.count?.toLocaleString()}</span>
-                      <span className="text-[10px] text-gray-400 w-8 text-right">{f.pct}%</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </section>
 

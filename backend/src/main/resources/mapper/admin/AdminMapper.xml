@@ -118,6 +118,53 @@
         ORDER BY count DESC
     </select>
 
+    <!-- 지역별 사용자 분포 — rest_logs의 장소 주소 앞 시/도 추출 -->
+    <select id="getRegionStats" resultType="map">
+        SELECT SUBSTRING_INDEX(p.address, ' ', 1) AS region,
+               COUNT(DISTINCT rl.`쉼표번호`) AS count
+        FROM rest_logs rl
+        JOIN places p ON rl.place_id = p.id
+        WHERE rl.deleted = 0
+          AND rl.place_id IS NOT NULL
+          AND rl.created_at &gt;= #{startDate}
+          AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        GROUP BY region
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
+    <!-- 사용자 여정 퍼널 -->
+    <select id="countNewSignups" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role = 'USER'
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countDiagnosisUsers" resultType="int">
+        SELECT COUNT(DISTINCT `쉼표번호`) FROM diagnosis_results
+        WHERE diagnosed_at &gt;= #{startDate}
+          AND diagnosed_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countRestLogUsers" resultType="int">
+        SELECT COUNT(DISTINCT `쉼표번호`) FROM rest_logs
+        WHERE deleted = 0
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countRevisitUsers" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT `쉼표번호` FROM rest_logs
+            WHERE deleted = 0
+              AND created_at &gt;= #{startDate}
+              AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            GROUP BY `쉼표번호`
+            HAVING COUNT(*) &gt;= 2
+        ) t
+    </select>
+
     <!-- ==================== 감사 로그 ==================== -->
 
     <insert id="insertAuditLog" parameterType="com.comma.domain.admin.model.AuditLog"

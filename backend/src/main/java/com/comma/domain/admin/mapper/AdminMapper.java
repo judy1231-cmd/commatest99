@@ -52,6 +52,16 @@ public interface AdminMapper {
 
     List<Map<String, Object>> getRestTypePopularity(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
+    List<Map<String, Object>> getRegionStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countNewSignups(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countDiagnosisUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countRestLogUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countRevisitUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
     // ==================== 감사 로그 ====================
 
     void insertAuditLog(AuditLog auditLog);

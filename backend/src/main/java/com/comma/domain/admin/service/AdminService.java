@@ -112,7 +112,23 @@ public class AdminService {
         analytics.put("dailySignups", adminMapper.getDailySignups(startDate, endDate));
         analytics.put("dailyRestLogs", adminMapper.getDailyRestLogs(startDate, endDate));
         analytics.put("restTypePopularity", adminMapper.getRestTypePopularity(startDate, endDate));
+        analytics.put("regionStats", adminMapper.getRegionStats(startDate, endDate));
+        analytics.put("funnelStats", buildFunnelStats(startDate, endDate));
         return analytics;
+    }
+
+    private Map<String, Object> buildFunnelStats(String startDate, String endDate) {
+        int signups   = adminMapper.countNewSignups(startDate, endDate);
+        int diagnosed = adminMapper.countDiagnosisUsers(startDate, endDate);
+        int logged    = adminMapper.countRestLogUsers(startDate, endDate);
+        int revisited = adminMapper.countRevisitUsers(startDate, endDate);
+
+        Map<String, Object> funnel = new HashMap<>();
+        funnel.put("signups",   signups);
+        funnel.put("diagnosed", diagnosed);
+        funnel.put("logged",    logged);
+        funnel.put("revisited", revisited);
+        return funnel;
     }
 
     public Map<String, Object> getAuditLogs(int page, int size) {
