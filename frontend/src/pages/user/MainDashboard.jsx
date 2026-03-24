@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
+import { trackPageView } from '../../api/analytics';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
@@ -106,6 +107,7 @@ function MainDashboard() {
   const [insightLoading, setInsightLoading] = useState(false);
 
   useEffect(() => {
+    trackPageView('main_dashboard');
     if (isLoggedIn) {
       loadMonthlyStats();
       loadRecommendations();

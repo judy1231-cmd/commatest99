@@ -2,6 +2,7 @@ package com.comma.domain.community.service;
 
 import com.comma.domain.admin.mapper.AdminMapper;
 import com.comma.domain.community.mapper.CommentMapper;
+import com.comma.global.util.AnalyticsService;
 import com.comma.domain.community.mapper.PostMapper;
 import com.comma.domain.community.mapper.PostPhotoMapper;
 import com.comma.domain.community.model.Comment;
@@ -29,6 +30,7 @@ public class PostService {
     private final FileUploadService fileUploadService;
     private final YoloService yoloService;
     private final AdminMapper adminMapper;
+    private final AnalyticsService analyticsService;
 
     // 텍스트에 활성 금칙어가 포함되어 있으면 true
     private boolean containsBlockedKeyword(String... texts) {
@@ -75,6 +77,7 @@ public class PostService {
         // 금칙어 포함 시 숨김 처리 (본인만 보임)
         post.setStatus(containsBlockedKeyword(post.getTitle(), post.getContent()) ? "hidden" : "visible");
         postMapper.insertPost(post);
+        analyticsService.track(쉼표번호, "post_create", Map.of("category", post.getCategory() != null ? post.getCategory() : ""));
 
         if (images != null && !images.isEmpty()) {
             // YOLO 검증: 부적절한 사진이 포함되어 있으면 업로드 거부

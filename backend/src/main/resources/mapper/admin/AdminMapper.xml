@@ -201,6 +201,21 @@
         ) t
     </select>
 
+    <!-- ==================== 이벤트 로깅 ==================== -->
+
+    <insert id="insertAnalyticsEvent">
+        INSERT INTO analytics_events (`쉼표번호`, event_type, event_data_json, occurred_at)
+        VALUES (#{쉼표번호}, #{eventType}, #{eventDataJson}, NOW())
+    </insert>
+
+    <select id="countEventsByType" resultType="map">
+        SELECT event_type AS eventType, COUNT(*) AS cnt
+        FROM analytics_events
+        WHERE occurred_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY event_type
+        ORDER BY cnt DESC
+    </select>
+
     <!-- ==================== 감사 로그 ==================== -->
 
     <insert id="insertAuditLog" parameterType="com.comma.domain.admin.model.AuditLog"

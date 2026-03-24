@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
+import { trackPageView } from '../../api/analytics';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const AUTH_TYPE_LABELS = {
@@ -461,7 +462,7 @@ function Challenge() {
     }
   }, [isLoggedIn]);
 
-  useEffect(() => { loadChallenges(); }, [loadChallenges]);
+  useEffect(() => { trackPageView('challenge'); loadChallenges(); }, [loadChallenges]);
 
   const handleToggleJoin = async (challengeId) => {
     if (!isLoggedIn) { navigate('/login'); return; }

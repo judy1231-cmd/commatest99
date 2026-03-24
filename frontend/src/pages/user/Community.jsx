@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import ReportModal from '../../components/common/ReportModal';
+import { trackPageView } from '../../api/analytics';
 
 // 메인페이지와 동일한 칩 스타일 데이터
 const CATEGORIES = [
@@ -204,6 +205,7 @@ function Community() {
   const hasLoaded = useRef(false);
 
   useEffect(() => {
+    if (!hasLoaded.current) trackPageView('community');
     fetchPosts(!hasLoaded.current);
     hasLoaded.current = true;
   }, [fetchPosts]);

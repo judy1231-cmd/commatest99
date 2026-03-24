@@ -3,6 +3,7 @@ package com.comma.domain.challenge.service;
 import com.comma.domain.challenge.mapper.ChallengeMapper;
 import com.comma.domain.challenge.model.Challenge;
 import com.comma.domain.challenge.model.ChallengeParticipant;
+import com.comma.global.util.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class ChallengeService {
 
     private final ChallengeMapper challengeMapper;
+    private final AnalyticsService analyticsService;
 
     public List<Challenge> getChallenges(String commaNo) {
         return challengeMapper.findAll(commaNo);
@@ -43,6 +45,7 @@ public class ChallengeService {
             participant.setAchievedDays(0);
             participant.setStatus("ongoing");
             challengeMapper.insertParticipant(participant);
+            analyticsService.track(commaNo, "challenge_join", Map.of("challengeId", challengeId));
             return Map.of("joined", true);
         }
     }

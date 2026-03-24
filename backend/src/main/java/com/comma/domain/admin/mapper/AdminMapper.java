@@ -64,6 +64,15 @@ public interface AdminMapper {
 
     int countRevisitUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
+    // ==================== 이벤트 로깅 ====================
+
+    void insertAnalyticsEvent(@Param("쉼표번호") String 쉼표번호,
+                               @Param("eventType") String eventType,
+                               @Param("eventDataJson") String eventDataJson);
+
+    List<Map<String, Object>> countEventsByType(@Param("startDate") String startDate,
+                                                @Param("endDate") String endDate);
+
     // ==================== 감사 로그 ====================
 
     void insertAuditLog(AuditLog auditLog);

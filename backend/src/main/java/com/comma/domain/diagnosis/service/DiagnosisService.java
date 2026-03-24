@@ -5,6 +5,7 @@ import com.comma.domain.diagnosis.model.*;
 import com.comma.domain.survey.mapper.SurveyMapper;
 import com.comma.domain.survey.model.SurveyChoice;
 import com.comma.domain.survey.model.SurveyResponse;
+import com.comma.global.util.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class DiagnosisService {
 
     private final DiagnosisMapper diagnosisMapper;
     private final SurveyMapper surveyMapper;
+    private final AnalyticsService analyticsService;
 
     // ==================== 심박 측정 ====================
 
@@ -168,6 +170,7 @@ public class DiagnosisService {
         result.setScoresJson(mapToJson(typeScores));
         result.setDiagnosedAt(LocalDateTime.now());
         diagnosisMapper.insertDiagnosisResult(result);
+        analyticsService.track(쉼표번호, "diagnosis_complete", Map.of("primaryRestType", primaryType, "stressIndex", stressIndex));
 
         // Step 6: 유형별 점수를 순위와 함께 저장
         List<Map.Entry<String, Integer>> sorted = typeScores.entrySet().stream()

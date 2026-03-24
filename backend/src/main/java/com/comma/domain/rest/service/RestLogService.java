@@ -6,6 +6,7 @@ import com.comma.domain.rest.model.RestActivity;
 import com.comma.domain.rest.model.RestLog;
 import com.comma.domain.rest.model.RestType;
 import com.comma.domain.stats.service.StatsService;
+import com.comma.global.util.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class RestLogService {
     private final RestLogMapper restLogMapper;
     private final BadgeService badgeService;
     private final StatsService statsService;
+    private final AnalyticsService analyticsService;
 
     @Transactional
     public RestLog createRestLog(String 쉼표번호, RestLog restLog) {
@@ -32,6 +34,8 @@ public class RestLogService {
         badgeService.checkAndAwardBadges(쉼표번호);
         // 월간 통계 자동 집계
         statsService.aggregateMonthlyStats(쉼표번호);
+        // 이벤트 수집
+        analyticsService.track(쉼표번호, "rest_log_create", Map.of("restTypeId", restLog.getRestTypeId() != null ? restLog.getRestTypeId() : 0));
 
         return restLog;
     }

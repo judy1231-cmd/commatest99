@@ -187,6 +187,7 @@ public class AdminService {
         analytics.put("restTypePopularity", adminMapper.getRestTypePopularity(startDate, endDate));
         analytics.put("regionStats", adminMapper.getRegionStats(startDate, endDate));
         analytics.put("funnelStats", buildFunnelStats(startDate, endDate));
+        analytics.put("eventStats", adminMapper.countEventsByType(startDate, endDate));
         return analytics;
     }
 
