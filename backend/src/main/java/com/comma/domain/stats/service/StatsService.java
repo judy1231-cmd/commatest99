@@ -17,11 +17,17 @@ public class StatsService {
 
     private final StatsMapper statsMapper;
 
+    @Transactional
     public MonthlyStats getMonthlyStats(String 쉼표번호, String yearMonth) {
         if (yearMonth == null || yearMonth.isBlank()) {
             yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
         }
-        return statsMapper.findByCommaNoAndMonth(쉼표번호, yearMonth);
+        MonthlyStats stats = statsMapper.findByCommaNoAndMonth(쉼표번호, yearMonth);
+        if (stats == null) {
+            // monthly_stats에 데이터 없으면 rest_logs에서 실시간 집계 후 저장
+            stats = aggregateMonthlyStats(쉼표번호);
+        }
+        return stats;
     }
 
     public List<MonthlyStats> getMonthlyStatsRange(String 쉼표번호, String startMonth, String endMonth) {
