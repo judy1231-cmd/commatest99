@@ -17,7 +17,7 @@
     <insert id="insertComment" parameterType="com.comma.domain.community.model.Comment"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO comments (post_id, `쉼표번호`, parent_id, content, status, created_at)
-        VALUES (#{postId}, #{쉼표번호}, #{parentId}, #{content}, 'visible', NOW())
+        VALUES (#{postId}, #{쉼표번호}, #{parentId}, #{content}, #{status}, NOW())
     </insert>
 
     <select id="findById" resultType="com.comma.domain.community.model.Comment">
@@ -32,6 +32,12 @@
         UPDATE comments
         SET content = #{content}
         WHERE id = #{id} AND `쉼표번호` = #{commaNo} AND status = 'visible'
+    </update>
+
+    <update id="updateCommentWithStatus">
+        UPDATE comments
+        SET content = #{content}, status = #{status}
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo}
     </update>
 
     <update id="softDeleteComment">

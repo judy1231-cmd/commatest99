@@ -17,5 +17,7 @@ public interface CommentMapper {
 
     void updateComment(@Param("id") Long id, @Param("commaNo") String commaNo, @Param("content") String content);
 
+    void updateCommentWithStatus(@Param("id") Long id, @Param("commaNo") String commaNo, @Param("content") String content, @Param("status") String status);
+
     void softDeleteComment(@Param("id") Long id, @Param("commaNo") String commaNo);
 }

@@ -1,5 +1,6 @@
 package com.comma.domain.community.service;
 
+import com.comma.domain.admin.mapper.AdminMapper;
 import com.comma.domain.community.mapper.CommentMapper;
 import com.comma.domain.community.mapper.PostMapper;
 import com.comma.domain.community.mapper.PostPhotoMapper;
@@ -27,6 +28,21 @@ public class PostService {
     private final CommentMapper commentMapper;
     private final FileUploadService fileUploadService;
     private final YoloService yoloService;
+    private final AdminMapper adminMapper;
+
+    // 텍스트에 활성 금칙어가 포함되어 있으면 true
+    private boolean containsBlockedKeyword(String... texts) {
+        List<String> keywords = adminMapper.findActiveKeywordValues();
+        if (keywords.isEmpty()) return false;
+        for (String text : texts) {
+            if (text == null) continue;
+            String lower = text.toLowerCase();
+            for (String kw : keywords) {
+                if (lower.contains(kw.toLowerCase())) return true;
+            }
+        }
+        return false;
+    }
 
     // 게시글 목록 조회
     public Map<String, Object> getPosts(String category, String sort, String commaNo, int page, int size) {
@@ -56,7 +72,8 @@ public class PostService {
     @Transactional
     public Post createPost(String 쉼표번호, Post post, List<MultipartFile> images) throws IOException {
         post.set쉼표번호(쉼표번호);
-        post.setStatus("visible");
+        // 금칙어 포함 시 숨김 처리 (본인만 보임)
+        post.setStatus(containsBlockedKeyword(post.getTitle(), post.getContent()) ? "hidden" : "visible");
         postMapper.insertPost(post);
 
         if (images != null && !images.isEmpty()) {
@@ -115,6 +132,8 @@ public class PostService {
         comment.set쉼표번호(commaNo);
         comment.setPostId(postId);
         comment.setContent(content.trim());
+        // 금칙어 포함 시 숨김 처리
+        comment.setStatus(containsBlockedKeyword(content) ? "hidden" : "visible");
         commentMapper.insertComment(comment);
         return commentMapper.findById(comment.getId());
     }
@@ -126,7 +145,8 @@ public class PostService {
         Comment comment = commentMapper.findById(commentId);
         if (comment == null) throw new IllegalArgumentException("댓글을 찾을 수 없습니다.");
         if (!comment.get쉼표번호().equals(commaNo)) throw new SecurityException("수정 권한이 없습니다.");
-        commentMapper.updateComment(commentId, commaNo, content.trim());
+        String newStatus = containsBlockedKeyword(content) ? "hidden" : "visible";
+        commentMapper.updateCommentWithStatus(commentId, commaNo, content.trim(), newStatus);
         return commentMapper.findById(commentId);
     }
 

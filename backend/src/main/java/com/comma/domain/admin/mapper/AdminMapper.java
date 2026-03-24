@@ -76,6 +76,8 @@ public interface AdminMapper {
 
     List<BlockedKeyword> findAllKeywords();
 
+    List<String> findActiveKeywordValues();
+
     void insertKeyword(BlockedKeyword keyword);
 
     void deleteKeyword(@Param("id") Long id);

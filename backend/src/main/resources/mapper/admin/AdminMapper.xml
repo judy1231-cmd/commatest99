@@ -228,6 +228,10 @@
         ORDER BY id
     </select>
 
+    <select id="findActiveKeywordValues" resultType="string">
+        SELECT keyword FROM blocked_keywords WHERE active = 1
+    </select>
+
     <insert id="insertKeyword" parameterType="com.comma.domain.admin.model.BlockedKeyword"
             useGeneratedKeys="true" keyProperty="id">
         INSERT INTO blocked_keywords (keyword, active)
