@@ -92,18 +92,6 @@ function AdminDashboard() {
     } catch { /* 무시 */ }
   };
 
-  const handleVerifyPlace = async (placeId) => {
-    try {
-      const res = await fetchWithAuth(`/api/admin/places/${placeId}/verify`, { method: 'POST' });
-      if (res.success) {
-        setPendingPlaces(prev => prev.map(p =>
-          p.id === placeId
-            ? { ...p, kakaoVerified: res.data.verified, kakaoPlaceId: res.data.kakaoPlaceId }
-            : p
-        ));
-      }
-    } catch { /* 무시 */ }
-  };
 
   const kpis = dashboard ? [
     { label: '총 사용자',   value: dashboard.totalUsers?.toLocaleString()    || '0', unit: '명', icon: 'group',        iconCls: 'bg-blue-50 text-blue-600'    },
@@ -454,7 +442,7 @@ function AdminDashboard() {
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">장소명</th>
                       <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">주소</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">카카오 확인</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">등록일</th>
                       <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">관리</th>
                     </tr>
                   </thead>
@@ -462,24 +450,9 @@ function AdminDashboard() {
                     {pendingPlaces.map((place, idx) => (
                       <tr key={place.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/60' : 'bg-white'}`}>
                         <td className="px-6 py-3.5 font-semibold text-gray-900">{place.name}</td>
-                        <td className="px-6 py-3.5 text-gray-500 max-w-[220px] truncate">{place.address}</td>
-                        <td className="px-6 py-3.5">
-                          {place.kakaoVerified === true ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200 px-2 py-0.5 rounded-full">
-                              <span className="material-icons text-[13px]">check_circle</span>확인됨
-                            </span>
-                          ) : place.kakaoVerified === false ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold bg-red-50 text-red-500 border border-red-200 px-2 py-0.5 rounded-full">
-                              <span className="material-icons text-[13px]">cancel</span>미확인
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleVerifyPlace(place.id)}
-                              className="text-xs font-semibold text-gray-500 hover:text-primary border border-gray-200 hover:border-primary px-2 py-0.5 rounded-full transition-colors"
-                            >
-                              확인하기
-                            </button>
-                          )}
+                        <td className="px-6 py-3.5 text-gray-500 max-w-[260px] truncate">{place.address}</td>
+                        <td className="px-6 py-3.5 text-xs text-gray-400 tabular-nums">
+                          {place.createdAt ? String(place.createdAt).slice(0, 10) : '—'}
                         </td>
                         <td className="px-6 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-2">

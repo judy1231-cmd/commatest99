@@ -8,7 +8,6 @@ import com.comma.domain.place.model.Place;
 import com.comma.domain.place.model.PlacePhoto;
 import com.comma.domain.place.model.PlaceTag;
 import com.comma.domain.user.model.User;
-import com.comma.global.util.KakaoPlaceService;
 import com.comma.global.util.YoloService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ public class AdminService {
     private final AdminMapper adminMapper;
     private final PlaceMapper placeMapper;
     private final YoloService yoloService;
-    private final KakaoPlaceService kakaoPlaceService;
 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -107,26 +105,6 @@ public class AdminService {
         tag.setRestType(suggestedCategory);
         placeMapper.insertPlaceTag(tag);
         log.info("YOLO 자동 태그 추가: place_id={}, category={}", placeId, suggestedCategory);
-    }
-
-    /**
-     * 카카오 로컬 API로 장소 존재 여부를 확인하고 결과를 DB에 저장한다.
-     * @return 카카오 placeId(확인됨) 또는 null(미확인)
-     */
-    @Transactional
-    public Map<String, Object> verifyPlaceWithKakao(Long placeId) {
-        Place place = placeMapper.findById(placeId);
-        if (place == null) throw new IllegalArgumentException("장소를 찾을 수 없습니다: " + placeId);
-
-        String kakaoPlaceId = kakaoPlaceService.verify(place.getName(), place.getAddress());
-        boolean verified = kakaoPlaceId != null;
-
-        placeMapper.updateKakaoVerified(placeId, verified, kakaoPlaceId);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("verified", verified);
-        result.put("kakaoPlaceId", kakaoPlaceId);
-        return result;
     }
 
     public Map<String, Object> getAnalytics(String startDate, String endDate) {
