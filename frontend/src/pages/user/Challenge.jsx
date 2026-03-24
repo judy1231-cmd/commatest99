@@ -546,35 +546,6 @@ function Challenge() {
           <p className="text-xs text-slate-400 mt-0.5">함께하면 더 쉬운 휴식 습관 만들기</p>
         </div>
 
-        {/* 참여 중인 챌린지 목록 */}
-        {isLoggedIn && (
-          activeChallenges.length > 0 ? (
-            <div className="mb-2">
-              <div className="flex items-center justify-between mb-3 px-0.5">
-                <p className="text-sm font-extrabold text-slate-700">참여 중인 챌린지</p>
-                <span className="text-xs font-bold text-primary">{activeChallenges.length}개</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {activeChallenges.map(c => (
-                  <ChallengeCard
-                    key={c.id}
-                    challenge={c}
-                    onToggleJoin={handleToggleJoin}
-                    onCertify={() => setCertifyTarget(c)}
-                    isLoggedIn={isLoggedIn}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-6 mb-6 text-center">
-              <span className="material-icons text-3xl text-slate-200 block mb-2">emoji_events</span>
-              <p className="text-sm font-semibold text-slate-400">아직 참여 중인 챌린지가 없어요</p>
-              <p className="text-xs text-slate-300 mt-1">아래에서 챌린지를 골라 참여해보세요</p>
-            </div>
-          )
-        )}
-
         {/* 완료한 챌린지 요약 */}
         {myChallenges.filter(c => c.myStatus === 'completed').length > 0 && (
           <div className="mb-5 px-4 py-3 bg-yellow-50 rounded-2xl border border-yellow-100 flex items-center gap-3">
