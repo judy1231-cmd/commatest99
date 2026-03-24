@@ -3,6 +3,7 @@ package com.comma.domain.admin.service;
 import com.comma.domain.admin.mapper.AdminMapper;
 import com.comma.domain.admin.model.AuditLog;
 import com.comma.domain.admin.model.BlockedKeyword;
+import com.comma.domain.notification.service.NotificationService;
 import com.comma.domain.place.mapper.PlaceMapper;
 import com.comma.domain.place.model.Place;
 import com.comma.domain.place.model.PlacePhoto;
@@ -28,6 +29,7 @@ public class AdminService {
     private final AdminMapper adminMapper;
     private final PlaceMapper placeMapper;
     private final YoloService yoloService;
+    private final NotificationService notificationService;
 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
@@ -61,6 +63,25 @@ public class AdminService {
     public void updateUserStatus(String admin쉼표번호, String target쉼표번호, String status) {
         adminMapper.updateUserStatus(target쉼표번호, status);
         logAudit(admin쉼표번호, "change_user_status_to_" + status, "user", target쉼표번호);
+
+        // 상태 변경 알림 발송
+        String title, content;
+        switch (status) {
+            case "banned" -> {
+                title = "계정 이용 제한 안내";
+                content = "커뮤니티 운영 정책 위반으로 계정 이용이 제한되었습니다. 문의사항은 관리자에게 연락해주세요.";
+            }
+            case "dormant" -> {
+                title = "계정 휴면 처리 안내";
+                content = "계정이 휴면 상태로 전환되었습니다. 로그인하시면 즉시 재활성화됩니다.";
+            }
+            case "active" -> {
+                title = "계정 활성화 안내";
+                content = "계정이 정상적으로 활성화되었습니다. 쉼표(,)의 모든 서비스를 이용하실 수 있습니다.";
+            }
+            default -> { return; }
+        }
+        notificationService.createNotification(target쉼표번호, "system", title, content);
     }
 
     public Map<String, Object> getPlaces(String status, int page, int size) {
