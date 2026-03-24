@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import Toast from '../../components/common/Toast';
+import ReportModal from '../../components/common/ReportModal';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -86,6 +87,7 @@ function PlaceDetail() {
 
   // 수정 상태
   const [editingId, setEditingId]           = useState(null);
+  const [reportReviewId, setReportReviewId] = useState(null);
   const [editRating, setEditRating]         = useState(0);
   const [editContent, setEditContent]       = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
@@ -551,9 +553,10 @@ function PlaceDetail() {
                       </div>
                       <p className="text-sm text-slate-700 leading-relaxed">{review.content}</p>
 
-                      {/* 본인 리뷰 수정/삭제 버튼 */}
-                      {isOwner && (
-                        <div className="flex gap-2 mt-3">
+                      {/* 본인 리뷰: 수정/삭제 | 타인 리뷰: 신고 */}
+                      <div className="flex gap-2 mt-3">
+                      {isOwner ? (
+                        <>
                           <button
                             onClick={() => startEdit(review)}
                             className="flex items-center gap-1 text-xs text-slate-500 hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-primary/5"
@@ -568,8 +571,17 @@ function PlaceDetail() {
                             <span className="material-icons text-sm">delete</span>
                             삭제
                           </button>
-                        </div>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setReportReviewId(review.id)}
+                          className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                        >
+                          <span className="material-icons text-sm">flag</span>
+                          신고
+                        </button>
                       )}
+                      </div>
                     </>
                   )}
                 </div>
@@ -608,6 +620,15 @@ function PlaceDetail() {
       </div>
 
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
+
+      {reportReviewId && (
+        <ReportModal
+          targetType="post"
+          targetId={reportReviewId}
+          onClose={() => setReportReviewId(null)}
+          onSuccess={() => setToast({ message: '신고가 접수되었어요.', type: 'success' })}
+        />
+      )}
     </div>
   );
 }

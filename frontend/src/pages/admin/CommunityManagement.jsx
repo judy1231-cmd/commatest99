@@ -28,7 +28,15 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
+const REPORT_STATUS_MAP = {
+  pending:   { label: '대기중',   cls: 'bg-amber-50 text-amber-600 border border-amber-200' },
+  resolved:  { label: '처리완료', cls: 'bg-green-50 text-green-600 border border-green-200' },
+  dismissed: { label: '기각',     cls: 'bg-gray-100 text-gray-500 border border-gray-200'  },
+};
+
 function CommunityManagement() {
+  const [activeTab, setActiveTab] = useState('posts'); // posts | reports
+
   const [posts, setPosts] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -39,6 +47,13 @@ function CommunityManagement() {
   const [inputSearch, setInputSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('전체');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // 신고 목록
+  const [reports, setReports] = useState([]);
+  const [reportTotal, setReportTotal] = useState(0);
+  const [reportPage, setReportPage] = useState(1);
+  const [reportStatusFilter, setReportStatusFilter] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -58,6 +73,31 @@ function CommunityManagement() {
   }, [page]);
 
   useEffect(() => { loadPosts(); }, [loadPosts]);
+
+  const loadReports = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const params = new URLSearchParams({ page: reportPage, size: 20 });
+      if (reportStatusFilter) params.set('status', reportStatusFilter);
+      const data = await fetchWithAuth(`/api/reports/admin?${params}`);
+      if (data.success && data.data) {
+        setReports(data.data.reports || []);
+        setReportTotal(data.data.total || 0);
+      }
+    } catch { /* 무시 */ } finally {
+      setReportLoading(false);
+    }
+  }, [reportPage, reportStatusFilter]);
+
+  useEffect(() => { if (activeTab === 'reports') loadReports(); }, [activeTab, loadReports]);
+
+  const handleReportStatus = async (id, status) => {
+    await fetchWithAuth(`/api/reports/admin/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
 
   const handleStatusChange = async (postId, newStatus) => {
     const label = STATUS_MAP[newStatus]?.label || newStatus;
@@ -89,9 +129,129 @@ function CommunityManagement() {
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader title="커뮤니티 관리" subtitle="게시글 현황 및 상태를 관리하세요." />
+
+        {/* 탭 */}
+        <div className="flex border-b border-gray-200 bg-white px-6">
+          {[
+            { key: 'posts',   label: '게시글 관리', icon: 'article' },
+            { key: 'reports', label: `신고 관리${reportTotal > 0 ? ` (${reportTotal})` : ''}`, icon: 'flag' },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                activeTab === t.key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <span className="material-icons-round text-base">{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <main className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* 요약 카드 */}
+        {activeTab === 'reports' ? (
+          /* ── 신고 목록 ── */
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* 필터 */}
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              {[
+                { value: '', label: '전체' },
+                { value: 'pending',   label: '대기중' },
+                { value: 'resolved',  label: '처리완료' },
+                { value: 'dismissed', label: '기각' },
+              ].map(f => (
+                <button
+                  key={f.value}
+                  onClick={() => { setReportStatusFilter(f.value); setReportPage(1); }}
+                  className={`h-8 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                    reportStatusFilter === f.value
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {reportLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : reports.length === 0 ? (
+              <div className="text-center py-16 text-gray-300">
+                <span className="material-icons text-4xl block mb-2">flag</span>
+                <p className="text-sm text-gray-400">신고 내역이 없어요</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase">#</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">신고자</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">대상</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">사유</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">상태</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">일시</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase text-right">처리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((r, idx) => {
+                      const st = REPORT_STATUS_MAP[r.status] || REPORT_STATUS_MAP.pending;
+                      return (
+                        <tr key={r.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'}`}>
+                          <td className="px-5 py-3.5 text-xs text-gray-400">{(reportPage - 1) * 20 + idx + 1}</td>
+                          <td className="px-5 py-3.5 text-sm font-medium text-gray-700">{r.reporterNickname || r.reporterId}</td>
+                          <td className="px-5 py-3.5">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                              {r.targetType} #{r.targetId}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-sm text-gray-600">{r.reason}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${st.cls}`}>
+                              {st.label}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-gray-400">{formatDate(r.createdAt)}</td>
+                          <td className="px-5 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {r.status !== 'resolved' && (
+                                <button
+                                  onClick={() => handleReportStatus(r.id, 'resolved')}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-green-600 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
+                                >
+                                  처리완료
+                                </button>
+                              )}
+                              {r.status !== 'dismissed' && (
+                                <button
+                                  onClick={() => handleReportStatus(r.id, 'dismissed')}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                  기각
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+
+          /* ── 게시글 관리 ── */
+          <>
           <div className="grid grid-cols-4 gap-4">
             {[
               { icon: 'article',      label: '전체 게시글', value: total,                                                    iconCls: 'bg-gray-100 text-gray-600'      },
@@ -315,6 +475,8 @@ function CommunityManagement() {
               </div>
             )}
           </div>
+
+        </> )} {/* activeTab === 'posts' 끝 */}
 
         </main>
       </div>

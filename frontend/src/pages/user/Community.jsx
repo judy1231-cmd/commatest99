@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
+import ReportModal from '../../components/common/ReportModal';
 
 // 메인페이지와 동일한 칩 스타일 데이터
 const CATEGORIES = [
@@ -58,7 +59,7 @@ function Avatar({ nickname, isAnonymous, size = 'md' }) {
   );
 }
 
-function PostCard({ post, onLike, onClick }) {
+function PostCard({ post, onLike, onReport, onClick }) {
   const catColor = CATEGORY_COLOR[post.category] || '#10b981';
   const likeCount = post.likeCount ?? 0;
   const commentCount = post.commentCount ?? 0;
@@ -130,10 +131,11 @@ function PostCard({ post, onLike, onClick }) {
               <div className="flex-1" />
 
               <button
-                className="text-slate-300 hover:text-primary transition-colors"
-                onClick={(e) => e.stopPropagation()}
+                className="text-slate-300 hover:text-red-400 transition-colors"
+                onClick={(e) => { e.stopPropagation(); onReport(post.id); }}
+                title="신고하기"
               >
-                <span className="material-icons text-[18px]">bookmark_border</span>
+                <span className="material-icons text-[18px]">flag</span>
               </button>
             </div>
           </div>
@@ -209,6 +211,13 @@ function Community() {
   useEffect(() => {
     setPage(1);
   }, [activeCategory, sort]);
+
+  const [reportTarget, setReportTarget] = useState(null); // { id }
+
+  const handleReport = (postId) => {
+    if (!token) { navigate('/login'); return; }
+    setReportTarget({ id: postId });
+  };
 
   const handleLike = async (postId) => {
     if (!token) { navigate('/login'); return; }
@@ -347,6 +356,7 @@ function Community() {
                 key={post.id}
                 post={post}
                 onLike={handleLike}
+                onReport={handleReport}
                 onClick={() => navigate(`/community/${post.id}`)}
               />
             ))}
@@ -400,6 +410,15 @@ function Community() {
         >
           <span className="material-icons text-xl">edit</span>
         </button>
+      )}
+
+      {reportTarget && (
+        <ReportModal
+          targetType="post"
+          targetId={reportTarget.id}
+          onClose={() => setReportTarget(null)}
+          onSuccess={() => setReportTarget(null)}
+        />
       )}
     </div>
   );
