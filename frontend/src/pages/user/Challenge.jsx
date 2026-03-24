@@ -490,12 +490,14 @@ function Challenge() {
                 <p className="text-sm font-extrabold text-slate-700">참여 중인 챌린지</p>
                 <span className="text-xs font-bold text-primary">{activeChallenges.length}개</span>
               </div>
-              <div className="flex flex-col gap-3 mb-6">
+              <div className="grid grid-cols-2 gap-3 mb-6">
                 {activeChallenges.map(c => (
-                  <ActiveChallengeCard
+                  <ChallengeCard
                     key={c.id}
                     challenge={c}
+                    onToggleJoin={handleToggleJoin}
                     onCertify={() => setCertifyTarget(c)}
+                    isLoggedIn={isLoggedIn}
                   />
                 ))}
               </div>
