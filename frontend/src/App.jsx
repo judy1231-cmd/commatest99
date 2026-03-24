@@ -11,6 +11,8 @@ import SignupComplete from './pages/user/SignupComplete';
 import PasswordReset from './pages/user/PasswordReset';
 import MyPage from './pages/user/MyPage';
 import Community from './pages/user/Community';
+import CommunityWrite from './pages/user/CommunityWrite';
+import CommunityDetail from './pages/user/CommunityDetail';
 import Challenge from './pages/user/Challenge';
 import HeartRateCheck from './pages/user/HeartRateCheck';
 import RestTypeTest from './pages/user/RestTypeTest';
@@ -84,11 +86,9 @@ import RecommendHistory from './pages/user/recommend/RecommendHistory';
 
 // Records Pages
 import RecordsRest from './pages/user/records/RecordsRest';
-import RecordsEmotion from './pages/user/records/RecordsEmotion';
 import RecordsDiagnosis from './pages/user/records/RecordsDiagnosis';
 
 // Stats Pages
-import StatsEmotion from './pages/user/stats/StatsEmotion';
 import StatsRest from './pages/user/stats/StatsRest';
 import StatsDiagnosis from './pages/user/stats/StatsDiagnosis';
 
@@ -153,6 +153,8 @@ function App() {
       <Route path="/signup-complete" element={<SignupComplete />} />
       <Route path="/password-reset" element={<PasswordReset />} />
       <Route path="/community" element={<Community />} />
+      <Route path="/community/write" element={<PrivateRoute><CommunityWrite /></PrivateRoute>} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/places/:id" element={<PlaceDetail />} />
       <Route path="/rest-test" element={<RestTypeTest />} />
@@ -229,11 +231,9 @@ function App() {
 
       {/* 기록 */}
       <Route path="/records/rest" element={<PrivateRoute><RecordsRest /></PrivateRoute>} />
-      <Route path="/records/emotion" element={<PrivateRoute><RecordsEmotion /></PrivateRoute>} />
       <Route path="/records/diagnosis" element={<PrivateRoute><RecordsDiagnosis /></PrivateRoute>} />
 
       {/* 통계 */}
-      <Route path="/stats/emotion" element={<PrivateRoute><StatsEmotion /></PrivateRoute>} />
       <Route path="/stats/rest" element={<PrivateRoute><StatsRest /></PrivateRoute>} />
       <Route path="/stats/diagnosis" element={<PrivateRoute><StatsDiagnosis /></PrivateRoute>} />
 

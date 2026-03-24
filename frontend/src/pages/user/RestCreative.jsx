@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UserNavbar from '../../components/user/UserNavbar';
 import { useRestActivities } from '../../api/useRestActivities';
+import ActivityModal from '../../components/user/ActivityModal';
 
 const TYPE = {
   key: 'creative',
@@ -14,33 +15,6 @@ const TYPE = {
   heroImg: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
-const FIELD_OPTIONS = [
-  { key: 'art',   label: '미술·드로잉', icon: 'palette' },
-  { key: 'music', label: '음악',        icon: 'music_note' },
-  { key: 'write', label: '글쓰기',      icon: 'edit_note' },
-  { key: 'cook',  label: '요리·베이킹', icon: 'restaurant' },
-  { key: 'craft', label: '공예·DIY',    icon: 'texture' },
-];
-
-const TIME_OPTIONS = [
-  { key: 'short',  label: '30분',   icon: 'bolt' },
-  { key: 'medium', label: '1시간',  icon: 'schedule' },
-  { key: 'long',   label: '반나절', icon: 'wb_sunny' },
-];
-
-const CREATIVE_PLACES = [
-  { name: '드로잉 유튜브 따라하기', location: '집에서', desc: '준비물: 스케치북과 연필 하나. 30분이면 한 장 완성', field: ['art'], time: ['short','medium'], tags: ['드로잉', '무료', '집에서'], icon: 'brush', gradient: 'from-orange-400 to-amber-500' },
-  { name: '수채화 원데이클래스', location: '홍대·성수동', desc: '강사와 함께 2시간. 완성작을 집에 가져갈 수 있어', field: ['art'], time: ['long'], tags: ['수채화', '원데이', '초보가능'], icon: 'palette', gradient: 'from-pink-400 to-rose-500' },
-  { name: '피아노 연습 (유튜브)', location: '집에서', desc: '악보 없이 코드만으로 팝송 배우기. 30분도 충분', field: ['music'], time: ['short','medium'], tags: ['피아노', '유튜브', '혼자'], icon: 'piano', gradient: 'from-indigo-400 to-violet-500' },
-  { name: '재즈바 라이브 감상', location: '이태원·홍대', desc: '연주를 들으며 영감 충전. 악기 없이도 음악적 충전 가능', field: ['music'], time: ['medium','long'], tags: ['재즈', '라이브', '분위기'], icon: 'music_note', gradient: 'from-violet-400 to-purple-600' },
-  { name: '에세이 쓰기 (메모앱)', location: '카페·집 어디서든', desc: '오늘 하루 인상적인 장면 하나 200자로 써보기', field: ['write'], time: ['short'], tags: ['에세이', '200자', '즉시가능'], icon: 'edit', gradient: 'from-cyan-400 to-sky-500' },
-  { name: '북카페에서 독서+글쓰기', location: '동네 북카페', desc: '책 읽고 느낀 점 노트에 쓰기. 생각이 정리되는 느낌', field: ['write'], time: ['long'], tags: ['북카페', '독서', '글쓰기'], icon: 'menu_book', gradient: 'from-teal-400 to-cyan-500' },
-  { name: '간단한 집밥 요리', location: '집에서', desc: '레시피 보며 파스타·볶음밥 도전. 만들고 먹으면 행복', field: ['cook'], time: ['medium'], tags: ['집밥', '파스타', '성취감'], icon: 'restaurant', gradient: 'from-emerald-400 to-green-500' },
-  { name: '베이킹 클래스', location: '동네 베이킹 스튜디오', desc: '마카롱·쿠키·케이크 만들기. 달콤한 결과물이 기다려', field: ['cook'], time: ['long'], tags: ['베이킹', '마카롱', '선물용'], icon: 'cake', gradient: 'from-rose-400 to-pink-500' },
-  { name: '도자기 공방 체험', location: '성수동·이태원', desc: '흙을 손으로 빚는 촉각적 집중. 완성된 작품은 소유 가능', field: ['craft'], time: ['long'], tags: ['도자기', '공방', '촉각'], icon: 'water_drop', gradient: 'from-amber-600 to-orange-600' },
-  { name: '뜨개질·자수 입문', location: '집에서·공방', desc: '바늘 잡는 법부터 유튜브로. 반복 동작이 명상처럼 작용', field: ['craft'], time: ['medium','long'], tags: ['뜨개질', '자수', '집중'], icon: 'texture', gradient: 'from-purple-400 to-violet-500' },
-];
-
 const CHECKLIST = [
   '새로운 아이디어가 전혀 떠오르지 않는다.',
   '반복되는 일상이 견디기 힘들 만큼 지루하다.',
@@ -48,21 +22,101 @@ const CHECKLIST = [
   '작업에 대한 성취감보다 의무감이 더 크다.',
 ];
 
+const EFFECTS = [
+  { icon: 'emoji_emotions', stat: '도파민 ↑', label: '완성의 기쁨 호르몬' },
+  { icon: 'lightbulb', stat: '창의력 ↑', label: '우뇌 활성화' },
+  { icon: 'local_fire_department', stat: '번아웃 ↓', label: '소진 예방 효과' },
+];
+
+const ROUTINE = {
+  totalTime: '약 40분',
+  steps: [
+    { title: '작은 것으로 시작', time: '5분', desc: '흰 종이에 선 하나 긋기, 단어 하나 쓰기. 완성하려 하지 말고 그냥 시작만' },
+    { title: '몰입 시간', time: '30분', desc: '알림 차단 후 선택한 창작 활동에 집중. 잘하려 하지 말고 과정 자체를 즐기기' },
+    { title: '결과 감상', time: '5분', desc: '완성됐든 안 됐든 오늘 만든 것 바라보기. "내가 했다"는 사실만으로 충분해' },
+  ],
+};
+
+const TIP = {
+  quote: '창작은 완성이 아니라 과정에서 치유됩니다',
+  body: '예술 치료 연구에 따르면 창작 활동 45분 후 코르티솔(스트레스 호르몬)이 평균 75% 감소합니다. 그림 실력, 글솜씨는 중요하지 않아요. 만드는 행위 자체가 뇌를 치유합니다.',
+  source: '드렉셀 대학교 예술 치료 연구 (Stuckey & Nobel)',
+};
+
+const OVERSEAS_KW = ['인도네시아','일본','미국','중국','태국','베트남','프랑스','이탈리아','스위스','호주','뉴질랜드','필리핀','싱가포르','말레이시아','인도','스페인','독일','영국','그리스','터키','캐나다','페루','멕시코'];
+function getLocation(place) {
+  if (place.latitude && place.longitude) {
+    const lat = Number(place.latitude), lng = Number(place.longitude);
+    if (lat >= 33.0 && lat <= 38.6 && lng >= 124.5 && lng <= 132.0) return '국내';
+    return '해외';
+  }
+  const addr = place.address || '';
+  if (OVERSEAS_KW.some(k => addr.includes(k))) return '해외';
+  return /[\uAC00-\uD7A3]/.test(addr) ? '국내' : '해외';
+}
+const HARD_TAGS = ['등산', '하이킹', '암벽', '서핑', '다이빙', '트레킹', '래프팅', '클라이밍'];
+const EASY_TAGS = ['카페', '공원', '독서', '산책', '미술관', '박물관', '수족관', '스파', '온천', '찜질'];
+function getDifficulty(place) {
+  const tags = (place.tags || []).join(' ');
+  if (HARD_TAGS.some(k => tags.includes(k))) return '높음';
+  if (EASY_TAGS.some(k => tags.includes(k))) return '낮음';
+  return '보통';
+}
+const DIFFICULTY_COLORS = { 낮음: '#4CAF82', 보통: '#FFB830', 높음: '#EF4444' };
+function getDistanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function RestCreative() {
   const navigate = useNavigate();
-  const [field, setField] = useState('art');
-  const [timeOpt, setTimeOpt] = useState('short');
+  const [selectedActivity, setSelectedActivity] = useState(null);
   const { activities, loading: activitiesLoading } = useRestActivities('creative');
 
-  const filteredPlaces = CREATIVE_PLACES.filter(
-    p => p.field.includes(field) && p.time.includes(timeOpt)
-  );
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [locationFilter, setLocationFilter] = useState('전체');
+  const [difficultyFilter, setDifficultyFilter] = useState('전체');
+  const [userLocation, setUserLocation] = useState(null);
+  const handleLocationFilter = (v) => {
+    if (v === '내 주변' && !userLocation) {
+      navigator.geolocation?.getCurrentPosition(
+        pos => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      );
+    }
+    setLocationFilter(v);
+  };
+  const filteredPlaces = nearbyPlaces.filter(place => {
+    if (locationFilter === '국내' && getLocation(place) !== '국내') return false;
+    if (locationFilter === '해외' && getLocation(place) !== '해외') return false;
+    if (locationFilter === '내 주변') {
+      if (!userLocation || !place.latitude || !place.longitude) return false;
+      if (getDistanceKm(userLocation.lat, userLocation.lng, Number(place.latitude), Number(place.longitude)) > 50) return false;
+    }
+    if (difficultyFilter !== '전체' && getDifficulty(place) !== difficultyFilter) return false;
+    return true;
+  });
+
+  useEffect(() => {
+    setNearbyLoading(true);
+    fetch(`/api/places?restType=${TYPE.key}&size=6`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.places) setNearbyPlaces(data.data.places);
+      })
+      .catch(() => {})
+      .finally(() => setNearbyLoading(false));
+  }, []);
 
   return (
+    <>
     <div className="min-h-screen bg-[#F7F7F8]">
       <UserNavbar />
 
-      {/* 히어로 */}
       <div className="relative">
         <div className="relative h-60 overflow-hidden">
           <img src={TYPE.heroImg} alt={TYPE.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -75,7 +129,6 @@ function RestCreative() {
           </div>
         </div>
 
-        {/* 브릿지 */}
         <div className="relative -mt-5 bg-[#F7F7F8] rounded-t-3xl pt-6 px-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.chipBg }}>
@@ -89,121 +142,19 @@ function RestCreative() {
 
           <main className="max-w-4xl mx-auto">
 
-            {/* 추천 활동 */}
-            <section className="mb-10">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[17px] font-extrabold text-slate-800">추천 활동</h2>
-                <span className="text-xs text-slate-400">탭하면 기록할 수 있어요</span>
-              </div>
-              {activitiesLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[1,2,3].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-28" />)}
-                </div>
-              ) : activities.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
-                  <span className="material-icons text-3xl text-slate-200 block mb-2">pending</span>
-                  <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {activities.map((act) => (
-                    <div key={act.id} onClick={() => navigate('/rest-record')}
-                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: TYPE.color + '18' }}>
-                        <span className="material-icons text-lg" style={{ color: TYPE.color }}>{TYPE.icon}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h4 className="font-bold text-slate-800 text-sm">{act.activityName}</h4>
-                        {act.durationMinutes && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{act.durationMinutes}분</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed">{act.guideContent}</p>
-                      <div className="mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: TYPE.color }}>
-                        <span className="material-icons text-sm">edit_note</span>
-                        <span className="text-xs font-bold">기록하기</span>
-                      </div>
+            {/* 효과 배지 */}
+            <section className="mb-8">
+              <div className="grid grid-cols-3 gap-3">
+                {EFFECTS.map((e, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 text-center">
+                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: TYPE.color + '15' }}>
+                      <span className="material-icons text-lg" style={{ color: TYPE.color }}>{e.icon}</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* 필터 + 장소 */}
-            <section className="mb-10">
-              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 어떻게 쉬고 싶어요?</h2>
-
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5 flex flex-wrap gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">창작 분야</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {FIELD_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setField(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={field === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
+                    <p className="text-[15px] font-extrabold text-slate-800">{e.stat}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{e.label}</p>
                   </div>
-                </div>
-                <div className="w-px bg-slate-100 self-stretch" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">가능한 시간</p>
-                  <div className="flex gap-2">
-                    {TIME_OPTIONS.map(opt => (
-                      <button key={opt.key} onClick={() => setTimeOpt(opt.key)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-2 text-xs font-bold transition-all"
-                        style={timeOpt === opt.key
-                          ? { backgroundColor: TYPE.color, borderColor: TYPE.color, color: '#fff' }
-                          : { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#64748b' }}>
-                        <span className="material-icons text-xs">{opt.icon}</span>{opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
-
-              {filteredPlaces.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                  <span className="material-icons text-4xl text-slate-200 block mb-2">search_off</span>
-                  <p className="text-slate-400 text-sm font-medium">이 조건에 맞는 공간을 준비 중이에요</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredPlaces.map((place, i) => (
-                    <div key={i} onClick={() => navigate('/rest-record')}
-                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
-                      <div className={`w-16 shrink-0 bg-gradient-to-b ${place.gradient} flex items-center justify-center`}>
-                        <span className="material-icons text-2xl text-white/90">{place.icon}</span>
-                      </div>
-                      <div className="flex-1 min-w-0 p-4">
-                        <h4 className="font-bold text-slate-800 text-sm">{place.name}</h4>
-                        <div className="flex items-center gap-1 mt-0.5 mb-2">
-                          <span className="material-icons text-[11px] text-slate-300">location_on</span>
-                          <p className="text-[11px] text-slate-400">{place.location}</p>
-                        </div>
-                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{place.desc}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {place.tags.map((tag, j) => (
-                            <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="material-icons text-slate-300">chevron_right</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <Link to="/map?restType=creative"
-                className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-amber-300 hover:text-amber-600 transition-all">
-                <span className="material-icons text-base">map</span>
-                지도에서 내 주변 창작 공간 찾기
-              </Link>
             </section>
 
             {/* 체크리스트 */}
@@ -232,10 +183,225 @@ function RestCreative() {
               </div>
             </section>
 
+            {/* 전문가 팁 */}
+            <section className="mb-10">
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${TYPE.color}14, ${TYPE.color}06)` }}>
+                <span className="material-icons text-[64px] absolute top-2 right-3 opacity-[0.07]" style={{ color: TYPE.color }}>format_quote</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: TYPE.color }}>
+                    <span className="material-icons text-sm text-white">psychology</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">전문가 TIP</span>
+                </div>
+                <p className="text-[15px] font-bold text-slate-800 leading-relaxed mb-3">"{TIP.quote}"</p>
+                <p className="text-xs text-slate-500 leading-relaxed">{TIP.body}</p>
+                <p className="text-[11px] font-bold mt-3" style={{ color: TYPE.color }}>— {TIP.source}</p>
+              </div>
+            </section>
+
+            {/* 추천 활동 */}
+            <section className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[17px] font-extrabold text-slate-800">지금 바로 해봐요</h2>
+                <span className="text-xs text-slate-400">탭하면 기록할 수 있어요</span>
+              </div>
+              {activitiesLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1,2,3].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-28" />)}
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
+                  <span className="material-icons text-3xl text-slate-200 block mb-2">pending</span>
+                  <p className="text-slate-400 text-sm">활동 정보를 불러올 수 없어요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {activities.map((act) => (
+                    <div key={act.id} onClick={() => setSelectedActivity(act)}
+                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: TYPE.color + '18' }}>
+                        <span className="material-icons text-lg" style={{ color: TYPE.color }}>{TYPE.icon}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h4 className="font-bold text-slate-800 text-sm">{act.activityName}</h4>
+                        {act.durationMinutes && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{act.durationMinutes}분</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">{act.guideContent}</p>
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate('/rest-record', { state: { prefill: { restType: TYPE.key, activityName: act.activityName, duration: act.durationMinutes } } }); }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-white text-[11px] font-bold hover:opacity-80 transition-opacity"
+                          style={{ backgroundColor: TYPE.color }}
+                        >
+                          <span className="material-icons text-[13px]">edit_note</span>
+                          기록
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* 오늘의 루틴 */}
+            <section className="mb-10">
+              <h2 className="text-[17px] font-extrabold text-slate-800 mb-4">지금 바로 시작하는 루틴</h2>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-50 flex items-center gap-2" style={{ background: `linear-gradient(135deg, ${TYPE.color}12, ${TYPE.color}04)` }}>
+                  <span className="material-icons text-base" style={{ color: TYPE.color }}>timer</span>
+                  <span className="text-sm font-bold text-slate-600">총 소요시간 {ROUTINE.totalTime}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  {ROUTINE.steps.map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="shrink-0 flex flex-col items-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: TYPE.color }}>
+                          {i + 1}
+                        </div>
+                        {i < ROUTINE.steps.length - 1 && (
+                          <div className="w-px h-full mt-1 mb-1 min-h-[24px]" style={{ backgroundColor: TYPE.color + '30' }} />
+                        )}
+                      </div>
+                      <div className="pb-5 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-800 text-sm">{step.title}</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: TYPE.color + '15', color: TYPE.color }}>{step.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* 더 찾아보기 */}
+            <section className="mb-10">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[17px] font-extrabold text-slate-800">더 찾아보기</h2>
+                <span className="text-xs text-slate-400">{filteredPlaces.length}개 장소</span>
+              </div>
+
+              {/* 필터 칩 */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5">
+                  <span className="material-icons text-[13px] text-slate-400">flight</span>
+                  {['전체', '내 주변', '국내', '해외'].map(v => (
+                    <button key={v} onClick={() => handleLocationFilter(v)}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${locationFilter === v ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-600'}`}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5">
+                  <span className="material-icons text-[13px] text-slate-400">signal_cellular_alt</span>
+                  {['전체', '낮음', '보통', '높음'].map(v => (
+                    <button key={v} onClick={() => setDifficultyFilter(v)}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition-all ${difficultyFilter === v ? 'text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                      style={difficultyFilter === v && v !== '전체' ? { backgroundColor: DIFFICULTY_COLORS[v] } : difficultyFilter === v ? { backgroundColor: '#1e293b' } : {}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {nearbyLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1,2].map(i => <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 animate-pulse h-24" />)}
+                </div>
+              ) : filteredPlaces.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center">
+                  <span className="material-icons text-4xl text-slate-200 block mb-2">location_off</span>
+                  <p className="text-slate-400 text-sm font-medium">
+                    {nearbyPlaces.length === 0 ? '장소 데이터를 준비 중이에요' : '조건에 맞는 장소가 없어요'}
+                  </p>
+                  <p className="text-slate-300 text-xs mt-1">지도에서 직접 탐색해보세요</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredPlaces.map((place) => {
+                    const difficulty = getDifficulty(place);
+                    const location = getLocation(place);
+                    return (
+                    <div key={place.id}
+                      onClick={() => navigate('/map', { state: { restType: TYPE.key, highlightPlace: { placeId: place.id, name: place.name, location: place.address } } })}
+                      className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
+                      <div className="w-24 shrink-0 relative overflow-hidden" style={{ minHeight: '90px', background: `linear-gradient(135deg, ${TYPE.color}CC, ${TYPE.color}88)` }}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="material-icons text-2xl text-white/90">{TYPE.icon}</span>
+                        </div>
+                        {place.photoUrl && (
+                          <img src={place.photoUrl} alt={place.name} className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        )}
+                        <span className="absolute top-1.5 left-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                          {location}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0 p-4">
+                        <div className="flex items-start justify-between gap-1 mb-0.5">
+                          <h4 className="font-bold text-slate-800 text-sm leading-snug">{place.name}</h4>
+                          <span className="shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: DIFFICULTY_COLORS[difficulty] }}>
+                            {difficulty}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className="material-icons text-[11px] text-slate-300">location_on</span>
+                          <p className="text-[11px] text-slate-400 truncate">{place.address}</p>
+                        </div>
+                        {place.operatingHours && (
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <span className="material-icons text-[11px]">schedule</span>
+                            {place.operatingHours}
+                          </p>
+                        )}
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
+                        {place.tags && place.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {place.tags.slice(0, 3).map((tag, j) => (
+                              <span key={j} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-500">#{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="material-icons text-slate-300">chevron_right</span>
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <Link to="/map"
+                state={{ restType: TYPE.key }}
+                className="flex items-center justify-center gap-2 w-full mt-4 py-3.5 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-500 hover:border-amber-300 hover:text-amber-600 transition-all">
+                <span className="material-icons text-base">map</span>
+                지도에서 더 보기
+              </Link>
+            </section>
+
           </main>
         </div>
       </div>
     </div>
+
+    {selectedActivity && (
+      <ActivityModal
+        activity={selectedActivity}
+        typeColor={TYPE.color}
+        typeName={TYPE.key}
+        onClose={() => setSelectedActivity(null)}
+      />
+    )}
+    </>
   );
 }
 

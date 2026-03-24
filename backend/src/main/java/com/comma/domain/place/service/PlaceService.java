@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,16 @@ public class PlaceService {
         int offset = (page - 1) * size;
         List<Place> places = placeMapper.findPlaces(keyword, restType, offset, size);
         int total = placeMapper.countPlaces(keyword, restType);
+
+        // GROUP_CONCAT으로 받은 tagsStr/restTypesStr을 List로 변환
+        places.forEach(p -> {
+            p.setTags(p.getTagsStr() != null && !p.getTagsStr().isBlank()
+                    ? Arrays.asList(p.getTagsStr().split(","))
+                    : Collections.emptyList());
+            p.setRestTypes(p.getRestTypesStr() != null && !p.getRestTypesStr().isBlank()
+                    ? Arrays.asList(p.getRestTypesStr().split(","))
+                    : Collections.emptyList());
+        });
 
         Map<String, Object> result = new HashMap<>();
         result.put("places", places);

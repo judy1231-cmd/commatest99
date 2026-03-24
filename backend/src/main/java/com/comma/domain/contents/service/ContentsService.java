@@ -30,6 +30,10 @@ public class ContentsService {
         contentsMapper.deactivateById(id);
     }
 
+    public void updateContent(Long id, String title, String summary, String body) {
+        contentsMapper.updateContent(id, title, summary, body);
+    }
+
     public void fixCategoryImages() {
         contentsMapper.updateImageUrlByCategory("mental",
             "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=800");

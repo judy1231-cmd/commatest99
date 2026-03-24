@@ -158,7 +158,13 @@ function RecordsDiagnosis() {
     try {
       const data = await fetchWithAuth('/api/diagnosis/history');
       if (data.success && data.data) {
-        setRecords(data.data);
+        // API: [{diagnosis:{...diagnosedAt}, scores:[...]}, ...]
+        // 평탄화 + createdAt 통일
+        const flat = data.data.map(item => {
+          const d = item.diagnosis || item;
+          return { ...d, createdAt: d.diagnosedAt || d.createdAt };
+        });
+        setRecords(flat);
       } else {
         setError(data.message || '진단 기록을 불러오지 못했어요.');
       }

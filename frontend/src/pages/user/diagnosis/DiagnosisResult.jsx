@@ -110,16 +110,35 @@ function DiagnosisResult() {
     setTypeScores(sorted);
 
     // 진단 결과가 서버에 저장된 경우(id 존재) recommendations 자동 생성
+    // 위치 정보를 함께 전송해 날씨 기반 추천 적용
     const token = localStorage.getItem('accessToken');
     if (parsed.id && token) {
-      fetch('/api/recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ diagnosisResultId: parsed.id }),
-      }).catch(() => { /* 추천 저장 실패 시 무시 */ });
+      const sendRecommendationRequest = (lat, lng) => {
+        const body = { diagnosisResultId: parsed.id };
+        if (lat != null && lng != null) {
+          body.lat = lat;
+          body.lng = lng;
+        }
+        fetch('/api/recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }).catch(() => { /* 추천 저장 실패 시 무시 */ });
+      };
+
+      // 위치 권한 있으면 현재 위치로, 없으면 서울 기본값으로 추천 생성
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => sendRecommendationRequest(pos.coords.latitude, pos.coords.longitude),
+          ()    => sendRecommendationRequest(null, null),
+          { timeout: 5000 }
+        );
+      } else {
+        sendRecommendationRequest(null, null);
+      }
     }
   }, [navigate]);
 

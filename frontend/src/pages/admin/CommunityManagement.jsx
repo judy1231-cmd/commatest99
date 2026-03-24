@@ -1,63 +1,263 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { fetchWithAuth } from '../../api/fetchWithAuth';
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import AdminHeader from '../../components/admin/AdminHeader';
 
-const posts = [
-  { id: '#48293', author: '김지한', title: '도심 속에서 찾은 완벽한 오후의 숲멍', category: '신체적 휴식', likes: 124, comments: 18, reports: 10, status: '정상',  time: '2시간 전' },
-  { id: '#48294', author: '이지은', title: '비 오는 날, 따뜻한 차 한 잔과 독서',   category: '감각적 휴식', likes: 89,  comments: 12, reports: 0,  status: '정상',  time: '5시간 전' },
-  { id: '#48295', author: '박준호', title: '도심 속에서 찾은 나만의 아지트',         category: '정신적 휴식', likes: 56,  comments: 7,  reports: 3,  status: '검토중', time: '1일 전'   },
-];
+const CATEGORIES = ['전체', '신체적 휴식', '감각적 휴식', '정신적 휴식', '정서적 휴식', '사회적 휴식', '자연적 휴식', '창조적 휴식'];
 
-const CATEGORIES = ['전체', '신체적 휴식', '감각적 휴식', '정신적 휴식', '정서적 휴식', '사회적 휴식'];
-const STATUS_FILTERS = ['전체', '정상', '검토중', '숨김'];
-
-const STATUS_BADGE = {
-  '정상':  'bg-green-50 text-green-600 border border-green-200',
-  '검토중': 'bg-amber-50 text-amber-600 border border-amber-200',
-  '숨김':  'bg-gray-100 text-gray-500 border border-gray-200',
+const STATUS_MAP = {
+  visible: { label: '정상',  cls: 'bg-green-50 text-green-600 border border-green-200',  dot: 'bg-green-500' },
+  hidden:  { label: '숨김',  cls: 'bg-gray-100 text-gray-500 border border-gray-200',   dot: 'bg-gray-400'  },
+  deleted: { label: '삭제됨', cls: 'bg-red-50 text-red-500 border border-red-200',       dot: 'bg-red-400'   },
 };
 
-const REPORT_THRESHOLD = 5;
+const STATUS_FILTERS = [
+  { value: '',        label: '전체' },
+  { value: 'visible', label: '정상' },
+  { value: 'hidden',  label: '숨김' },
+  { value: 'deleted', label: '삭제됨' },
+];
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 60)         return '방금 전';
+  if (diff < 3600)       return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400)      return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 86400 * 7)  return `${Math.floor(diff / 86400)}일 전`;
+  return new Date(dateStr).toLocaleDateString('ko-KR');
+}
+
+const REPORT_STATUS_MAP = {
+  pending:   { label: '대기중',   cls: 'bg-amber-50 text-amber-600 border border-amber-200' },
+  resolved:  { label: '처리완료', cls: 'bg-green-50 text-green-600 border border-green-200' },
+  dismissed: { label: '기각',     cls: 'bg-gray-100 text-gray-500 border border-gray-200'  },
+};
 
 function CommunityManagement() {
-  /* ── UI 전용 상태 ── */
-  const [search,         setSearch]         = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('전체');
-  const [statusFilter,   setStatusFilter]   = useState('전체');
+  const [activeTab, setActiveTab] = useState('posts'); // posts | reports
 
+  const [posts, setPosts] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState('');
+  const [inputSearch, setInputSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('전체');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // 신고 목록
+  const [reports, setReports] = useState([]);
+  const [reportTotal, setReportTotal] = useState(0);
+  const [reportPage, setReportPage] = useState(1);
+  const [reportStatusFilter, setReportStatusFilter] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page, size: 20 });
+      const data = await fetchWithAuth(`/api/admin/posts?${params}`);
+      if (data.success && data.data) {
+        setPosts(data.data.posts || []);
+        setTotal(data.data.total || 0);
+        setTotalPages(data.data.totalPages || 1);
+      }
+    } catch {
+      // 무시
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => { loadPosts(); }, [loadPosts]);
+
+  const loadReports = useCallback(async () => {
+    setReportLoading(true);
+    try {
+      const params = new URLSearchParams({ page: reportPage, size: 20 });
+      if (reportStatusFilter) params.set('status', reportStatusFilter);
+      const data = await fetchWithAuth(`/api/reports/admin?${params}`);
+      if (data.success && data.data) {
+        setReports(data.data.reports || []);
+        setReportTotal(data.data.total || 0);
+      }
+    } catch { /* 무시 */ } finally {
+      setReportLoading(false);
+    }
+  }, [reportPage, reportStatusFilter]);
+
+  useEffect(() => { if (activeTab === 'reports') loadReports(); }, [activeTab, loadReports]);
+
+  const handleReportStatus = async (id, status) => {
+    await fetchWithAuth(`/api/reports/admin/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
+
+  const handleStatusChange = async (postId, newStatus) => {
+    const label = STATUS_MAP[newStatus]?.label || newStatus;
+    if (!window.confirm(`게시글을 '${label}' 상태로 변경할까요?`)) return;
+    try {
+      await fetchWithAuth(`/api/admin/posts/${postId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: newStatus } : p));
+    } catch {
+      // 무시
+    }
+  };
+
+  // 클라이언트 필터 (검색·카테고리·상태)
   const filtered = posts.filter(p => {
     if (categoryFilter !== '전체' && p.category !== categoryFilter) return false;
-    if (statusFilter   !== '전체' && p.status   !== statusFilter)   return false;
-    if (search && !p.title.includes(search) && !p.author.includes(search)) return false;
+    if (statusFilter && p.status !== statusFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!p.title?.toLowerCase().includes(q) && !p.nickname?.toLowerCase().includes(q)) return false;
+    }
     return true;
   });
-
-  const reportedCount = posts.filter(p => p.reports > 0).length;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader title="커뮤니티 관리" subtitle="게시글 및 댓글을 관리하세요." />
+        <AdminHeader title="커뮤니티 관리" subtitle="게시글 현황 및 상태를 관리하세요." />
+
+        {/* 탭 */}
+        <div className="flex border-b border-gray-200 bg-white px-6">
+          {[
+            { key: 'posts',   label: '게시글 관리', icon: 'article' },
+            { key: 'reports', label: `신고 관리${reportTotal > 0 ? ` (${reportTotal})` : ''}`, icon: 'flag' },
+          ].map(t => (
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                activeTab === t.key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <span className="material-icons-round text-base">{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <main className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* ── 2차 MVP 준비중 배너 ── */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <span className="material-icons text-amber-500 text-[20px] shrink-0">construction</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-amber-800">커뮤니티 기능 — 2차 MVP 예정</p>
-              <p className="text-xs text-amber-600 mt-0.5">게시글 API 미연결 상태입니다. 현재 화면은 UI 미리보기입니다.</p>
+        {activeTab === 'reports' ? (
+          /* ── 신고 목록 ── */
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* 필터 */}
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              {[
+                { value: '', label: '전체' },
+                { value: 'pending',   label: '대기중' },
+                { value: 'resolved',  label: '처리완료' },
+                { value: 'dismissed', label: '기각' },
+              ].map(f => (
+                <button
+                  key={f.value}
+                  onClick={() => { setReportStatusFilter(f.value); setReportPage(1); }}
+                  className={`h-8 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                    reportStatusFilter === f.value
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
-            <span className="shrink-0 text-xs font-bold text-amber-600 bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-full">준비중</span>
-          </div>
 
-          {/* ── 요약 카드 ── */}
+            {reportLoading ? (
+              <div className="flex justify-center py-16">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : reports.length === 0 ? (
+              <div className="text-center py-16 text-gray-300">
+                <span className="material-icons text-4xl block mb-2">flag</span>
+                <p className="text-sm text-gray-400">신고 내역이 없어요</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase">#</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">신고자</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">대상</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">사유</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">상태</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase">일시</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase text-right">처리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((r, idx) => {
+                      const st = REPORT_STATUS_MAP[r.status] || REPORT_STATUS_MAP.pending;
+                      return (
+                        <tr key={r.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'}`}>
+                          <td className="px-5 py-3.5 text-xs text-gray-400">{(reportPage - 1) * 20 + idx + 1}</td>
+                          <td className="px-5 py-3.5 text-sm font-medium text-gray-700">{r.reporterNickname || r.reporterId}</td>
+                          <td className="px-5 py-3.5">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                              {r.targetType} #{r.targetId}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-sm text-gray-600">{r.reason}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${st.cls}`}>
+                              {st.label}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-gray-400">{formatDate(r.createdAt)}</td>
+                          <td className="px-5 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {r.status !== 'resolved' && (
+                                <button
+                                  onClick={() => handleReportStatus(r.id, 'resolved')}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-green-600 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
+                                >
+                                  처리완료
+                                </button>
+                              )}
+                              {r.status !== 'dismissed' && (
+                                <button
+                                  onClick={() => handleReportStatus(r.id, 'dismissed')}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                  기각
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+
+          /* ── 게시글 관리 ── */
+          <>
           <div className="grid grid-cols-4 gap-4">
             {[
-              { icon: 'article',      label: '전체 게시글', value: '14,832', unit: '건', iconCls: 'bg-gray-100 text-gray-600'       },
-              { icon: 'edit',         label: '오늘 작성',   value: '284',    unit: '건', iconCls: 'bg-blue-50 text-blue-600'        },
-              { icon: 'flag',         label: '신고 접수',   value: `${reportedCount}`,   unit: '건', iconCls: 'bg-red-50 text-red-500'  },
-              { icon: 'check_circle', label: '처리 완료',   value: '156',    unit: '건', iconCls: 'bg-emerald-50 text-emerald-600'  },
+              { icon: 'article',      label: '전체 게시글', value: total,                                                    iconCls: 'bg-gray-100 text-gray-600'      },
+              { icon: 'check_circle', label: '정상',        value: posts.filter(p => p.status === 'visible').length,        iconCls: 'bg-green-50 text-green-600'     },
+              { icon: 'visibility_off', label: '숨김',      value: posts.filter(p => p.status === 'hidden').length,         iconCls: 'bg-amber-50 text-amber-600'     },
+              { icon: 'delete',       label: '삭제됨',      value: posts.filter(p => p.status === 'deleted').length,        iconCls: 'bg-red-50 text-red-500'         },
             ].map((card, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${card.iconCls}`}>
@@ -66,7 +266,7 @@ function CommunityManagement() {
                 <div>
                   <div className="flex items-end gap-1">
                     <span className="text-2xl font-black text-gray-900 leading-none">{card.value}</span>
-                    <span className="text-sm text-gray-400 mb-0.5">{card.unit}</span>
+                    <span className="text-sm text-gray-400 mb-0.5">건</span>
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">{card.label}</p>
                 </div>
@@ -74,28 +274,26 @@ function CommunityManagement() {
             ))}
           </div>
 
-          {/* ── 테이블 카드 ── */}
+          {/* 테이블 카드 */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
             {/* 툴바 */}
             <div className="px-5 py-4 border-b border-gray-100 space-y-3">
-
-              {/* 1행: 검색 */}
               <div className="flex items-center justify-between gap-3">
-                <div className="relative">
+                <form onSubmit={e => { e.preventDefault(); setSearch(inputSearch); setPage(1); }} className="relative">
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[16px]">search</span>
                   <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
+                    value={inputSearch}
+                    onChange={e => setInputSearch(e.target.value)}
                     placeholder="제목 · 작성자 검색"
                     className="h-9 pl-9 pr-4 w-64 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder:text-gray-400 bg-gray-50 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                   />
-                </div>
+                </form>
                 <div className="text-xs text-gray-400">
-                  총 <span className="font-semibold text-gray-600">{filtered.length}</span>건
-                  {(search || categoryFilter !== '전체' || statusFilter !== '전체') && (
+                  총 <span className="font-semibold text-gray-600">{filtered.length}</span>건 표시
+                  {(search || categoryFilter !== '전체' || statusFilter) && (
                     <button
-                      onClick={() => { setSearch(''); setCategoryFilter('전체'); setStatusFilter('전체'); }}
+                      onClick={() => { setSearch(''); setInputSearch(''); setCategoryFilter('전체'); setStatusFilter(''); }}
                       className="ml-2 text-primary hover:underline"
                     >
                       필터 초기화
@@ -104,13 +302,12 @@ function CommunityManagement() {
                 </div>
               </div>
 
-              {/* 2행: 카테고리 칩 */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs text-gray-400 mr-1">카테고리</span>
                 {CATEGORIES.map(cat => (
                   <button
                     key={cat}
-                    onClick={() => setCategoryFilter(cat)}
+                    onClick={() => { setCategoryFilter(cat); setPage(1); }}
                     className={`h-7 px-3 rounded-lg text-xs font-semibold border transition-all ${
                       categoryFilter === cat
                         ? 'bg-primary text-white border-primary'
@@ -124,15 +321,15 @@ function CommunityManagement() {
                 <span className="text-xs text-gray-400 mr-1">상태</span>
                 {STATUS_FILTERS.map(s => (
                   <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
+                    key={s.value}
+                    onClick={() => { setStatusFilter(s.value); setPage(1); }}
                     className={`h-7 px-3 rounded-lg text-xs font-semibold border transition-all ${
-                      statusFilter === s
+                      statusFilter === s.value
                         ? 'bg-primary text-white border-primary'
                         : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    {s}
+                    {s.label}
                   </button>
                 ))}
               </div>
@@ -140,141 +337,146 @@ function CommunityManagement() {
 
             {/* 테이블 */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-16">#</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">제목</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">작성자</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">작성일</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20 text-center">신고 수</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20 text-center">상태</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-28">관리</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-16 text-center">
-                        <div className="flex flex-col items-center gap-2 text-gray-300">
-                          <span className="material-icons text-4xl">article</span>
-                          <p className="text-sm text-gray-400">
-                            {search ? `"${search}"에 해당하는 게시글이 없습니다` : '게시글이 없습니다'}
-                          </p>
-                        </div>
-                      </td>
+              {loading ? (
+                <div className="flex justify-center items-center py-16">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                </div>
+              ) : (
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">ID</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">제목</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">작성자</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">작성일</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-20 text-center">상태</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right w-36">관리</th>
                     </tr>
-                  ) : (
-                    filtered.map((post, idx) => {
-                      const isHighReport = post.reports >= REPORT_THRESHOLD;
-                      const statusCls = STATUS_BADGE[post.status] || 'bg-gray-100 text-gray-500 border border-gray-200';
-
-                      return (
-                        <tr
-                          key={post.id}
-                          className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${
-                            isHighReport ? 'bg-red-50/40' : idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'
-                          }`}
-                        >
-                          {/* ID */}
-                          <td className="px-5 py-3.5 text-xs font-mono text-gray-400">{post.id}</td>
-
-                          {/* 제목 + 카테고리 배지 */}
-                          <td className="px-5 py-3.5 max-w-xs">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-600 border border-teal-200 shrink-0">
-                                {post.category}
-                              </span>
-                            </div>
-                            <p className="text-sm font-semibold text-gray-900 truncate">{post.title}</p>
-                            <div className="flex items-center gap-3 mt-1">
-                              <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
-                                <span className="material-icons text-[12px] text-red-400">favorite</span>
-                                {post.likes}
-                              </span>
-                              <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
-                                <span className="material-icons text-[12px]">chat_bubble</span>
-                                {post.comments}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* 작성자 */}
-                          <td className="px-5 py-3.5">
-                            <span className="text-sm font-medium text-gray-700">{post.author}</span>
-                          </td>
-
-                          {/* 작성일 */}
-                          <td className="px-5 py-3.5">
-                            <span className="text-xs text-gray-500">{post.time}</span>
-                          </td>
-
-                          {/* 신고 수 */}
-                          <td className="px-5 py-3.5 text-center">
-                            {post.reports > 0 ? (
-                              <span className={`inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                                isHighReport
-                                  ? 'bg-red-50 text-red-600 border-red-200'
-                                  : 'bg-amber-50 text-amber-600 border-amber-200'
-                              }`}>
-                                <span className="material-icons text-[11px]">flag</span>
-                                {post.reports}건
-                              </span>
-                            ) : (
-                              <span className="text-xs text-gray-300">—</span>
-                            )}
-                          </td>
-
-                          {/* 상태 */}
-                          <td className="px-5 py-3.5 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusCls}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full inline-block ${
-                                post.status === '정상' ? 'bg-green-500' : post.status === '검토중' ? 'bg-amber-400' : 'bg-gray-400'
-                              }`} />
-                              {post.status}
-                            </span>
-                          </td>
-
-                          {/* 관리 버튼 */}
-                          <td className="px-5 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {post.reports > 0 && (
-                                <button
-                                  disabled
-                                  title="신고 처리 API 추후 지원 예정"
-                                  className="px-2.5 py-1 text-[11px] font-bold text-amber-500 border border-amber-200 rounded-lg cursor-not-allowed opacity-70"
-                                >
-                                  처리
-                                </button>
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-16 text-center">
+                          <div className="flex flex-col items-center gap-2 text-gray-300">
+                            <span className="material-icons text-4xl">article</span>
+                            <p className="text-sm text-gray-400">
+                              {search ? `"${search}"에 해당하는 게시글이 없습니다` : '게시글이 없습니다'}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filtered.map((post, idx) => {
+                        const statusInfo = STATUS_MAP[post.status] || STATUS_MAP.visible;
+                        return (
+                          <tr
+                            key={post.id}
+                            className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${
+                              idx % 2 === 1 ? 'bg-gray-50/50' : 'bg-white'
+                            }`}
+                          >
+                            <td className="px-5 py-3.5 text-xs font-mono text-gray-400">{post.id}</td>
+                            <td className="px-5 py-3.5 max-w-xs">
+                              {post.category && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-600 border border-teal-200 mb-1">
+                                  {post.category}
+                                </span>
                               )}
-                              <button
-                                disabled
-                                title="숨김 API 추후 지원 예정"
-                                className="px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-200 rounded-lg cursor-not-allowed opacity-70"
-                              >
-                                숨김
-                              </button>
-                              <button
-                                disabled
-                                title="삭제 API 추후 지원 예정"
-                                className="px-2.5 py-1 text-[11px] font-bold text-red-400 border border-red-200 rounded-lg cursor-not-allowed opacity-70"
-                              >
-                                삭제
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                              <p className="text-sm font-semibold text-gray-900 truncate">{post.title}</p>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+                                  <span className="material-icons text-[12px] text-red-400">favorite</span>
+                                  {post.likeCount || 0}
+                                </span>
+                                <span className="flex items-center gap-0.5 text-[11px] text-gray-400">
+                                  <span className="material-icons text-[12px]">chat_bubble</span>
+                                  {post.commentCount || 0}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 text-sm font-medium text-gray-700">
+                              {post.anonymous ? '익명' : post.nickname || '-'}
+                            </td>
+                            <td className="px-5 py-3.5 text-xs text-gray-500">{formatDate(post.createdAt)}</td>
+                            <td className="px-5 py-3.5 text-center">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusInfo.cls}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full inline-block ${statusInfo.dot}`} />
+                                {statusInfo.label}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {post.status !== 'visible' && (
+                                  <button
+                                    onClick={() => handleStatusChange(post.id, 'visible')}
+                                    className="px-2.5 py-1 text-[11px] font-bold text-green-600 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
+                                  >
+                                    복원
+                                  </button>
+                                )}
+                                {post.status === 'visible' && (
+                                  <button
+                                    onClick={() => handleStatusChange(post.id, 'hidden')}
+                                    className="px-2.5 py-1 text-[11px] font-bold text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                  >
+                                    숨김
+                                  </button>
+                                )}
+                                {post.status !== 'deleted' && (
+                                  <button
+                                    onClick={() => handleStatusChange(post.id, 'deleted')}
+                                    className="px-2.5 py-1 text-[11px] font-bold text-red-400 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                                  >
+                                    삭제
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
 
-            <div className="px-5 py-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">* 커뮤니티 기능은 2차 MVP 예정입니다. 숨김·삭제·신고 처리 API 연동 후 활성화됩니다.</p>
-            </div>
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-xs text-gray-400">총 {total}건</p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    <span className="material-icons text-[16px]">chevron_left</span>
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`w-8 h-8 text-xs font-bold rounded-lg border transition-all ${
+                        page === p ? 'bg-primary text-white border-primary' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    <span className="material-icons text-[16px]">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+
+        </> )} {/* activeTab === 'posts' 끝 */}
 
         </main>
       </div>

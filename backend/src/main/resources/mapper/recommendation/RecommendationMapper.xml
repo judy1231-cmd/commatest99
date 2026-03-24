@@ -17,7 +17,8 @@
                (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS place_photo_url,
                (SELECT COUNT(*) FROM place_reviews WHERE place_id = p.id) AS place_review_count,
                (SELECT COUNT(*) FROM place_bookmarks WHERE place_id = p.id) AS place_bookmark_count,
-               (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS place_first_rest_type
+               (SELECT rest_type FROM place_tags WHERE place_id = p.id LIMIT 1) AS place_first_rest_type,
+               p.difficulty AS place_difficulty
         FROM recommendations r
         LEFT JOIN places p ON r.place_id = p.id
         WHERE r.`쉼표번호` = #{쉼표번호}
@@ -47,6 +48,103 @@
         LEFT JOIN places p ON r.place_id = p.id
         WHERE r.`쉼표번호` = #{쉼표번호}
         ORDER BY r.recommended_at DESC
+    </select>
+
+
+    <!--
+        개인 효과 이력 — 최근 30일 기록에서 유형별 평균 감정 향상도 계산
+        향상도 = emotion_after - emotion_before (양수: 좋아짐, 음수: 나빠짐)
+        rest_types.type_name이 RestTypeScore.restType과 동일한 영문 키
+    -->
+    <select id="findPersonalEffectiveness" resultType="map">
+        SELECT rt.type_name AS rest_type,
+               AVG(rl.emotion_after - rl.emotion_before) AS avg_improvement
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` = #{commaNo}
+          AND rl.deleted = 0
+          AND rl.emotion_before IS NOT NULL
+          AND rl.emotion_after IS NOT NULL
+          AND rl.start_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY rt.id, rt.type_name
+    </select>
+
+    <!--
+        협업 필터링 — 유사 사용자들의 유형별 효과 집계
+
+        단계:
+          1) 나의 최근 90일 사용 유형 목록 추출
+          2) 그 유형들 중 2개 이상 겹치는 다른 사용자 = 유사 사용자
+          3) 유사 사용자들의 최근 90일 기록에서 유형별 평균 향상도 집계
+          4) 샘플 수 3개 미만 유형 제외 (신뢰도 기준)
+
+        데이터가 쌓일수록 유사 사용자 풀이 넓어져 추천 정확도가 높아짐
+    -->
+    <select id="findCollaborativeEffectiveness" resultType="map">
+        SELECT rt.type_name                                    AS rest_type,
+               AVG(rl.emotion_after - rl.emotion_before)      AS avg_improvement,
+               COUNT(*)                                        AS sample_count
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` != #{commaNo}
+          AND rl.deleted = 0
+          AND rl.emotion_before IS NOT NULL
+          AND rl.emotion_after  IS NOT NULL
+          AND rl.start_time >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+          AND rl.`쉼표번호` IN (
+              /* 나와 같은 유형을 2개 이상 사용한 유사 사용자 */
+              SELECT rl2.`쉼표번호`
+              FROM rest_logs rl2
+              JOIN rest_types rt2 ON rl2.rest_type_id = rt2.id
+              WHERE rl2.`쉼표번호` != #{commaNo}
+                AND rl2.deleted = 0
+                AND rl2.start_time >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+                AND rt2.type_name IN (
+                    /* 내가 최근 90일간 사용한 유형 목록 */
+                    SELECT DISTINCT rt3.type_name
+                    FROM rest_logs rl3
+                    JOIN rest_types rt3 ON rl3.rest_type_id = rt3.id
+                    WHERE rl3.`쉼표번호` = #{commaNo}
+                      AND rl3.deleted = 0
+                      AND rl3.start_time >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+                )
+              GROUP BY rl2.`쉼표번호`
+              HAVING COUNT(DISTINCT rt2.type_name) >= 2
+          )
+        GROUP BY rt.id, rt.type_name
+        HAVING COUNT(*) >= 3
+        ORDER BY avg_improvement DESC
+    </select>
+
+    <!--
+        개인 최적 패턴 학습 — 요일 × 시간대별 평균 감정 향상도
+
+        timeSlot: morning(06~11), afternoon(12~17), evening(18~21), night(22~05)
+        DAYOFWEEK(): 1=일, 2=월, ..., 7=토
+
+        "이 사람은 월요일 저녁에 감각적 휴식이 가장 효과적이었다" 같은 패턴을 발견
+        샘플 2개 이상 축적된 유형만 반환 (초기 데이터 부족 시 패턴 미적용)
+    -->
+    <select id="findBestTypeByDayAndTime" resultType="map">
+        SELECT rt.type_name                                AS rest_type,
+               AVG(rl.emotion_after - rl.emotion_before)  AS avg_improvement
+        FROM rest_logs rl
+        JOIN rest_types rt ON rl.rest_type_id = rt.id
+        WHERE rl.`쉼표번호` = #{commaNo}
+          AND rl.deleted = 0
+          AND rl.emotion_before IS NOT NULL
+          AND rl.emotion_after  IS NOT NULL
+          AND (DAYOFWEEK(rl.start_time) - 1) = #{dayOfWeek}
+          AND (
+              (#{timeSlot} = 'morning'   AND HOUR(rl.start_time) BETWEEN 6  AND 11) OR
+              (#{timeSlot} = 'afternoon' AND HOUR(rl.start_time) BETWEEN 12 AND 17) OR
+              (#{timeSlot} = 'evening'   AND HOUR(rl.start_time) BETWEEN 18 AND 21) OR
+              (#{timeSlot} = 'night'     AND (HOUR(rl.start_time) >= 22 OR HOUR(rl.start_time) &lt;= 5))
+          )
+        GROUP BY rt.id, rt.type_name
+        HAVING COUNT(*) >= 2
+        ORDER BY avg_improvement DESC
+        LIMIT 3
     </select>
 
 </mapper>

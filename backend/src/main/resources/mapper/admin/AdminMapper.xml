@@ -61,14 +61,16 @@
     <!-- ==================== 장소 관리 ==================== -->
 
     <select id="findPlacesByStatus" resultType="com.comma.domain.place.model.Place">
-        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
-        FROM places
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude, p.operating_hours, p.ai_score,
+               p.kakao_verified, p.kakao_place_id, p.status, p.created_at,
+               (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS photo_url
+        FROM places p
         <where>
             <if test="status != null and status != ''">
-                status = #{status}
+                p.status = #{status}
             </if>
         </where>
-        ORDER BY created_at DESC
+        ORDER BY p.created_at DESC, p.id DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
@@ -85,12 +87,22 @@
         UPDATE places SET status = #{status} WHERE id = #{id}
     </update>
 
-    <!-- ==================== 분석 — 최근 30일 ==================== -->
+    <update id="updatePlaceStatusBulk">
+        UPDATE places SET status = #{status}
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- ==================== 분석 — 기간 필터 지원 ==================== -->
 
     <select id="getDailySignups" resultType="map">
         SELECT DATE(created_at) AS date, COUNT(*) AS count
         FROM users
-        WHERE role = 'USER' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE role = 'USER'
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY DATE(created_at)
         ORDER BY date
     </select>
@@ -98,7 +110,9 @@
     <select id="getDailyRestLogs" resultType="map">
         SELECT DATE(created_at) AS date, COUNT(*) AS count
         FROM rest_logs
-        WHERE deleted = 0 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        WHERE deleted = 0
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY DATE(created_at)
         ORDER BY date
     </select>
@@ -108,8 +122,98 @@
         FROM rest_logs rl
         INNER JOIN rest_types rt ON rl.rest_type_id = rt.id
         WHERE rl.deleted = 0
+          AND rl.created_at &gt;= #{startDate}
+          AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
         GROUP BY rl.rest_type_id, rt.type_name
         ORDER BY count DESC
+    </select>
+
+    <!-- 지역별 사용자 분포 — 국내 시/도 정규화 + 해외 나라명 그대로 -->
+    <select id="getRegionStats" resultType="map">
+        SELECT CASE raw_region
+                   WHEN '서울특별시'       THEN '서울'
+                   WHEN '부산광역시'       THEN '부산'
+                   WHEN '인천광역시'       THEN '인천'
+                   WHEN '대구광역시'       THEN '대구'
+                   WHEN '광주광역시'       THEN '광주'
+                   WHEN '대전광역시'       THEN '대전'
+                   WHEN '울산광역시'       THEN '울산'
+                   WHEN '세종특별자치시'   THEN '세종'
+                   WHEN '경기도'           THEN '경기'
+                   WHEN '강원도'           THEN '강원'
+                   WHEN '강원특별자치도'   THEN '강원'
+                   WHEN '충청북도'         THEN '충북'
+                   WHEN '충청남도'         THEN '충남'
+                   WHEN '전라북도'         THEN '전북'
+                   WHEN '전북특별자치도'   THEN '전북'
+                   WHEN '전라남도'         THEN '전남'
+                   WHEN '경상북도'         THEN '경북'
+                   WHEN '경상남도'         THEN '경남'
+                   WHEN '제주특별자치도'   THEN '제주'
+                   ELSE raw_region
+               END AS region,
+               SUM(cnt) AS count
+        FROM (
+            SELECT SUBSTRING_INDEX(p.address, ' ', 1) AS raw_region,
+                   COUNT(DISTINCT rl.`쉼표번호`) AS cnt
+            FROM rest_logs rl
+            JOIN places p ON rl.place_id = p.id
+            WHERE rl.deleted = 0
+              AND rl.place_id IS NOT NULL
+              AND rl.created_at &gt;= #{startDate}
+              AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            GROUP BY raw_region
+        ) t
+        GROUP BY region
+        ORDER BY count DESC
+        LIMIT 15
+    </select>
+
+    <!-- 사용자 여정 퍼널 -->
+    <select id="countNewSignups" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role = 'USER'
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countDiagnosisUsers" resultType="int">
+        SELECT COUNT(DISTINCT `쉼표번호`) FROM diagnosis_results
+        WHERE diagnosed_at &gt;= #{startDate}
+          AND diagnosed_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countRestLogUsers" resultType="int">
+        SELECT COUNT(DISTINCT `쉼표번호`) FROM rest_logs
+        WHERE deleted = 0
+          AND created_at &gt;= #{startDate}
+          AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+    </select>
+
+    <select id="countRevisitUsers" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT `쉼표번호` FROM rest_logs
+            WHERE deleted = 0
+              AND created_at &gt;= #{startDate}
+              AND created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            GROUP BY `쉼표번호`
+            HAVING COUNT(*) &gt;= 2
+        ) t
+    </select>
+
+    <!-- ==================== 이벤트 로깅 ==================== -->
+
+    <insert id="insertAnalyticsEvent">
+        INSERT INTO analytics_events (`쉼표번호`, event_type, event_data_json, occurred_at)
+        VALUES (#{쉼표번호}, #{eventType}, #{eventDataJson}, NOW())
+    </insert>
+
+    <select id="countEventsByType" resultType="map">
+        SELECT event_type AS eventType, COUNT(*) AS cnt
+        FROM analytics_events
+        WHERE occurred_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY event_type
+        ORDER BY cnt DESC
     </select>
 
     <!-- ==================== 감사 로그 ==================== -->
@@ -137,6 +241,10 @@
         SELECT id, keyword, active
         FROM blocked_keywords
         ORDER BY id
+    </select>
+
+    <select id="findActiveKeywordValues" resultType="string">
+        SELECT keyword FROM blocked_keywords WHERE active = 1
     </select>
 
     <insert id="insertKeyword" parameterType="com.comma.domain.admin.model.BlockedKeyword"
@@ -191,6 +299,25 @@
 
     <delete id="deleteActivity">
         DELETE FROM rest_activities WHERE id = #{id}
+    </delete>
+
+    <!-- ==================== 태그 관리 ==================== -->
+
+    <!-- tag_name 기준으로 집계 — 동일 태그명을 가진 장소 수를 usageCount로 표시 -->
+    <select id="findAllTags" resultType="map">
+        SELECT
+            MIN(pt.id)    AS id,
+            pt.tag_name   AS tagName,
+            MIN(pt.rest_type) AS restType,
+            COUNT(*)      AS usageCount
+        FROM place_tags pt
+        GROUP BY pt.tag_name
+        ORDER BY usageCount DESC, pt.tag_name
+    </select>
+
+    <delete id="deleteTag">
+        DELETE FROM place_tags
+        WHERE tag_name = (SELECT tagn FROM (SELECT tag_name AS tagn FROM place_tags WHERE id = #{id}) tmp)
     </delete>
 
 </mapper>

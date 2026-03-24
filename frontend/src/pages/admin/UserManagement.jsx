@@ -26,6 +26,11 @@ function UserManagement() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // 금칙어
+  const [blockedKeywords, setBlockedKeywords] = useState([]);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [kwLoading, setKwLoading] = useState(false);
+
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,6 +52,31 @@ function UserManagement() {
   }, [page, keyword, statusFilter]);
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const loadKeywords = useCallback(async () => {
+    const data = await fetchWithAuth('/api/admin/keywords');
+    if (data.success) setBlockedKeywords(data.data || []);
+  }, []);
+
+  useEffect(() => { loadKeywords(); }, [loadKeywords]);
+
+  const handleAddKeyword = async (e) => {
+    e.preventDefault();
+    if (!newKeyword.trim()) return;
+    setKwLoading(true);
+    await fetchWithAuth('/api/admin/keywords', {
+      method: 'POST',
+      body: JSON.stringify({ keyword: newKeyword.trim() }),
+    });
+    setNewKeyword('');
+    await loadKeywords();
+    setKwLoading(false);
+  };
+
+  const handleDeleteKeyword = async (id) => {
+    await fetchWithAuth(`/api/admin/keywords/${id}`, { method: 'DELETE' });
+    setBlockedKeywords(prev => prev.filter(k => k.id !== id));
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -292,6 +322,59 @@ function UserManagement() {
                   <span className="material-icons text-lg">chevron_right</span>
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* ── 금칙어 관리 ── */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+              <span className="material-icons-round text-red-400 text-xl">block</span>
+              <div>
+                <p className="text-sm font-bold text-gray-800">금칙어 관리</p>
+                <p className="text-xs text-gray-400 mt-0.5">등록된 키워드가 포함된 게시글·댓글은 자동으로 숨김 처리돼요</p>
+              </div>
+            </div>
+
+            <div className="p-5">
+              {/* 추가 폼 */}
+              <form onSubmit={handleAddKeyword} className="flex gap-2 mb-4">
+                <input
+                  className="flex-1 h-10 px-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  placeholder="추가할 금칙어 입력"
+                  value={newKeyword}
+                  onChange={e => setNewKeyword(e.target.value)}
+                  maxLength={50}
+                />
+                <button
+                  type="submit"
+                  disabled={kwLoading || !newKeyword.trim()}
+                  className="h-10 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  추가
+                </button>
+              </form>
+
+              {/* 금칙어 목록 */}
+              {blockedKeywords.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">등록된 금칙어가 없어요</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {blockedKeywords.map(kw => (
+                    <span
+                      key={kw.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-100 rounded-full text-sm text-red-600 font-medium"
+                    >
+                      {kw.keyword}
+                      <button
+                        onClick={() => handleDeleteKeyword(kw.id)}
+                        className="text-red-300 hover:text-red-500 transition-colors ml-0.5"
+                      >
+                        <span className="material-icons-round text-sm leading-none">close</span>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

@@ -3,7 +3,6 @@ package com.comma.domain.admin.mapper;
 import com.comma.domain.admin.model.AuditLog;
 import com.comma.domain.admin.model.BlockedKeyword;
 import com.comma.domain.place.model.Place;
-import com.comma.domain.rest.model.RestActivity;
 import com.comma.domain.user.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -45,13 +44,34 @@ public interface AdminMapper {
 
     void updatePlaceStatus(@Param("id") Long id, @Param("status") String status);
 
+    void updatePlaceStatusBulk(@Param("ids") List<Long> ids, @Param("status") String status);
+
     // ==================== 분석 ====================
 
-    List<Map<String, Object>> getDailySignups();
+    List<Map<String, Object>> getDailySignups(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    List<Map<String, Object>> getDailyRestLogs();
+    List<Map<String, Object>> getDailyRestLogs(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-    List<Map<String, Object>> getRestTypePopularity();
+    List<Map<String, Object>> getRestTypePopularity(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    List<Map<String, Object>> getRegionStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countNewSignups(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countDiagnosisUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countRestLogUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    int countRevisitUsers(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    // ==================== 이벤트 로깅 ====================
+
+    void insertAnalyticsEvent(@Param("쉼표번호") String 쉼표번호,
+                               @Param("eventType") String eventType,
+                               @Param("eventDataJson") String eventDataJson);
+
+    List<Map<String, Object>> countEventsByType(@Param("startDate") String startDate,
+                                                @Param("endDate") String endDate);
 
     // ==================== 감사 로그 ====================
 
@@ -64,6 +84,8 @@ public interface AdminMapper {
     // ==================== 차단 키워드 ====================
 
     List<BlockedKeyword> findAllKeywords();
+
+    List<String> findActiveKeywordValues();
 
     void insertKeyword(BlockedKeyword keyword);
 
@@ -91,4 +113,10 @@ public interface AdminMapper {
                         @Param("durationMinutes") Integer durationMinutes);
 
     void deleteActivity(@Param("id") Long id);
+
+    // ==================== 태그 관리 ====================
+
+    List<Map<String, Object>> findAllTags();
+
+    void deleteTag(@Param("id") Long id);
 }

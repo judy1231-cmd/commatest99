@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
+import { trackPageView } from '../../api/analytics';
 import UserNavbar from '../../components/user/UserNavbar';
 
 const categories = [
@@ -26,17 +27,7 @@ const REST_TYPE_PHOTOS = {
   default:   'https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=400',
 };
 
-const REST_TYPE_TAG_COLORS = {
-  physical: 'text-emerald-600 border-emerald-50',
-  mental: 'text-primary border-blue-50',
-  sensory: 'text-amber-600 border-amber-50',
-  emotional: 'text-rose-600 border-rose-50',
-  social: 'text-purple-600 border-purple-50',
-  nature: 'text-green-600 border-green-50',
-  creative: 'text-orange-600 border-orange-50',
-};
 
-const STAT_COLORS = ['bg-emerald-400', 'bg-blue-400', 'bg-amber-400', 'bg-rose-400'];
 
 const REST_TYPE_LABELS = {
   physical:  '신체의 이완',
@@ -48,14 +39,20 @@ const REST_TYPE_LABELS = {
   nature:    '자연의 연결',
 };
 
+const DIFFICULTY_MAP = {
+  easy:   { label: '쉬움',   color: '#10b981', bg: 'rgba(16,185,129,0.15)',  icon: 'directions_walk' },
+  medium: { label: '보통',   color: '#F59E0B', bg: 'rgba(245,158,11,0.15)',  icon: 'directions_run'  },
+  hard:   { label: '어려움', color: '#EF4444', bg: 'rgba(239,68,68,0.15)',   icon: 'fitness_center'  },
+};
+
 const REST_TYPE_MAP = {
-  physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,207,130,0.18)' },
-  mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)' },
-  sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)' },
-  emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)' },
-  social:    { icon: 'groups',         label: '사회적 휴식', color: '#FF9A3C', bg: 'rgba(255,154,60,0.18)' },
-  creative:  { icon: 'brush',          label: '창조적 몰입', color: '#FFB830', bg: 'rgba(255,184,48,0.18)' },
-  nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)' },
+  physical:  { icon: 'fitness_center', label: '신체의 이완', color: '#4CAF82', bg: 'rgba(76,175,130,0.18)',  badge: 'rgba(76,175,130,0.85)'  },
+  mental:    { icon: 'spa',            label: '정신적 고요', color: '#5B8DEF', bg: 'rgba(91,141,239,0.18)', badge: 'rgba(91,141,239,0.85)' },
+  sensory:   { icon: 'visibility_off', label: '감각의 정화', color: '#9B6DFF', bg: 'rgba(155,109,255,0.18)',badge: 'rgba(155,109,255,0.85)'},
+  emotional: { icon: 'favorite',       label: '정서적 지지', color: '#FF7BAC', bg: 'rgba(255,123,172,0.18)',badge: 'rgba(255,123,172,0.85)'},
+  social:    { icon: 'groups',         label: '사회적 휴식', color: '#FF9A3C', bg: 'rgba(255,154,60,0.18)', badge: 'rgba(255,154,60,0.85)' },
+  creative:  { icon: 'brush',          label: '창조적 몰입', color: '#FFB830', bg: 'rgba(255,184,48,0.18)', badge: 'rgba(255,184,48,0.85)' },
+  nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)', badge: 'rgba(46,204,154,0.85)' },
 };
 
 function formatMinutes(minutes) {
@@ -105,16 +102,18 @@ function MainDashboard() {
   const [placesLoading, setPlacesLoading] = useState(true);
   const [hoveredCat, setHoveredCat] = useState(null);
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
-  const [likedContentIds, setLikedContentIds] = useState(new Set());
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
-  const [suggestedContents, setSuggestedContents] = useState([]);
+  const [insightMessage, setInsightMessage] = useState(null);
+  const [insightLoading, setInsightLoading] = useState(false);
 
   useEffect(() => {
+    trackPageView('main_dashboard');
     if (isLoggedIn) {
       loadMonthlyStats();
       loadRecommendations();
       loadMyBookmarks();
       loadLatestDiagnosis();
+      loadInsightMessage();
     } else {
       loadPlaces(null);
     }
@@ -126,23 +125,19 @@ function MainDashboard() {
       if (data.success && data.data?.primaryRestType) {
         setLatestDiagnosis(data.data);
         loadPlaces(data.data.primaryRestType);
-        loadSuggestedContents(data.data.primaryRestType);
       } else {
-        // 진단 이력 없어도 콘텐츠 섹션은 표시 (전체 콘텐츠)
         loadPlaces(null);
-        loadSuggestedContents(null);
       }
     } catch {
       loadPlaces(null);
-      loadSuggestedContents(null);
     }
   };
 
   const loadPlaces = async (restType) => {
     try {
       const url = restType
-        ? `/api/places?page=1&size=6&restType=${restType}`
-        : '/api/places?page=1&size=6&status=approved';
+        ? `/api/places?page=1&size=5&restType=${restType}`
+        : '/api/places?page=1&size=5&status=approved';
       const res = await fetch(url);
       const data = await res.json();
       if (data.success && data.data?.places) {
@@ -152,19 +147,6 @@ function MainDashboard() {
       // 장소 API 실패 시 빈 배열 유지
     } finally {
       setPlacesLoading(false);
-    }
-  };
-
-  const loadSuggestedContents = async (category) => {
-    try {
-      const url = category ? `/api/contents?category=${category}` : '/api/contents';
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setSuggestedContents(data.data.slice(0, 3));
-      }
-    } catch {
-      // 무시
     }
   };
 
@@ -181,10 +163,24 @@ function MainDashboard() {
     try {
       const data = await fetchWithAuth('/api/recommendations');
       if (data.success && Array.isArray(data.data)) {
-        setRecommendations(data.data.filter(r => r.placeName));
+        setRecommendations(data.data.filter(r => r.placeName).slice(0, 5));
       }
     } catch {
       // 무시
+    }
+  };
+
+  const loadInsightMessage = async () => {
+    setInsightLoading(true);
+    try {
+      const data = await fetchWithAuth('/api/insight/message');
+      if (data.success && data.data?.message) {
+        setInsightMessage(data.data.message);
+      }
+    } catch {
+      // 메시지 로드 실패 시 표시 안 함
+    } finally {
+      setInsightLoading(false);
     }
   };
 
@@ -193,30 +189,6 @@ function MainDashboard() {
       const data = await fetchWithAuth('/api/places/bookmarks');
       if (data.success && Array.isArray(data.data)) {
         setBookmarkedIds(new Set(data.data.map(p => p.id)));
-      }
-    } catch {
-      // 무시
-    }
-  };
-
-  const handleToggleContentLike = async (e, contentId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isLoggedIn) { navigate('/login'); return; }
-    try {
-      const data = await fetchWithAuth(`/api/contents/${contentId}/like`, { method: 'POST' });
-      if (data.success) {
-        const liked = data.data?.liked;
-        setLikedContentIds(prev => {
-          const next = new Set(prev);
-          liked ? next.add(contentId) : next.delete(contentId);
-          return next;
-        });
-        setSuggestedContents(prev => prev.map(c =>
-          c.id === contentId
-            ? { ...c, likeCount: liked ? (c.likeCount || 0) + 1 : Math.max((c.likeCount || 1) - 1, 0) }
-            : c
-        ));
       }
     } catch {
       // 무시
@@ -248,6 +220,7 @@ function MainDashboard() {
     }
   };
 
+
   let typeRatios = [];
   if (monthlyStats?.typeRatioJson) {
     try {
@@ -276,7 +249,7 @@ function MainDashboard() {
           {isLoggedIn && monthlyStats ? (
             <p className="text-[14px] text-slate-500 mt-1.5">
               이번 달{' '}
-              <span className="font-bold text-primary">{monthlyStats.logCount || 0}회</span> 휴식했어요 ·{' '}
+              <span className="font-bold text-primary">{monthlyStats.recordCount || 0}회</span> 휴식했어요 ·{' '}
               총 <span className="font-bold text-primary">{formatMinutes(monthlyStats.totalRestMinutes)}</span>
             </p>
           ) : isLoggedIn ? (
@@ -285,6 +258,21 @@ function MainDashboard() {
             <p className="text-[14px] text-slate-400 mt-1.5">
               <Link to="/login" className="text-primary font-bold hover:underline">로그인</Link>하고 맞춤 휴식을 시작해요
             </p>
+          )}
+
+          {/* AI 인사이트 메시지 */}
+          {isLoggedIn && (insightLoading || insightMessage) && (
+            <div className="mt-4 flex items-start gap-3 bg-[#F0FBF7] border border-primary/20 rounded-2xl px-4 py-3">
+              <span className="material-icons text-primary text-[20px] mt-0.5 flex-shrink-0">auto_awesome</span>
+              {insightLoading ? (
+                <div className="flex-1 space-y-1.5 pt-0.5">
+                  <div className="h-3 bg-emerald-100 rounded animate-pulse w-4/5" />
+                  <div className="h-3 bg-emerald-100 rounded animate-pulse w-3/5" />
+                </div>
+              ) : (
+                <p className="text-[13px] text-slate-600 leading-relaxed">{insightMessage}</p>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -345,7 +333,7 @@ function MainDashboard() {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">기록 횟수</p>
                 <p className="text-[24px] font-extrabold text-slate-900 leading-none">
-                  {monthlyStats ? (monthlyStats.logCount || 0) : <span className="w-8 h-6 bg-slate-100 rounded animate-pulse inline-block" />}
+                  {monthlyStats ? (monthlyStats.recordCount || 0) : <span className="w-8 h-6 bg-slate-100 rounded animate-pulse inline-block" />}
                   <span className="text-[14px] font-semibold text-slate-400 ml-1">회</span>
                 </p>
                 <p className="text-[11px] text-slate-400 mt-1">이번 달 합계</p>
@@ -389,7 +377,7 @@ function MainDashboard() {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value, name, props) => [`${value}%`, REST_TYPE_LABELS[props.payload.type] || props.payload.type]}
+                          formatter={(value, _name, props) => [`${value}%`, REST_TYPE_LABELS[props.payload.type] || props.payload.type]}
                           contentStyle={{ fontSize: 12, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
                         />
                       </PieChart>
@@ -502,17 +490,22 @@ function MainDashboard() {
             <SectionHeader
               title="나를 위한 맞춤 추천"
               action={
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                  <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                    <span className="material-icons text-[12px]">auto_awesome</span>진단 기반
+                  </span>
+                  <Link to="/map" className="flex items-center gap-0.5 text-[13px] text-slate-400 font-semibold hover:text-primary transition-colors">
+                    지도에서 보기 <span className="material-icons text-[14px]">chevron_right</span>
+                  </Link>
+                </div>
               }
             />
-            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
-              {recommendations.slice(0, 5).map((rec, idx) => (
+            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar pr-6">
+              {recommendations.map((rec, idx) => (
                 <div
-                  key={rec.id}
+                  key={`rec-${idx}`}
                   onClick={() => navigate(`/places/${rec.placeId}`)}
-                  className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer"
+                  className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-primary/15 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                 >
                   {/* 사진 */}
                   <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
@@ -525,9 +518,9 @@ function MainDashboard() {
                     {REST_TYPE_MAP[rec.placeFirstRestType] && (() => {
                       const t = REST_TYPE_MAP[rec.placeFirstRestType];
                       return (
-                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
-                          style={{ background: 'rgba(0,0,0,0.45)' }}>
-                          <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
+                        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: t.badge }}>
+                          <span className="material-icons text-[11px] text-white">{t.icon}</span>
                           <span className="text-[9px] font-bold text-white">{t.label}</span>
                         </div>
                       );
@@ -536,6 +529,17 @@ function MainDashboard() {
                     <div className="absolute top-2 right-2 bg-primary text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                       <span className="material-icons text-[10px]">auto_awesome</span>맞춤
                     </div>
+                    {/* 우하단 — 난이도 */}
+                    {rec.placeDifficulty && DIFFICULTY_MAP[rec.placeDifficulty] && (() => {
+                      const d = DIFFICULTY_MAP[rec.placeDifficulty];
+                      return (
+                        <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full backdrop-blur-sm"
+                          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                          <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                          <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   {/* 내용 */}
                   <div className="p-3 flex flex-col flex-1">
@@ -579,83 +583,6 @@ function MainDashboard() {
           </section>
         )}
 
-        {/* ── 진단 기반 추천 콘텐츠 ──────────────────────────────────────────── */}
-        {isLoggedIn && suggestedContents.length > 0 && (
-          <section>
-            <SectionHeader
-              title="이런 휴식 활동 어떠세요?"
-              action={
-                latestDiagnosis ? (
-                  <span className="flex items-center gap-1 text-[10px] font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
-                    <span className="material-icons text-[12px]">auto_awesome</span>
-                    {REST_TYPE_LABELS[latestDiagnosis.primaryRestType]} 추천
-                  </span>
-                ) : (
-                  <Link to="/contents" className="flex items-center gap-0.5 hover:text-primary transition-colors">
-                    더보기 <span className="material-icons text-[14px]">chevron_right</span>
-                  </Link>
-                )
-              }
-            />
-            <div className="flex gap-4 overflow-x-auto py-2 hide-scrollbar">
-              {suggestedContents.map((content) => {
-                const t = REST_TYPE_MAP[content.category];
-                return (
-                  <Link
-                    key={content.id}
-                    to={`/contents/${content.id}`}
-                    className="group flex-shrink-0 w-[200px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="h-[110px] overflow-hidden bg-slate-100">
-                      <img
-                        src={content.imageUrl}
-                        alt={content.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    </div>
-                    <div className="p-3">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className="material-icons text-[12px]" style={{ color: t?.color }}>{t?.icon}</span>
-                        <span className="text-[10px] font-bold" style={{ color: t?.color }}>{t?.label}</span>
-                      </div>
-                      <p className="text-[13px] font-bold text-slate-900 leading-tight mb-1 line-clamp-2">{content.title}</p>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => handleToggleContentLike(e, content.id)}
-                            className="flex items-center gap-0.5 transition-colors"
-                          >
-                            <span className="material-icons text-[11px] transition-colors"
-                              style={{ color: likedContentIds.has(content.id) ? '#F43F5E' : '#CBD5E1' }}>
-                              {likedContentIds.has(content.id) ? 'favorite' : 'favorite_border'}
-                            </span>
-                            <span style={{ color: likedContentIds.has(content.id) ? '#F43F5E' : '#94A3B8' }}>
-                              {content.likeCount ?? 0}
-                            </span>
-                          </button>
-                          <span className="flex items-center gap-0.5">
-                            <span className="material-icons text-[11px] text-slate-300">chat_bubble</span>
-                            {content.reviewCount ?? 0}
-                          </span>
-                        </div>
-                        <span>{content.duration}분 소요</span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-              <Link
-                to="/contents"
-                className="flex-shrink-0 w-[120px] bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
-              >
-                <span className="material-icons text-slate-300 text-[28px] group-hover:text-primary transition-colors">article</span>
-                <p className="text-[12px] font-bold text-slate-400 group-hover:text-primary transition-colors text-center leading-tight px-2">콘텐츠<br/>더 보기</p>
-              </Link>
-            </div>
-          </section>
-        )}
-
         {/* ── 추천 장소 가로 스크롤 ────────────────────────────────────────── */}
         <section>
           <SectionHeader
@@ -690,16 +617,14 @@ function MainDashboard() {
               <Link to="/map" className="text-[13px] text-primary font-bold hover:underline">지도에서 탐색하기 →</Link>
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar">
+            <div className="relative">
+              <div className="flex gap-4 overflow-x-auto py-3 hide-scrollbar pr-6">
               {places.map((place, idx) => {
-                const firstTag = place.tags?.[0];
-                const tagColor = firstTag ? (REST_TYPE_TAG_COLORS[firstTag.restType] || 'text-primary border-blue-50') : 'text-primary border-blue-50';
-
                 return (
                   <div
-                    key={place.id}
+                    key={`place-${idx}`}
                     onClick={() => navigate(`/places/${place.id}`)}
-                    className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer"
+                    className="group flex-shrink-0 w-[220px] bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden"
                   >
                     {/* 이미지 */}
                     <div className="relative h-[120px] overflow-hidden bg-slate-100 flex-shrink-0 rounded-t-2xl">
@@ -708,19 +633,28 @@ function MainDashboard() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         src={place.photoUrl || REST_TYPE_PHOTOS[place.firstRestType] || REST_TYPE_PHOTOS.default}
                       />
-                      {/* 좌상단 — 휴식유형 아이콘 + 라벨 */}
-                      {(() => {
-                        const restType = place.firstRestType || firstTag?.restType;
-                        const t = REST_TYPE_MAP[restType];
-                        if (!t) return null;
-                        return (
-                          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm"
-                            style={{ background: 'rgba(0,0,0,0.45)' }}>
-                            <span className="material-icons text-[11px]" style={{ color: t.color }}>{t.icon}</span>
-                            <span className="text-[9px] font-bold text-white">{t.label}</span>
-                          </div>
-                        );
-                      })()}
+                      {/* 좌상단 — 휴식유형 중복 뱃지 */}
+                      {(place.restTypes?.length > 0 || place.firstRestType) && (
+                        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                          {(place.restTypes?.length > 0
+                            ? place.restTypes
+                            : [place.firstRestType]
+                          ).map(rt => {
+                            const t = REST_TYPE_MAP[rt];
+                            if (!t) return null;
+                            return (
+                              <div
+                                key={rt}
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                                style={{ backgroundColor: t.badge }}
+                              >
+                                <span className="material-icons text-[10px] text-white">{t.icon}</span>
+                                <span className="text-[9px] font-bold text-white">{t.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       {/* 우상단 — AI 별점 */}
                       {place.aiScore != null && (
                         <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
@@ -728,6 +662,17 @@ function MainDashboard() {
                           <span className="text-[10px] font-bold text-white">{place.aiScore.toFixed(1)}</span>
                         </div>
                       )}
+                      {/* 우하단 — 난이도 */}
+                      {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+                        const d = DIFFICULTY_MAP[place.difficulty];
+                        return (
+                          <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                            <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                            <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* 텍스트 */}
@@ -771,15 +716,8 @@ function MainDashboard() {
                 );
               })}
 
-              {/* 더보기 카드 */}
-              <Link
-                to="/map"
-                className="flex-shrink-0 w-[160px] bg-white rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-all duration-200 group"
-              >
-                <span className="material-icons text-slate-300 text-[32px] group-hover:text-primary transition-colors">add_location</span>
-                <p className="text-[12px] font-bold text-slate-400 group-hover:text-primary transition-colors text-center leading-tight px-2">지도에서<br/>더 보기</p>
-              </Link>
             </div>
+          </div>
           )}
         </section>
 

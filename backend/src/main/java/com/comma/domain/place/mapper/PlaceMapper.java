@@ -63,6 +63,16 @@ public interface PlaceMapper {
                                  @Param("lng") double lng,
                                  @Param("radius") double radius);
 
+    // ==================== AI 점수 배치 ====================
+
+    /** 모든 승인된 장소의 ai_score를 리뷰/북마크/추천 클릭 기반으로 재계산 */
+    void updateAllPlaceScores();
+
+    /** 카카오 장소 검증 결과 저장 */
+    void updateKakaoVerified(@Param("id") Long id,
+                             @Param("kakaoVerified") boolean kakaoVerified,
+                             @Param("kakaoPlaceId") String kakaoPlaceId);
+
     // ==================== Seed (관리자) ====================
 
     boolean existsByNameAndAddress(@Param("name") String name, @Param("address") String address);

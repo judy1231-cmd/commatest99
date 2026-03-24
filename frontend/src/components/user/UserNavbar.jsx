@@ -1,5 +1,161 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+// 알림 타입별 아이콘/색상
+const NOTIF_TYPE = {
+  badge:       { icon: 'emoji_events',       color: '#FFB830' },
+  challenge:   { icon: 'flag',               color: '#10b981' },
+  stress:      { icon: 'favorite',           color: '#FF7BAC' },
+  reengagement:{ icon: 'notifications',      color: '#5B8DEF' },
+  system:      { icon: 'campaign',           color: '#9B6DFF' },
+};
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 60)         return '방금 전';
+  if (diff < 3600)       return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400)      return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 86400 * 30) return `${Math.floor(diff / 86400)}일 전`;
+  return new Date(dateStr).toLocaleDateString('ko-KR');
+}
+
+function NotificationDropdown({ onClose, onUnreadChange, btnRef }) {
+  const token = localStorage.getItem('accessToken');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const panelRef = useRef(null);
+
+  const load = useCallback(async () => {
+    if (!token) { setLoading(false); return; }
+    try {
+      const res = await fetch('/api/notifications?page=1&size=20', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) setItems(data.data.notifications || []);
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
+  }, [token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // 외부 클릭 닫기 (종 버튼 자체는 제외 — 버튼 onClick의 토글이 담당)
+  useEffect(() => {
+    function handler(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target) &&
+          !(btnRef?.current && btnRef.current.contains(e.target))) {
+        onClose();
+      }
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose, btnRef]);
+
+  const markOne = async (id) => {
+    const item = items.find(i => i.id === id);
+    if (!item || item.isRead) return;
+    await fetch(`/api/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setItems(prev => prev.map(i => i.id === id ? { ...i, isRead: true } : i));
+    onUnreadChange();
+  };
+
+  const markAll = async () => {
+    await fetch('/api/notifications/read-all', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setItems(prev => prev.map(i => ({ ...i, isRead: true })));
+    onUnreadChange();
+  };
+
+  const unreadCount = items.filter(i => !i.isRead).length;
+
+  return (
+    <div
+      ref={panelRef}
+      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[200]"
+      style={{ animation: 'fadeInDown 0.18s ease' }}
+    >
+      {/* 헤더 */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-800 text-[15px]">알림</span>
+          {unreadCount > 0 && (
+            <span className="text-[11px] font-bold bg-primary text-white px-1.5 py-0.5 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAll}
+            className="text-[11px] text-primary font-semibold hover:text-primary/80 transition-colors"
+          >
+            모두 읽음
+          </button>
+        )}
+      </div>
+
+      {/* 목록 */}
+      <div className="max-h-[360px] overflow-y-auto">
+        {loading && (
+          <div className="flex items-center justify-center py-10">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {!loading && !token && (
+          <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+            <span className="material-icons text-slate-300 text-4xl mb-2">lock</span>
+            <p className="text-sm text-slate-400 font-medium">로그인 후 알림을 확인할 수 있어요</p>
+          </div>
+        )}
+        {!loading && token && items.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <span className="material-icons text-slate-300 text-4xl mb-2">notifications_none</span>
+            <p className="text-sm text-slate-400 font-medium">새 알림이 없어요</p>
+          </div>
+        )}
+        {!loading && items.map(item => {
+          const t = NOTIF_TYPE[item.type] || NOTIF_TYPE.system;
+          return (
+            <button
+              key={item.id}
+              onClick={() => markOne(item.id)}
+              className={`w-full text-left flex items-start gap-3 px-4 py-3.5 border-b border-slate-50 transition-colors hover:bg-slate-50 ${
+                item.isRead ? 'opacity-60' : ''
+              }`}
+            >
+              {/* 아이콘 */}
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                style={{ backgroundColor: `${t.color}18` }}
+              >
+                <span className="material-icons text-[18px]" style={{ color: t.color }}>{t.icon}</span>
+              </div>
+              {/* 내용 */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-1">
+                  <p className={`text-[13px] leading-snug ${item.isRead ? 'font-medium text-slate-500' : 'font-bold text-slate-800'}`}>
+                    {item.title}
+                  </p>
+                  {!item.isRead && (
+                    <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />
+                  )}
+                </div>
+                <p className="text-[12px] text-slate-400 mt-0.5 line-clamp-2">{item.content}</p>
+                <p className="text-[11px] text-slate-300 mt-1">{timeAgo(item.createdAt)}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function LoginModal({ onClose, onLoginSuccess }) {
   const navigate = useNavigate();
@@ -146,6 +302,28 @@ function UserNavbar() {
   const isActive = (path) => location.pathname === path;
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [showNotif, setShowNotif] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notifBtnRef = useRef(null);
+  const profileRef = useRef(null);
+
+  const fetchUnread = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/notifications/unread-count', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) setUnreadCount(data.data.count || 0);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) fetchUnread();
+  }, [isLoggedIn, fetchUnread]);
 
   const handleLogout = async () => {
     try {
@@ -179,15 +357,14 @@ function UserNavbar() {
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className={`text-sm font-semibold transition-colors ${isActive('/') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>홈</Link>
             <Link to="/rest-test" className={`text-sm font-medium transition-colors ${isActive('/rest-test') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>심리 진단</Link>
-            <Link to="/contents" className={`text-sm font-medium transition-colors ${isActive('/contents') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 콘텐츠</Link>
-            <Link to="/map" className={`text-sm font-medium transition-colors ${isActive('/map') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 지도</Link>
+<Link to="/map" className={`text-sm font-medium transition-colors ${isActive('/map') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>휴식 지도</Link>
+            <Link to="/community" className={`text-sm font-medium transition-colors ${isActive('/community') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>커뮤니티</Link>
+            <Link to="/challenge" className={`text-sm font-medium transition-colors ${isActive('/challenge') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>챌린지</Link>
             <Link to="/my" className={`text-sm font-medium transition-colors ${isActive('/my') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>마이페이지</Link>
             {isLoggedIn && JSON.parse(localStorage.getItem('user') || '{}').role === 'ADMIN' && (
               <Link to="/admin" className="text-sm font-medium px-3 py-1 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors">관리자</Link>
             )}
-            {isLoggedIn ? (
-              <button onClick={handleLogout} className="text-sm font-medium text-text-muted hover:text-red-500 transition-colors">로그아웃</button>
-            ) : (
+            {!isLoggedIn && (
               <>
                 <Link to="/login" className={`text-sm font-medium transition-colors ${isActive('/login') ? 'text-primary' : 'text-text-muted hover:text-primary'}`}>로그인</Link>
                 <Link to="/signup" className="text-sm font-medium px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors">회원가입</Link>
@@ -195,15 +372,92 @@ function UserNavbar() {
             )}
           </nav>
           <div className="flex items-center gap-4">
-            <button className="p-2.5 rounded-full hover:bg-slate-100 transition-colors text-text-muted">
-              <span className="material-icons text-xl">notifications</span>
-            </button>
-            <button
-              onClick={() => !isLoggedIn && setShowLoginModal(true)}
-              className="w-9 h-9 rounded-full bg-pale-blue flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm hover:bg-slate-200 transition-colors"
-            >
-              <span className="material-icons text-text-muted">person</span>
-            </button>
+            <div className="relative">
+              <button
+                ref={notifBtnRef}
+                onClick={() => setShowNotif(v => !v)}
+                className="p-2.5 rounded-full hover:bg-slate-100 transition-colors text-text-muted relative"
+              >
+                <span className="material-icons text-xl">notifications</span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {showNotif && (
+                <NotificationDropdown
+                  onClose={() => setShowNotif(false)}
+                  onUnreadChange={fetchUnread}
+                  btnRef={notifBtnRef}
+                />
+              )}
+            </div>
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) { setShowLoginModal(true); return; }
+                  setShowProfile(v => !v);
+                  setShowNotif(false);
+                }}
+                className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-sm hover:bg-slate-200 transition-colors"
+              >
+                {isLoggedIn && user.nickname
+                  ? <span className="text-[13px] font-extrabold text-primary">{user.nickname[0]}</span>
+                  : <span className="material-icons text-text-muted text-[20px]">person</span>
+                }
+              </button>
+
+              {/* 프로필 드롭다운 */}
+              {showProfile && isLoggedIn && (() => {
+                const closeProfile = () => setShowProfile(false);
+                // 외부 클릭 시 닫기
+                const handler = (e) => {
+                  if (profileRef.current && !profileRef.current.contains(e.target)) closeProfile();
+                };
+                document.addEventListener('mousedown', handler, { once: true });
+                return (
+                  <div
+                    className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[200]"
+                    style={{ animation: 'fadeInDown 0.18s ease' }}
+                  >
+                    {/* 닉네임 헤더 */}
+                    <div className="px-4 py-3.5 border-b border-slate-100">
+                      <p className="text-[13px] font-extrabold text-slate-800 truncate">{user.nickname}</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{user.email || user.username}</p>
+                    </div>
+                    {/* 메뉴 */}
+                    <div className="py-1">
+                      <Link
+                        to="/my"
+                        onClick={closeProfile}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px] text-slate-400">person</span>
+                        마이페이지
+                      </Link>
+                      <Link
+                        to="/rest-record"
+                        onClick={closeProfile}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px] text-slate-400">edit_note</span>
+                        휴식 기록
+                      </Link>
+                    </div>
+                    <div className="border-t border-slate-100 py-1">
+                      <button
+                        onClick={() => { closeProfile(); handleLogout(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <span className="material-icons text-[17px]">logout</span>
+                        로그아웃
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </nav>

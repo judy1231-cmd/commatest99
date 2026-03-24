@@ -47,6 +47,23 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("사용자 상태가 변경되었습니다."));
     }
 
+    // POST /api/admin/places  [ADMIN 전용] — 장소 직접 등록
+    @PostMapping("/places")
+    public ResponseEntity<ApiResponse<Void>> createPlace(@RequestBody Map<String, Object> body) {
+        String name          = (String) body.get("name");
+        String address       = (String) body.get("address");
+        Double latitude      = body.get("latitude")  != null ? ((Number) body.get("latitude")).doubleValue()  : null;
+        Double longitude     = body.get("longitude") != null ? ((Number) body.get("longitude")).doubleValue() : null;
+        String operatingHours = (String) body.get("operatingHours");
+        String difficulty    = (String) body.get("difficulty");
+        @SuppressWarnings("unchecked")
+        List<String> restTypes = (List<String>) body.get("restTypes");
+        String photoUrl      = (String) body.get("photoUrl");
+
+        adminService.registerPlace(name, address, latitude, longitude, operatingHours, difficulty, restTypes, photoUrl);
+        return ResponseEntity.ok(ApiResponse.ok("장소가 등록되었습니다."));
+    }
+
     // GET /api/admin/places?status=pending&page=1&size=20  [ADMIN 전용]
     @GetMapping("/places")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPlaces(
@@ -55,6 +72,20 @@ public class AdminController {
             @RequestParam(defaultValue = "20") int size) {
         Map<String, Object> result = adminService.getPlaces(status, page, size);
         return ResponseEntity.ok(ApiResponse.ok(result, "장소 목록 조회 성공"));
+    }
+
+    // PUT /api/admin/places/bulk-status  [ADMIN 전용] — 일괄 상태 변경
+    @PutMapping("/places/bulk-status")
+    public ResponseEntity<ApiResponse<Void>> updatePlaceStatusBulk(
+            HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        String admin쉼표번호 = (String) request.getAttribute("쉼표번호");
+        @SuppressWarnings("unchecked")
+        List<Integer> rawIds = (List<Integer>) body.get("ids");
+        List<Long> ids = rawIds.stream().map(Integer::longValue).collect(java.util.stream.Collectors.toList());
+        String status = (String) body.get("status");
+        adminService.updatePlaceStatusBulk(admin쉼표번호, ids, status);
+        return ResponseEntity.ok(ApiResponse.ok("선택한 장소 상태가 변경되었습니다."));
     }
 
     // PUT /api/admin/places/{id}/status  [ADMIN 전용]
@@ -68,10 +99,19 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("장소 상태가 변경되었습니다."));
     }
 
-    // GET /api/admin/analytics  [ADMIN 전용]
+    // GET /api/admin/analytics?startDate=2026-01-01&endDate=2026-03-24  [ADMIN 전용]
     @GetMapping("/analytics")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics() {
-        Map<String, Object> analytics = adminService.getAnalytics();
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        // 기본값: 최근 30일
+        if (startDate == null || startDate.isBlank()) {
+            startDate = java.time.LocalDate.now().minusDays(29).toString();
+        }
+        if (endDate == null || endDate.isBlank()) {
+            endDate = java.time.LocalDate.now().toString();
+        }
+        Map<String, Object> analytics = adminService.getAnalytics(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(analytics, "분석 데이터 조회 성공"));
     }
 
@@ -155,5 +195,21 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Void>> deleteActivity(@PathVariable Long id) {
         adminService.deleteActivity(id);
         return ResponseEntity.ok(ApiResponse.ok("활동이 삭제되었습니다."));
+    }
+
+    // ==================== 태그 관리 ====================
+
+    // GET /api/admin/tags  [ADMIN 전용]
+    @GetMapping("/tags")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTags() {
+        List<Map<String, Object>> tags = adminService.getAllTags();
+        return ResponseEntity.ok(ApiResponse.ok(tags, "태그 목록 조회 성공"));
+    }
+
+    // DELETE /api/admin/tags/{id}  [ADMIN 전용] — 동일 태그명 전체 삭제
+    @DeleteMapping("/tags/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteTag(@PathVariable Long id) {
+        adminService.deleteTag(id);
+        return ResponseEntity.ok(ApiResponse.ok("태그가 삭제되었습니다."));
     }
 }

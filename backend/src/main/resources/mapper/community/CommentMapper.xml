@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.community.mapper.CommentMapper">
+
+    <select id="findByPostId" resultType="com.comma.domain.community.model.Comment">
+        SELECT c.id, c.post_id, c.`쉼표번호`, c.parent_id, c.content, c.status, c.created_at,
+               u.nickname
+        FROM comments c
+        LEFT JOIN users u ON c.`쉼표번호` = u.`쉼표번호`
+        WHERE c.post_id = #{postId}
+          AND c.status = 'visible'
+        ORDER BY c.created_at ASC
+    </select>
+
+    <insert id="insertComment" parameterType="com.comma.domain.community.model.Comment"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comments (post_id, `쉼표번호`, parent_id, content, status, created_at)
+        VALUES (#{postId}, #{쉼표번호}, #{parentId}, #{content}, #{status}, NOW())
+    </insert>
+
+    <select id="findById" resultType="com.comma.domain.community.model.Comment">
+        SELECT c.id, c.post_id, c.`쉼표번호`, c.parent_id, c.content, c.status, c.created_at,
+               u.nickname
+        FROM comments c
+        LEFT JOIN users u ON c.`쉼표번호` = u.`쉼표번호`
+        WHERE c.id = #{id}
+    </select>
+
+    <update id="updateComment">
+        UPDATE comments
+        SET content = #{content}
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo} AND status = 'visible'
+    </update>
+
+    <update id="updateCommentWithStatus">
+        UPDATE comments
+        SET content = #{content}, status = #{status}
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo}
+    </update>
+
+    <update id="softDeleteComment">
+        UPDATE comments
+        SET status = 'deleted'
+        WHERE id = #{id} AND `쉼표번호` = #{commaNo}
+    </update>
+
+</mapper>

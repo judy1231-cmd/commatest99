@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import Toast from '../../components/common/Toast';
+import ReportModal from '../../components/common/ReportModal';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -74,6 +75,7 @@ function PlaceDetail() {
 
   const [place, setPlace]           = useState(null);
   const [tags, setTags]             = useState([]);
+  const [photos, setPhotos]         = useState([]);
   const [reviews, setReviews]       = useState([]);
   const [bookmarked, setBookmarked] = useState(false);
   const [loading, setLoading]       = useState(true);
@@ -85,6 +87,7 @@ function PlaceDetail() {
 
   // 수정 상태
   const [editingId, setEditingId]           = useState(null);
+  const [reportReviewId, setReportReviewId] = useState(null);
   const [editRating, setEditRating]         = useState(0);
   const [editContent, setEditContent]       = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
@@ -100,6 +103,7 @@ function PlaceDetail() {
       if (data.success && data.data) {
         setPlace(data.data.place);
         setTags(data.data.tags || []);
+        setPhotos(data.data.photos || []);
         setReviews(data.data.reviews || []);
       } else {
         navigate('/map');
@@ -397,23 +401,36 @@ function PlaceDetail() {
         </div>
       )}
 
-      {/* ===== 지도 ===== */}
+      {/* ===== 지도 + 사진 ===== */}
       {place.latitude && place.longitude && (
-        <div className="mb-2 overflow-hidden shadow-sm" style={{ height: '450px' }}>
-          <MapContainer
-            center={[place.latitude, place.longitude]}
-            zoom={15}
-            style={{ width: '100%', height: '100%' }}
-            zoomControl={true}
-          >
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[place.latitude, place.longitude]}>
-              <Popup>{place.name}</Popup>
-            </Marker>
-          </MapContainer>
+        <div className="mb-2 shadow-sm flex overflow-hidden" style={{ height: '450px', isolation: 'isolate' }}>
+          {/* 왼쪽 사진 */}
+          {photos[0]?.photoUrl && (
+            <div className="w-2/5 shrink-0 overflow-hidden">
+              <img
+                src={photos[0].photoUrl}
+                alt={place.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          {/* 오른쪽 지도 */}
+          <div className="flex-1">
+            <MapContainer
+              center={[place.latitude, place.longitude]}
+              zoom={15}
+              style={{ width: '100%', height: '100%' }}
+              zoomControl={true}
+            >
+              <TileLayer
+                attribution='&copy; OpenStreetMap'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[place.latitude, place.longitude]}>
+                <Popup>{place.name}</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
         </div>
       )}
 
@@ -536,9 +553,10 @@ function PlaceDetail() {
                       </div>
                       <p className="text-sm text-slate-700 leading-relaxed">{review.content}</p>
 
-                      {/* 본인 리뷰 수정/삭제 버튼 */}
-                      {isOwner && (
-                        <div className="flex gap-2 mt-3">
+                      {/* 본인 리뷰: 수정/삭제 | 타인 리뷰: 신고 */}
+                      <div className="flex gap-2 mt-3">
+                      {isOwner ? (
+                        <>
                           <button
                             onClick={() => startEdit(review)}
                             className="flex items-center gap-1 text-xs text-slate-500 hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-primary/5"
@@ -553,8 +571,17 @@ function PlaceDetail() {
                             <span className="material-icons text-sm">delete</span>
                             삭제
                           </button>
-                        </div>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setReportReviewId(review.id)}
+                          className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                        >
+                          <span className="material-icons text-sm">flag</span>
+                          신고
+                        </button>
                       )}
+                      </div>
                     </>
                   )}
                 </div>
@@ -565,7 +592,7 @@ function PlaceDetail() {
       </div>
 
       {/* ===== 하단 고정 버튼 ===== */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-5 py-4 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-5 py-4 z-[1000]">
         <div className="flex gap-3 max-w-2xl mx-auto">
           {place.latitude && place.longitude && (
             <a
@@ -593,6 +620,15 @@ function PlaceDetail() {
       </div>
 
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
+
+      {reportReviewId && (
+        <ReportModal
+          targetType="post"
+          targetId={reportReviewId}
+          onClose={() => setReportReviewId(null)}
+          onSuccess={() => setToast({ message: '신고가 접수되었어요.', type: 'success' })}
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import UserNavbar from '../../components/user/UserNavbar';
+import fetchWithAuth from '../../api/fetchWithAuth';
 
 // Leaflet 기본 마커 아이콘 경로 수정 (React 빌드 환경 이슈)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,16 +14,29 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const REST_TYPES = [
-  { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', path: null              },
-  { key: 'physical',  label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5', path: '/rest/physical'  },
-  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF', path: '/rest/mental'    },
-  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF', path: '/rest/sensory'   },
-  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5', path: '/rest/emotional' },
-  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF5EC', path: '/rest/social'    },
-  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBF0', path: '/rest/creative'  },
-  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', path: '/rest/nature'    },
+const DOMESTIC_CITIES = [
+  '서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '제주',
+  '경상남도', '경남', '경상북도', '경북',
+  '전라남도', '전남', '전라북도', '전북',
+  '충청남도', '충남', '충청북도', '충북',
 ];
+
+const REST_TYPES = [
+  { key: '',          label: '전체',        icon: 'apps',           color: '#10B981', bg: '#F0FDF4', badge: 'rgba(16,185,129,0.85)',   path: null              },
+  { key: 'physical',  label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82', bg: '#F0FAF5', badge: 'rgba(76,175,130,0.85)',   path: '/rest/physical'  },
+  { key: 'mental',    label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', bg: '#F0F5FF', badge: 'rgba(91,141,239,0.85)',   path: '/rest/mental'    },
+  { key: 'sensory',   label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', bg: '#F5F0FF', badge: 'rgba(155,109,255,0.85)', path: '/rest/sensory'   },
+  { key: 'emotional', label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', bg: '#FFF0F5', badge: 'rgba(255,123,172,0.85)', path: '/rest/emotional' },
+  { key: 'social',    label: '사회적 휴식', icon: 'groups',         color: '#FF9A3C', bg: '#FFF5EC', badge: 'rgba(255,154,60,0.85)',   path: '/rest/social'    },
+  { key: 'creative',  label: '창조적 몰입', icon: 'brush',          color: '#FFB830', bg: '#FFFBF0', badge: 'rgba(255,184,48,0.85)',   path: '/rest/creative'  },
+  { key: 'nature',    label: '자연의 연결', icon: 'forest',         color: '#2ECC9A', bg: '#F0FBF7', badge: 'rgba(46,204,154,0.85)',   path: '/rest/nature'    },
+];
+
+const DIFFICULTY_MAP = {
+  easy:   { label: '쉬움',   color: '#10b981', icon: 'directions_walk' },
+  medium: { label: '보통',   color: '#F59E0B', icon: 'directions_run'  },
+  hard:   { label: '어려움', color: '#EF4444', icon: 'fitness_center'  },
+};
 
 // 유형별 색상 마커 생성
 function createColorMarker(color) {
@@ -47,6 +61,179 @@ function FlyToPlace({ center }) {
   return null;
 }
 
+// 지역 필터 선택 시 해당 지역 전체가 보이도록 지도 자동 이동
+function FitBoundsOnRegion({ places, regionL1, regionL2, isDomestic }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!regionL1) return;
+
+    // 1차 유효성: null·0·범위 밖 좌표 제거
+    let valid = places.filter(p => {
+      if (!p.latitude || !p.longitude) return false;
+      if (isDomestic(p.address)) {
+        return p.latitude >= 33 && p.latitude <= 38.6 &&
+               p.longitude >= 124.5 && p.longitude <= 130.9;
+      }
+      return Math.abs(p.latitude) > 0.1 && Math.abs(p.longitude) > 0.1 &&
+             Math.abs(p.latitude) <= 90 && Math.abs(p.longitude) <= 180;
+    });
+
+    // 2차: 중앙값 기준 이상치 제거 (잘못된 좌표가 bounds를 바다로 끌어당기는 문제 방지)
+    let medLat = valid[0]?.latitude ?? 0;
+    let medLng = valid[0]?.longitude ?? 0;
+    if (valid.length >= 3) {
+      const sortedLats = [...valid].map(p => p.latitude).sort((a, b) => a - b);
+      const sortedLngs = [...valid].map(p => p.longitude).sort((a, b) => a - b);
+      medLat = sortedLats[Math.floor(sortedLats.length / 2)];
+      medLng = sortedLngs[Math.floor(sortedLngs.length / 2)];
+      const cleaned = valid.filter(p =>
+        Math.abs(p.latitude - medLat) <= 15 && Math.abs(p.longitude - medLng) <= 20
+      );
+      if (cleaned.length > 0) {
+        valid = cleaned;
+        // 이상치 제거 후 중앙값 재계산
+        const lats2 = [...valid].map(p => p.latitude).sort((a, b) => a - b);
+        const lngs2 = [...valid].map(p => p.longitude).sort((a, b) => a - b);
+        medLat = lats2[Math.floor(lats2.length / 2)];
+        medLng = lngs2[Math.floor(lngs2.length / 2)];
+      }
+    }
+
+    if (valid.length === 0) return;
+    if (valid.length === 1) {
+      map.flyTo([valid[0].latitude, valid[0].longitude], 13, { duration: 1.2 });
+      return;
+    }
+    const bounds = L.latLngBounds(valid.map(p => [p.latitude, p.longitude]));
+    const zoom = map.getBoundsZoom(bounds, false, [60, 60]);
+    if (zoom < 8) {
+      // bbox 중심(바다 가능) 대신 장소들의 중앙값 좌표 사용
+      map.flyTo([medLat, medLng], 9, { duration: 1.2 });
+    } else {
+      map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 13, duration: 1.2 });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionL1, regionL2]);
+  return null;
+}
+
+// 핀 위에 뜨는 장소 카드
+function PlaceCard({ place, currentType, onClose }) {
+  const map = useMap();
+  const calcPos = () => {
+    const point = map.latLngToContainerPoint([place.latitude, place.longitude]);
+    return { x: point.x, y: point.y };
+  };
+  const [pos, setPos] = useState(calcPos);
+
+  useEffect(() => {
+    setPos(calcPos());
+    const update = () => setPos(calcPos());
+    map.on('moveend zoomend', update);
+    return () => map.off('moveend zoomend', update);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place, map]);
+
+  const cardWidth = 280;
+  const cardEstHeight = place.photoUrl ? 300 : 180;
+  const pinOffset = 14; // 마커 반지름
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: pos.x - cardWidth / 2,
+        top: pos.y - cardEstHeight - pinOffset,
+        width: cardWidth,
+        zIndex: 1100,
+        pointerEvents: 'auto',
+      }}
+      className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
+    >
+      {place.photoUrl && (
+        <div className="relative h-32">
+          <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          {/* 사진 좌상단 — 휴식유형 뱃지 (중복 표시) */}
+          {place.restTypes?.length > 0 && (
+            <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+              {place.restTypes.map(rt => {
+                const t = REST_TYPES.find(r => r.key === rt);
+                if (!t) return null;
+                return (
+                  <span
+                    key={rt}
+                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white"
+                    style={{ backgroundColor: t.badge }}
+                  >
+                    <span className="material-icons" style={{ fontSize: '9px' }}>{t.icon}</span>
+                    {t.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {/* 우상단 — AI 별점 */}
+          {place.aiScore && (
+            <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center gap-0.5">
+              <span className="material-icons text-amber-400 text-[11px]">star</span>
+              <span className="text-[10px] font-bold text-white">{Number(place.aiScore).toFixed(1)}</span>
+            </div>
+          )}
+          {/* 우하단 — 난이도 */}
+          {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+            const d = DIFFICULTY_MAP[place.difficulty];
+            return (
+              <div className="absolute bottom-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                <span className="material-icons text-[9px]" style={{ color: d.color }}>{d.icon}</span>
+                <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+      <div className="p-3">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-bold text-slate-800 text-sm leading-snug flex-1 truncate">{place.name}</h3>
+          <button onClick={onClose} className="shrink-0 text-slate-400 hover:text-slate-600">
+            <span className="material-icons text-base">close</span>
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mb-2 truncate">{place.address}</p>
+        {place.operatingHours && (
+          <p className="text-xs text-slate-400 flex items-center gap-1 mb-2 truncate">
+            <span className="material-icons" style={{ fontSize: '12px' }}>schedule</span>
+            {place.operatingHours}
+          </p>
+        )}
+        <Link
+          to={`/places/${place.id}`}
+          className="block w-full text-center py-1.5 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: currentType.color }}
+        >
+          상세보기
+        </Link>
+      </div>
+      {/* 말풍선 꼬리 */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: -8,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 0,
+          height: 0,
+          borderLeft: '8px solid transparent',
+          borderRight: '8px solid transparent',
+          borderTop: '8px solid white',
+          filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
+        }}
+      />
+    </div>
+  );
+}
+
 // 클릭 선택된 마커 (빨간 점)
 function createSelectedMarker() {
   return L.divIcon({
@@ -61,28 +248,23 @@ function createSelectedMarker() {
   });
 }
 
-// 강조 마커 (자연 연결 페이지에서 넘어온 장소)
-function createHighlightMarker(color = '#10B981') {
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width: 22px; height: 22px; border-radius: 50%;
-      background: ${color}; border: 3px solid white;
-      box-shadow: 0 0 0 4px ${color}55, 0 3px 10px rgba(0,0,0,0.4);
-    "></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-  });
-}
 
 function MapPage() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   // 자연 연결 등 다른 페이지에서 클릭해 넘어온 장소
   const highlightPlace = location.state?.highlightPlace || null;
   const flyToMyLocation = location.state?.flyToMyLocation || false;
   const incomingRestType = location.state?.restType || '';
   const incomingLocationTab = location.state?.locationTab || 'all';
+
+  // 새로고침 시 state가 남지 않도록 히스토리에서 즉시 제거
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [selectedType, setSelectedType] = useState(incomingRestType);
   const [places, setPlaces] = useState([]);
@@ -91,17 +273,23 @@ function MapPage() {
   const [locationTab, setLocationTab] = useState(incomingLocationTab);
   const [regionL1, setRegionL1] = useState(''); // 국내: 시/도, 해외: 나라
   const [regionL2, setRegionL2] = useState(''); // 국내: 구/군, 해외: 도시
-  const [regionL3, setRegionL3] = useState(''); // 국내: 동/읍/면
   const [myLocation, setMyLocation] = useState(null);
   const [resolvedHighlight, setResolvedHighlight] = useState(highlightPlace || null);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const [flyTarget, setFlyTarget] = useState(
+    highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
+  );
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState(null); // 처리 중인 placeId
 
   // locationTab 변경 시 지역 선택 초기화
-  useEffect(() => { setRegionL1(''); setRegionL2(''); setRegionL3(''); }, [locationTab]);
-  useEffect(() => { setRegionL2(''); setRegionL3(''); }, [regionL1]);
-  useEffect(() => { setRegionL3(''); }, [regionL2]);
+  useEffect(() => { setRegionL1(''); setRegionL2(''); }, [locationTab]);
+  useEffect(() => { setRegionL2(''); }, [regionL1]);
 
-  const DOMESTIC_CITIES = ['서울', '경기', '부산', '인천', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
+  // 새 장소 선택 시 외부 넘어온 하이라이트 배너 닫기
+  useEffect(() => {
+    if (selectedPlaceId) setResolvedHighlight(null);
+  }, [selectedPlaceId]);
 
   const isDomestic = (address) =>
     DOMESTIC_CITIES.some(k => address?.includes(k));
@@ -115,58 +303,108 @@ function MapPage() {
   const getL2 = (address) => {
     if (!address) return null;
     if (isDomestic(address)) {
-      const m = address.match(/([가-힣]+(?:구|군|시(?!도|특별|광역|자치)))/);
-      return m ? m[1] : null;
+      // 구/군 우선 매칭
+      const mGu = address.match(/([가-힣]+(?:구|군))/);
+      if (mGu) return mGu[1];
+      // 특별시/광역시/자치시 제외한 일반 시 매칭
+      const allSi = [...address.matchAll(/([가-힣]+시)/g)].map(m => m[1]);
+      const normalSi = allSi.filter(s => !/특별시$|광역시$|자치시$/.test(s));
+      return normalSi[0] || null;
     }
     const parts = address.trim().split(/\s+/);
     return parts[1] || null;
   };
 
-  const getL3 = (address) => {
-    if (!address || !isDomestic(address)) return null;
-    const m = address.match(/([가-힣]+(?:동|읍|면|리))/);
-    return m ? m[1] : null;
-  };
+  // 현재 locationTab 기준 1차 지역 목록 (장소 수 포함)
+  const tabPlaces = places.filter(p =>
+    locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address)
+  );
+  const l1CountMap = tabPlaces.reduce((acc, p) => {
+    const l1 = getL1(p.address);
+    if (l1) acc[l1] = (acc[l1] || 0) + 1;
+    return acc;
+  }, {});
+  const l1Options = Object.keys(l1CountMap).sort((a, b) => l1CountMap[b] - l1CountMap[a]);
 
-  // 현재 locationTab 기준 1차 지역 목록
-  const l1Options = [...new Set(
-    places
-      .filter(p => locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address))
-      .map(p => getL1(p.address))
-      .filter(Boolean)
-  )].sort();
+  // 1차 선택 후 2차 목록 (장소 수 포함)
+  const l2CountMap = regionL1 ? places
+    .filter(p => getL1(p.address) === regionL1)
+    .reduce((acc, p) => {
+      const l2 = getL2(p.address);
+      if (l2) acc[l2] = (acc[l2] || 0) + 1;
+      return acc;
+    }, {}) : {};
+  const l2Options = Object.keys(l2CountMap).sort((a, b) => l2CountMap[b] - l2CountMap[a]);
 
-  // 1차 선택 후 2차 목록
-  const l2Options = regionL1 ? [...new Set(
-    places
-      .filter(p => getL1(p.address) === regionL1)
-      .map(p => getL2(p.address))
-      .filter(Boolean)
-  )].sort() : [];
-
-  // 2차 선택 후 3차 목록 (국내 동/읍/면만)
-  const l3Options = (regionL2 && locationTab === 'domestic') ? [...new Set(
-    places
-      .filter(p => getL1(p.address) === regionL1 && getL2(p.address) === regionL2)
-      .map(p => getL3(p.address))
-      .filter(Boolean)
-  )].sort() : [];
 
   const filteredPlaces = places.filter(p => {
     const tabOk = locationTab === 'all' ? true : locationTab === 'domestic' ? isDomestic(p.address) : !isDomestic(p.address);
     if (!tabOk) return false;
     if (regionL1 && getL1(p.address) !== regionL1) return false;
     if (regionL2 && getL2(p.address) !== regionL2) return false;
-    if (regionL3 && getL3(p.address) !== regionL3) return false;
     return true;
   });
-  const [flyTarget, setFlyTarget] = useState(
-    highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
-  );
+
+  const loadPlaces = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: 1, size: 1000 });
+      if (selectedType) params.append('restType', selectedType);
+      if (keyword.trim()) params.append('keyword', keyword.trim());
+
+      const res = await fetch(`/api/places?${params}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setPlaces(data.data.places || []);
+      }
+    } catch {
+      // 서버 미연결 시 조용히 빈 목록
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedType, keyword]);
 
   useEffect(() => {
     loadPlaces();
-  }, [selectedType]);
+  }, [loadPlaces]);
+
+  // 로그인 사용자의 북마크 목록 로드
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    fetchWithAuth('/api/places/bookmarks')
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setBookmarkedIds(new Set(data.data.map(p => p.id)));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleBookmarkToggle = async (e, placeId) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    if (bookmarkLoading === placeId) return;
+    setBookmarkLoading(placeId);
+    const isBookmarked = bookmarkedIds.has(placeId);
+    try {
+      // 백엔드는 POST 단일 토글 방식
+      const data = await fetchWithAuth(`/api/places/${placeId}/bookmark`, { method: 'POST' });
+      if (data.success) {
+        const nowBookmarked = data.data?.bookmarked;
+        setBookmarkedIds(prev => {
+          const next = new Set(prev);
+          nowBookmarked ? next.add(placeId) : next.delete(placeId);
+          return next;
+        });
+      }
+    } catch {
+      // 실패 시 무시
+    } finally {
+      setBookmarkLoading(null);
+    }
+  };
 
   // 맞춤 추천에서 넘어온 경우 placeId로 좌표 fetch
   useEffect(() => {
@@ -186,7 +424,7 @@ function MapPage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [highlightPlace]);
 
   // 내 주변 명소 찾기: 현재 위치로 flyTo
   useEffect(() => {
@@ -204,37 +442,18 @@ function MapPage() {
     );
   }, [flyToMyLocation]);
 
-  const loadPlaces = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: 1, size: 50 });
-      if (selectedType) params.append('restType', selectedType);
-      if (keyword.trim()) params.append('keyword', keyword.trim());
-
-      const res = await fetch(`/api/places?${params}`);
-      const data = await res.json();
-      if (data.success && data.data) {
-        setPlaces(data.data.places || []);
-      }
-    } catch {
-      // 서버 미연결 시 조용히 빈 목록
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
     loadPlaces();
   };
 
   const handleMarkerClick = (place) => {
-    if (place.latitude && place.longitude) {
-      setFlyTarget([place.latitude, place.longitude]);
-    }
+    if (selectedPlaceId === place.id) return;
+    setSelectedPlaceId(place.id);
   };
 
   const currentType = REST_TYPES.find(t => t.key === selectedType) || REST_TYPES[0];
+  const selectedPlace = selectedPlaceId ? places.find(p => p.id === selectedPlaceId) : null;
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
@@ -291,16 +510,21 @@ function MapPage() {
                 <p className="text-[10px] font-bold text-slate-400 mb-1.5">
                   {locationTab === 'domestic' ? '시·도' : '나라'}
                 </p>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {l1Options.map(opt => (
                     <button
                       key={opt}
                       onClick={() => setRegionL1(regionL1 === opt ? '' : opt)}
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                        regionL1 === opt ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                        regionL1 === opt
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
                       {opt}
+                      <span className={`text-[10px] font-normal ${regionL1 === opt ? 'text-white/80' : 'text-slate-400'}`}>
+                        {l1CountMap[opt]}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -312,41 +536,27 @@ function MapPage() {
                   <p className="text-[10px] font-bold text-slate-400 mb-1.5">
                     {locationTab === 'domestic' ? '구·군' : '도시'}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {l2Options.map(opt => (
                       <button
                         key={opt}
                         onClick={() => setRegionL2(regionL2 === opt ? '' : opt)}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                          regionL2 === opt ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                          regionL2 === opt
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
                         {opt}
+                        <span className={`text-[10px] font-normal ${regionL2 === opt ? 'text-white/80' : 'text-slate-400'}`}>
+                          {l2CountMap[opt]}
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* L3: 동/읍/면 (국내만) */}
-              {regionL2 && l3Options.length > 0 && (
-                <div className="px-3 pt-1 pb-2.5">
-                  <p className="text-[10px] font-bold text-slate-400 mb-1.5">동·읍·면</p>
-                  <div className="flex flex-wrap gap-1">
-                    {l3Options.map(opt => (
-                      <button
-                        key={opt}
-                        onClick={() => setRegionL3(regionL3 === opt ? '' : opt)}
-                        className={`text-[11px] font-bold px-2.5 py-1 rounded-full transition-colors ${
-                          regionL3 === opt ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -442,20 +652,68 @@ function MapPage() {
                 <div
                   key={place.id}
                   onClick={() => {
+                    if (selectedPlaceId === place.id) return;
+                    setSelectedPlaceId(place.id);
                     if (place.latitude && place.longitude) {
                       setFlyTarget([place.latitude, place.longitude]);
                     }
                   }}
-                  className="p-4 cursor-pointer transition-colors hover:bg-slate-50"
+                  className="relative p-3 cursor-pointer transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${currentType.color}20` }}
-                    >
-                      <span className="material-icons text-base" style={{ color: currentType.color }}>
-                        {currentType.icon}
-                      </span>
+                    {/* 북마크 하트 버튼 */}
+                    {localStorage.getItem('accessToken') && (
+                      <button
+                        onClick={e => handleBookmarkToggle(e, place.id)}
+                        className="absolute top-3 right-3 z-10 p-1"
+                        disabled={bookmarkLoading === place.id}
+                        title={bookmarkedIds.has(place.id) ? '찜 해제' : '찜하기'}
+                      >
+                        <span
+                          className="material-icons text-lg"
+                          style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}
+                        >
+                          {bookmarkedIds.has(place.id) ? 'favorite' : 'favorite_border'}
+                        </span>
+                      </button>
+                    )}
+                    {/* 썸네일 사진 */}
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
+                      {place.photoUrl ? (
+                        <>
+                          <img
+                            src={place.photoUrl}
+                            alt={place.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* 사진 위 휴식유형 아이콘 닷 */}
+                          {place.restTypes?.length > 0 && (
+                            <div className="absolute top-1 left-1 flex gap-0.5">
+                              {place.restTypes.slice(0, 4).map(rt => {
+                                const t = REST_TYPES.find(r => r.key === rt);
+                                if (!t) return null;
+                                return (
+                                  <div
+                                    key={rt}
+                                    className="w-4 h-4 rounded-full flex items-center justify-center"
+                                    style={{ background: 'rgba(0,0,0,0.55)' }}
+                                    title={t.label}
+                                  >
+                                    <span className="material-icons" style={{ fontSize: '9px', color: t.color }}>{t.icon}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ backgroundColor: `${currentType.color}20` }}
+                        >
+                          <span className="material-icons text-xl" style={{ color: currentType.color }}>{currentType.icon}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-slate-800 text-sm truncate">{place.name}</h3>
@@ -466,10 +724,40 @@ function MapPage() {
                           {place.operatingHours}
                         </p>
                       )}
-                      {place.aiScore && (
-                        <div className="flex items-center gap-0.5 mt-1">
-                          <span className="material-icons text-amber-400 text-xs">star</span>
-                          <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {place.aiScore && (
+                          <div className="flex items-center gap-0.5">
+                            <span className="material-icons text-amber-400 text-xs">star</span>
+                            <span className="text-xs font-bold text-slate-600">{Number(place.aiScore).toFixed(1)}</span>
+                          </div>
+                        )}
+                        {place.difficulty && DIFFICULTY_MAP[place.difficulty] && (() => {
+                          const d = DIFFICULTY_MAP[place.difficulty];
+                          return (
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                              style={{ backgroundColor: `${d.color}18` }}>
+                              <span className="material-icons" style={{ fontSize: '9px', color: d.color }}>{d.icon}</span>
+                              <span className="text-[9px] font-bold" style={{ color: d.color }}>{d.label}</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      {place.restTypes?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {place.restTypes.map(rt => {
+                            const t = REST_TYPES.find(r => r.key === rt);
+                            if (!t) return null;
+                            return (
+                              <span
+                                key={rt}
+                                className="text-[9px] font-bold rounded-full px-1.5 py-0.5 flex items-center gap-0.5"
+                                style={{ backgroundColor: t.bg, color: t.color }}
+                              >
+                                <span className="material-icons" style={{ fontSize: '9px' }}>{t.icon}</span>
+                                {t.label}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -495,6 +783,7 @@ function MapPage() {
             />
 
             {flyTarget && <FlyToPlace center={flyTarget} />}
+            <FitBoundsOnRegion places={filteredPlaces} regionL1={regionL1} regionL2={regionL2} isDomestic={isDomestic} />
 
             {/* 내 위치 마커 */}
             {myLocation && (
@@ -521,7 +810,7 @@ function MapPage() {
             {resolvedHighlight?.lat && (
               <Marker
                 position={[resolvedHighlight.lat, resolvedHighlight.lng]}
-                icon={createHighlightMarker(resolvedHighlight.color || '#10B981')}
+                icon={createSelectedMarker()}
               >
                 <Popup>
                   <div style={{ minWidth: '160px' }}>
@@ -538,24 +827,21 @@ function MapPage() {
             {filteredPlaces.map(place =>
               place.latitude && place.longitude ? (
                 <Marker
-                  key={place.id}
+                  key={selectedPlaceId === place.id ? `sel-${place.id}` : `place-${place.id}`}
                   position={[place.latitude, place.longitude]}
                   icon={selectedPlaceId === place.id ? createSelectedMarker() : createColorMarker(currentType.color)}
-                  eventHandlers={{ click: () => setSelectedPlaceId(place.id) }}
-                >
-                  <Popup>
-                    <div style={{ minWidth: '160px' }}>
-                      <p style={{ fontWeight: 'bold', marginBottom: '4px' }}>{place.name}</p>
-                      <p style={{ fontSize: '12px', color: '#64748B' }}>{place.address}</p>
-                      {place.operatingHours && (
-                        <p style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
-                          {place.operatingHours}
-                        </p>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
+                  eventHandlers={{ click: () => handleMarkerClick(place) }}
+                />
               ) : null
+            )}
+
+            {/* 선택된 장소 카드 — 핀 위에 표시 */}
+            {selectedPlace?.latitude && selectedPlace?.longitude && (
+              <PlaceCard
+                place={selectedPlace}
+                currentType={currentType}
+                onClose={() => setSelectedPlaceId(null)}
+              />
             )}
           </MapContainer>
 
@@ -566,6 +852,7 @@ function MapPage() {
               <span className="text-xs font-bold text-slate-700">{currentType.label}</span>
             </div>
           )}
+
         </div>
       </div>
     </div>

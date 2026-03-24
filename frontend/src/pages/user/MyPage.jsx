@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, Legend,
+} from 'recharts';
 
 const REST_TYPE_NAMES = {
   physical:  { label: '신체의 이완', icon: 'fitness_center', color: '#4CAF82' },
@@ -13,7 +17,11 @@ const REST_TYPE_NAMES = {
   creative:  { label: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 };
 
-const TYPE_RATIO_COLORS = ['#4CAF82', '#5B8DEF', '#9B6DFF', '#FF7BAC', '#FF9A3C', '#FFB830', '#2ECC9A'];
+const PERIOD_TABS = [
+  { key: 'this',  label: '이번 달' },
+  { key: 'last',  label: '지난 달' },
+  { key: 'week',  label: '이번 주' },
+];
 
 function formatMinutes(minutes) {
   if (!minutes) return '0분';
@@ -29,6 +37,16 @@ function formatDate(dateStr) {
   if (diffDays === 0) return '오늘';
   if (diffDays === 1) return '어제';
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+function getPeriodYearMonth(period) {
+  const now = new Date();
+  if (period === 'last') {
+    const y = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const m = now.getMonth() === 0 ? 12 : now.getMonth();
+    return `${y}-${String(m).padStart(2, '0')}`;
+  }
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function MenuRow({ icon, iconBg, iconColor, label, sublabel, onClick, red }) {
@@ -69,13 +87,171 @@ function MenuGroup({ title, children }) {
   );
 }
 
+function StatsSummary({ recordCount, totalRestMinutes, avgEmotionScore }) {
+  return (
+    <div className="flex items-center gap-3 mb-5 px-1">
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">{recordCount || 0}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">기록</p>
+      </div>
+      <div className="w-px h-8 bg-slate-100" />
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">{formatMinutes(totalRestMinutes)}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">휴식 시간</p>
+      </div>
+      <div className="w-px h-8 bg-slate-100" />
+      <div className="flex-1 text-center">
+        <p className="text-[20px] font-black text-slate-800">
+          {avgEmotionScore ? avgEmotionScore.toFixed(1) : '-'}
+        </p>
+        <p className="text-[11px] text-slate-400 mt-0.5">평균 기분</p>
+      </div>
+    </div>
+  );
+}
+
+function DonutChart({ typeRatios }) {
+  const topType = typeRatios[0];
+  return (
+    <div className="mb-5">
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">휴식 유형 분포</p>
+      <div className="flex items-center gap-5">
+        {/* 도넛 차트 */}
+        <div className="relative flex-shrink-0 w-[130px] h-[130px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={typeRatios}
+                cx="50%"
+                cy="50%"
+                innerRadius={38}
+                outerRadius={60}
+                paddingAngle={2}
+                dataKey="pct"
+                startAngle={90}
+                endAngle={-270}
+              >
+                {typeRatios.map((entry) => (
+                  <Cell key={entry.type} fill={entry.color} stroke="none" />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, _name, props) => [`${value}%`, props.payload.label || props.payload.type]}
+                contentStyle={{ fontSize: 11, borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          {topType && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="material-icons text-[16px]" style={{ color: topType.color }}>{topType.icon}</span>
+              <span className="text-[9px] font-bold text-slate-500 mt-0.5 text-center leading-tight px-1">
+                {topType.label}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 범례 */}
+        <div className="flex-1 space-y-1.5">
+          {typeRatios.map((item) => (
+            <div key={item.type} className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+              <span className="text-[12px] text-slate-600 flex-1 truncate">{item.label}</span>
+              <span className="text-[12px] font-bold tabular-nums" style={{ color: item.color }}>{item.pct}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 활동 달력 — 현재 월 기준으로 rest_logs 날짜를 점으로 표시
+function ActivityCalendar({ recentLogs, selectedPeriod }) {
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth(); // 0-indexed
+
+  if (selectedPeriod === 'last') {
+    month = month === 0 ? 11 : month - 1;
+    year = month === 11 ? year - 1 : year;
+  }
+
+  const firstDay = new Date(year, month, 1).getDay(); // 0=일
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // recentLogs에서 날짜 추출 (YYYY-MM-DD 형태)
+  const activeDays = new Set(
+    recentLogs
+      .filter(log => {
+        const d = new Date(log.startTime);
+        return d.getFullYear() === year && d.getMonth() === month;
+      })
+      .map(log => new Date(log.startTime).getDate())
+  );
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const today = now.getDate();
+  const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
+
+  return (
+    <div>
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+        활동 달력 — {year}년 {month + 1}월
+      </p>
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 mb-1">
+        {['일','월','화','수','목','금','토'].map(d => (
+          <div key={d} className="text-center text-[10px] font-bold text-slate-400 py-1">{d}</div>
+        ))}
+      </div>
+      {/* 날짜 그리드 */}
+      <div className="grid grid-cols-7 gap-y-1">
+        {cells.map((day, i) => {
+          if (!day) return <div key={`empty-${i}`} />;
+          const isActive = activeDays.has(day);
+          const isToday = isCurrentMonth && day === today;
+          return (
+            <div key={day} className="flex items-center justify-center py-0.5">
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold transition-all ${
+                  isActive
+                    ? 'bg-primary text-white'
+                    : isToday
+                    ? 'border-2 border-primary text-primary'
+                    : 'text-slate-400'
+                }`}
+              >
+                {day}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {activeDays.size > 0 && (
+        <p className="text-[11px] text-slate-400 mt-2 text-center">
+          이 달 <span className="font-bold text-primary">{activeDays.size}일</span> 휴식 기록
+        </p>
+      )}
+    </div>
+  );
+}
+
 function MyPage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
-  const [monthlyStats, setMonthlyStats] = useState(null);
   const [latestDiagnosis, setLatestDiagnosis] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
+  const [calendarLogs, setCalendarLogs] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [selectedPeriod, setSelectedPeriod] = useState('this');
+  const [periodStats, setPeriodStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const [nicknameEditing, setNicknameEditing] = useState(false);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -86,21 +262,23 @@ function MyPage() {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    loadPeriodStats(selectedPeriod);
+  }, [selectedPeriod]);
+
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [profileRes, statsRes, diagRes, logsRes] = await Promise.allSettled([
+      const [profileRes, diagRes, logsRes, calRes, bmRes] = await Promise.allSettled([
         fetchWithAuth('/api/user/profile'),
-        fetchWithAuth('/api/stats/monthly'),
         fetchWithAuth('/api/diagnosis/latest'),
         fetchWithAuth('/api/rest-logs?page=1&size=5'),
+        fetchWithAuth('/api/rest-logs?page=1&size=50'),
+        fetchWithAuth('/api/places/bookmarks'),
       ]);
 
       if (profileRes.status === 'fulfilled' && profileRes.value.success) {
         setProfile(profileRes.value.data);
-      }
-      if (statsRes.status === 'fulfilled' && statsRes.value.success) {
-        setMonthlyStats(statsRes.value.data);
       }
       if (diagRes.status === 'fulfilled' && diagRes.value.success) {
         setLatestDiagnosis(diagRes.value.data);
@@ -108,8 +286,36 @@ function MyPage() {
       if (logsRes.status === 'fulfilled' && logsRes.value.success) {
         setRecentLogs(logsRes.value.data?.logs || []);
       }
+      if (calRes.status === 'fulfilled' && calRes.value.success) {
+        setCalendarLogs(calRes.value.data?.logs || []);
+      }
+      if (bmRes.status === 'fulfilled' && bmRes.value.success) {
+        setBookmarks(bmRes.value.data || []);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPeriodStats = async (period) => {
+    setStatsLoading(true);
+    try {
+      let url = '/api/stats/monthly';
+      if (period === 'last') {
+        url = `/api/stats/monthly?yearMonth=${getPeriodYearMonth('last')}`;
+      } else if (period === 'week') {
+        url = '/api/stats/weekly';
+      }
+      const data = await fetchWithAuth(url);
+      if (data.success) {
+        setPeriodStats(data.data);
+      } else {
+        setPeriodStats(null);
+      }
+    } catch {
+      setPeriodStats(null);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -155,13 +361,14 @@ function MyPage() {
 
   // typeRatioJson 파싱
   let typeRatios = [];
-  if (monthlyStats?.typeRatioJson) {
+  if (periodStats?.typeRatioJson) {
     try {
-      const parsed = JSON.parse(monthlyStats.typeRatioJson);
+      const parsed = JSON.parse(periodStats.typeRatioJson);
       typeRatios = Object.entries(parsed)
         .map(([type, pct]) => ({ type, pct, ...REST_TYPE_NAMES[type] }))
+        .filter(item => item.pct > 0)
         .sort((a, b) => b.pct - a.pct)
-        .slice(0, 4);
+        .slice(0, 5);
     } catch {
       // 파싱 실패 시 무시
     }
@@ -266,19 +473,15 @@ function MyPage() {
             )}
           </div>
 
-          {/* 빠른 통계 스트립 */}
-          <div className="grid grid-cols-3 mt-6 pt-5 border-t border-slate-100">
+          {/* 누적 통계 스트립 */}
+          <div className="grid grid-cols-2 mt-6 pt-5 border-t border-slate-100">
             <div className="text-center">
               <p className="text-lg font-black text-slate-800">{formatMinutes(stats.totalRestMinutes)}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">총 휴식 시간</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">누적 휴식 시간</p>
             </div>
-            <div className="text-center border-x border-slate-100">
+            <div className="text-center border-l border-slate-100">
               <p className="text-lg font-black text-slate-800">{stats.totalLogs || 0}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">총 기록</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-black text-slate-800">{profile?.badgeCount || 0}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">배지</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">총 기록 횟수</p>
             </div>
           </div>
         </div>
@@ -321,105 +524,270 @@ function MyPage() {
 
         <div className="h-3" />
 
-        {/* ── 이번 달 요약 ── */}
-        {monthlyStats && (
-          <>
-            <div className="px-4">
-              <div className="bg-white rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm font-bold text-slate-700">이번 달 휴식 요약</p>
-                  <button
-                    onClick={() => navigate('/rest-record')}
-                    className="text-xs text-primary font-bold"
-                  >
-                    전체 보기
-                  </button>
-                </div>
+        {/* ── 감정 변화 그래프 ── */}
+        {(() => {
+          const chartData = [...calendarLogs]
+            .filter(l => l.emotionBefore != null || l.emotionAfter != null)
+            .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+            .slice(-20)
+            .map(l => ({
+              date: (() => {
+                const d = new Date(l.startTime);
+                return `${d.getMonth() + 1}/${d.getDate()}`;
+              })(),
+              전: l.emotionBefore ?? null,
+              후: l.emotionAfter ?? null,
+            }));
 
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {[
-                    { label: '기록', value: monthlyStats.recordCount || 0, unit: '회' },
-                    { label: '휴식 시간', value: formatMinutes(monthlyStats.totalRestMinutes), unit: '' },
-                    { label: '평균 기분', value: monthlyStats.avgEmotionScore ? monthlyStats.avgEmotionScore.toFixed(1) : '-', unit: monthlyStats.avgEmotionScore ? '점' : '' },
-                  ].map((s) => (
-                    <div key={s.label} className="bg-slate-50 rounded-xl p-3 text-center">
-                      <p className="text-base font-black text-slate-800">{s.value}{s.unit}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+          if (chartData.length < 2) return null;
+
+          const validBefore = chartData.filter(d => d.전);
+          const validAfter  = chartData.filter(d => d.후);
+          const avgBefore = validBefore.length ? (validBefore.reduce((s, d) => s + d.전, 0) / validBefore.length).toFixed(1) : null;
+          const avgAfter  = validAfter.length  ? (validAfter.reduce((s, d) => s + d.후, 0) / validAfter.length).toFixed(1) : null;
+          const avgImprove = avgBefore && avgAfter ? (avgAfter - avgBefore).toFixed(1) : null;
+
+          return (
+            <>
+              <div className="px-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-sm font-bold text-slate-700">감정 변화 추이</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">최근 {chartData.length}개 기록 기준</p>
                     </div>
-                  ))}
-                </div>
-
-                {typeRatios.length > 0 && (
-                  <div className="space-y-2.5">
-                    {typeRatios.map((item, i) => (
-                      <div key={item.type}>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="font-medium text-slate-600">{item.label}</span>
-                          <span className="font-bold" style={{ color: TYPE_RATIO_COLORS[i] }}>{item.pct}%</span>
-                        </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ width: `${item.pct}%`, backgroundColor: TYPE_RATIO_COLORS[i] }}
-                          />
-                        </div>
+                    {avgImprove != null && (
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">평균 향상</p>
+                        <p className={`text-[17px] font-extrabold ${Number(avgImprove) >= 0 ? 'text-primary' : 'text-red-400'}`}>
+                          {Number(avgImprove) >= 0 ? '+' : ''}{avgImprove}점
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} />
+                      <YAxis domain={[1, 10]} ticks={[1, 5, 10]} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                      <Tooltip
+                        contentStyle={{ fontSize: 12, borderRadius: 10, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        formatter={(value, name) => [`${value}점`, name === '전' ? '휴식 전' : '휴식 후']}
+                      />
+                      <ReferenceLine y={5} stroke="#e2e8f0" strokeDasharray="4 4" />
+                      <Legend formatter={(value) => value === '전' ? '휴식 전' : '휴식 후'} wrapperStyle={{ fontSize: 12, color: '#64748b' }} />
+                      <Line type="monotone" dataKey="전" stroke="#cbd5e1" strokeWidth={2} strokeDasharray="5 3"
+                        dot={{ r: 3, fill: '#cbd5e1', strokeWidth: 0 }} activeDot={{ r: 5 }} connectNulls />
+                      <Line type="monotone" dataKey="후" stroke="#10b981" strokeWidth={2.5}
+                        dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} activeDot={{ r: 6 }} connectNulls />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="h-3" />
+            </>
+          );
+        })()}
+
+        {/* ── 기간별 휴식 통계 ── */}
+        <div className="px-4">
+          <div className="bg-white rounded-2xl overflow-hidden">
+            {/* 헤더 + 기간 탭 */}
+            <div className="px-5 pt-5 pb-3">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-slate-700">휴식 통계</p>
+                <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                  기록 보기
+                </button>
+              </div>
+
+              {/* 기간 탭 버튼 */}
+              <div className="flex gap-2">
+                {PERIOD_TABS.map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setSelectedPeriod(tab.key)}
+                    className={`flex-1 py-2 rounded-xl text-[12px] font-bold transition-all ${
+                      selectedPeriod === tab.key
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="h-3" />
-          </>
-        )}
 
-        {/* ── 최근 활동 ── */}
-        {recentLogs.length > 0 && (
-          <>
-            <div className="px-4">
-              <div className="bg-white rounded-2xl overflow-hidden">
-                <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-                  <p className="text-sm font-bold text-slate-700">최근 휴식 기록</p>
-                  <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
-                    전체 보기
+            {/* 통계 콘텐츠 */}
+            <div className="px-5 pb-5">
+              {statsLoading ? (
+                <div className="space-y-3 animate-pulse">
+                  <div className="flex gap-3 mb-4">
+                    {[1,2,3].map(i => <div key={i} className="flex-1 h-14 bg-slate-100 rounded-xl" />)}
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-[130px] h-[130px] bg-slate-100 rounded-full" />
+                    <div className="flex-1 space-y-2 pt-2">
+                      {[100,80,60,45].map(w => (
+                        <div key={w} className="h-3 bg-slate-100 rounded-full" style={{ width: `${w}%` }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : typeRatios.length > 0 ? (
+                <>
+                  <StatsSummary
+                    recordCount={periodStats?.recordCount}
+                    totalRestMinutes={periodStats?.totalRestMinutes}
+                    avgEmotionScore={periodStats?.avgEmotionScore}
+                  />
+                  <DonutChart typeRatios={typeRatios} />
+                  <div className="mt-5 pt-5 border-t border-slate-100">
+                    <ActivityCalendar recentLogs={calendarLogs} selectedPeriod={selectedPeriod} />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <span className="material-icons text-3xl text-slate-200 block mb-2">insert_chart</span>
+                  <p className="text-sm font-semibold text-slate-400">이 기간의 기록이 없어요</p>
+                  <p className="text-xs text-slate-300 mt-1">휴식을 기록하면 통계가 나타나요</p>
+                  <button
+                    onClick={() => navigate('/rest-record')}
+                    className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
+                  >
+                    기록 남기기
                   </button>
                 </div>
-                <div className="divide-y divide-slate-50">
-                  {recentLogs.map((log) => (
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="h-3" />
+
+        {/* ── 최근 활동 ── */}
+        <div className="px-4">
+          <div className="bg-white rounded-2xl overflow-hidden">
+            <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+              <p className="text-sm font-bold text-slate-700">최근 휴식 기록</p>
+              <button onClick={() => navigate('/rest-record')} className="text-xs text-primary font-bold">
+                전체 보기
+              </button>
+            </div>
+            {recentLogs.length > 0 ? (
+              <div className="divide-y divide-slate-50">
+                {recentLogs.map((log) => {
+                  const typeInfo = log.restType ? REST_TYPE_NAMES[log.restType] : null;
+                  return (
                     <div key={log.id} className="flex items-center gap-3 px-5 py-3.5">
-                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="material-icons text-primary text-sm">self_improvement</span>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: typeInfo ? typeInfo.color + '18' : '#ECFDF5' }}>
+                        <span className="material-icons text-sm"
+                          style={{ color: typeInfo ? typeInfo.color : '#10b981' }}>
+                          {typeInfo ? typeInfo.icon : 'self_improvement'}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-700 truncate">{log.memo || '휴식 기록'}</p>
-                        {log.emotionAfter != null && (
-                          <p className="text-xs text-slate-400">기분 {log.emotionAfter}/10</p>
-                        )}
+                        <p className="text-sm font-semibold text-slate-700 truncate">{log.memo || (typeInfo?.label || '휴식 기록')}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {typeInfo && <span className="text-[10px] font-bold" style={{ color: typeInfo.color }}>{typeInfo.label}</span>}
+                          {log.emotionAfter != null && (
+                            <p className="text-xs text-slate-400">기분 {log.emotionAfter}/10</p>
+                          )}
+                        </div>
                       </div>
                       <span className="text-xs text-slate-400 shrink-0">{formatDate(log.startTime)}</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
+            ) : (
+              <div className="text-center py-8 px-5">
+                <span className="material-icons text-3xl text-slate-200 block mb-2">history</span>
+                <p className="text-sm font-semibold text-slate-400">아직 기록이 없어요</p>
+                <p className="text-xs text-slate-300 mt-1">오늘 휴식을 기록해보세요</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="h-3" />
+
+        {/* ── 찜한 장소 ── */}
+        <div className="px-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-bold text-slate-700">찜한 장소</p>
+            <button onClick={() => navigate('/map')} className="text-xs text-primary font-bold">
+              지도에서 보기
+            </button>
+          </div>
+          {bookmarks.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
+              {bookmarks.map((place) => {
+                const DIFFICULTY_MAP = {
+                  easy:   { label: '쉬움',   color: '#10b981' },
+                  medium: { label: '보통',   color: '#f59e0b' },
+                  hard:   { label: '어려움', color: '#ef4444' },
+                };
+                const diff = DIFFICULTY_MAP[place.difficulty];
+                const typeColor = place.firstRestType ? REST_TYPE_NAMES[place.firstRestType]?.color : '#10b981';
+                return (
+                  <button
+                    key={place.id}
+                    onClick={() => navigate(`/places/${place.id}`)}
+                    className="flex-shrink-0 w-[148px] rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm text-left"
+                  >
+                    {/* 사진 */}
+                    <div className="relative w-full h-[100px] bg-slate-100">
+                      {place.photoUrl ? (
+                        <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: (typeColor || '#10b981') + '18' }}>
+                          <span className="material-icons text-2xl" style={{ color: typeColor || '#10b981' }}>
+                            {place.firstRestType ? (REST_TYPE_NAMES[place.firstRestType]?.icon || 'place') : 'place'}
+                          </span>
+                        </div>
+                      )}
+                      {diff && (
+                        <span
+                          className="absolute bottom-1.5 right-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                          style={{ backgroundColor: diff.color }}
+                        >
+                          {diff.label}
+                        </span>
+                      )}
+                    </div>
+                    {/* 텍스트 */}
+                    <div className="px-3 py-2.5">
+                      <p className="text-[13px] font-bold text-slate-800 truncate">{place.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{place.address}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-            <div className="h-3" />
-          </>
-        )}
+          ) : (
+            <div className="bg-white rounded-2xl py-8 text-center border border-slate-100">
+              <span className="material-icons text-3xl text-slate-200 block mb-2">favorite_border</span>
+              <p className="text-sm font-semibold text-slate-400">찜한 장소가 없어요</p>
+              <p className="text-xs text-slate-300 mt-1">마음에 드는 장소를 저장해보세요</p>
+              <button
+                onClick={() => navigate('/map')}
+                className="mt-4 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl"
+              >
+                장소 탐색하기
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="h-3" />
 
         {/* ── 메뉴 그룹: 기록 ── */}
         <MenuGroup title="기록">
           <MenuRow icon="event_note"     iconBg="#ECFDF5" iconColor="#10b981" label="휴식 기록"   onClick={() => navigate('/rest-record')} />
           <MenuRow icon="psychology"     iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 기록"   sublabel="진단 유형 히스토리" onClick={() => navigate('/records/diagnosis')} />
-          <MenuRow icon="favorite"       iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 기록"   sublabel="감정 변화 히스토리" onClick={() => navigate('/records/emotion')} />
-        </MenuGroup>
-
-        <div className="h-3" />
-
-        {/* ── 메뉴 그룹: 통계 ── */}
-        <MenuGroup title="통계">
-          <MenuRow icon="bar_chart"   iconBg="#ECFDF5" iconColor="#10b981" label="휴식 활동 통계" onClick={() => navigate('/stats/rest')} />
-          <MenuRow icon="analytics"  iconBg="#EFF6FF" iconColor="#5B8DEF" label="진단 유형 통계" onClick={() => navigate('/stats/diagnosis')} />
-          <MenuRow icon="show_chart" iconBg="#FFF0F7" iconColor="#FF7BAC" label="감정 변화 통계" onClick={() => navigate('/stats/emotion')} />
         </MenuGroup>
 
         <div className="h-3" />

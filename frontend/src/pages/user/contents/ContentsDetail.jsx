@@ -13,6 +13,148 @@ const CATEGORY_INFO = {
   creative:  { name: '창조적 몰입', icon: 'brush',          color: '#FFB830' },
 };
 
+const CATEGORY_EFFECTS = {
+  physical: [
+    { icon: 'monitor_heart', stat: '28% ↓', label: '스트레스 호르몬 감소' },
+    { icon: 'bedtime',        stat: '수면 질 ↑', label: '깊은 수면 시간 증가' },
+    { icon: 'shield',         stat: '면역력 ↑', label: '자연살해세포 활성화' },
+  ],
+  mental: [
+    { icon: 'electric_bolt', stat: '과각성 ↓', label: '교감신경 안정' },
+    { icon: 'psychology',    stat: '집중력 ↑', label: '전두엽 기능 회복' },
+    { icon: 'sentiment_satisfied', stat: '불안 ↓', label: '세로토닌 분비 촉진' },
+  ],
+  sensory: [
+    { icon: 'phonelink_off', stat: '피로 ↓', label: '디지털 피로 회복' },
+    { icon: 'self_improvement', stat: '신경계 ↓', label: '과부하 신경계 안정' },
+    { icon: 'spa',           stat: '감각 ↑', label: '오감 감수성 회복' },
+  ],
+  emotional: [
+    { icon: 'favorite',      stat: '옥시토신 ↑', label: '유대감 호르몬 분비' },
+    { icon: 'balance',       stat: '조절력 ↑', label: '감정 조절 능력 향상' },
+    { icon: 'groups',        stat: '공감력 ↑', label: '타인 이해 능력 향상' },
+  ],
+  social: [
+    { icon: 'bolt',          stat: '에너지 ↑', label: '사회적 충전 효과' },
+    { icon: 'handshake',     stat: '연결감 ↑', label: '소속감·유대감 강화' },
+    { icon: 'do_not_disturb', stat: '경계 ↑', label: '건강한 경계 설정' },
+  ],
+  nature: [
+    { icon: 'monitor_heart', stat: '21% ↓', label: '코르티솔 수치 감소' },
+    { icon: 'psychology',    stat: '20% ↑', label: '집중력·기억력 향상' },
+    { icon: 'favorite',      stat: '혈압 ↓', label: '심박수·혈압 안정' },
+  ],
+  creative: [
+    { icon: 'star',          stat: '도파민 ↑', label: '성취감·보상 회로 활성화' },
+    { icon: 'lightbulb',     stat: '창의력 ↑', label: '우뇌·확산적 사고 촉진' },
+    { icon: 'battery_charging_full', stat: '번아웃 ↓', label: '내적 동기 회복' },
+  ],
+};
+
+const CATEGORY_ROUTINES = {
+  physical: {
+    totalTime: '약 40분',
+    steps: [
+      { title: '준비 스트레칭', time: '5분', desc: '목·어깨·손목 가볍게 풀기' },
+      { title: '유산소 운동', time: '20분', desc: '빠른 걷기 또는 가벼운 조깅' },
+      { title: '근력 운동', time: '10분', desc: '스쿼트·플랭크 기본 동작' },
+      { title: '마무리 스트레칭', time: '5분', desc: '호흡 정리 + 근육 이완' },
+    ],
+  },
+  mental: {
+    totalTime: '약 20분',
+    steps: [
+      { title: '공간 정리', time: '2분', desc: '조용한 자리 잡기, 스마트폰 무음' },
+      { title: '복식 호흡', time: '5분', desc: '4-4-4-4 박스 호흡으로 몸 안정' },
+      { title: '명상', time: '10분', desc: '생각 흘려보내기, 호흡에 집중' },
+      { title: '마무리', time: '3분', desc: '몸 감각 체크, 천천히 눈 뜨기' },
+    ],
+  },
+  sensory: {
+    totalTime: '약 30분',
+    steps: [
+      { title: '디지털 오프', time: '1분', desc: '화면 끄기, 알림 차단' },
+      { title: '향기 테라피', time: '5분', desc: '아로마 캔들이나 디퓨저 켜기' },
+      { title: '음악 명상', time: '15분', desc: '자연 소리·화이트노이즈 듣기' },
+      { title: '감각 일기', time: '9분', desc: '오늘 느낀 감각 3가지 적기' },
+    ],
+  },
+  emotional: {
+    totalTime: '약 35분',
+    steps: [
+      { title: '감정 체크인', time: '5분', desc: '지금 느끼는 감정에 이름 붙이기' },
+      { title: '감정 일기', time: '15분', desc: '오늘 있었던 일과 감정 자유롭게 쓰기' },
+      { title: '자기 위로', time: '10분', desc: '나에게 친절한 말 한마디 써보기' },
+      { title: '마무리', time: '5분', desc: '심호흡 3회, 내일을 위한 의도 설정' },
+    ],
+  },
+  social: {
+    totalTime: '약 60분',
+    steps: [
+      { title: '연락하기', time: '5분', desc: '오래된 친구에게 안부 메시지 보내기' },
+      { title: '대화·만남', time: '40분', desc: '가벼운 수다나 짧은 산책 함께하기' },
+      { title: '혼자 정리', time: '10분', desc: '만남 후 내 에너지 상태 체크' },
+      { title: '감사 메모', time: '5분', desc: '오늘 연결에서 좋았던 점 한 가지 기록' },
+    ],
+  },
+  nature: {
+    totalTime: '약 45분',
+    steps: [
+      { title: '준비', time: '5분', desc: '편한 신발, 물통 챙기기' },
+      { title: '자연 속 걷기', time: '30분', desc: '공원·숲길 천천히 걷기, 핸드폰 넣기' },
+      { title: '멈춰서 느끼기', time: '5분', desc: '바람·새소리·햇빛 5분간 느끼기' },
+      { title: '마무리', time: '5분', desc: '오늘 자연에서 받은 것 한 줄 기록' },
+    ],
+  },
+  creative: {
+    totalTime: '약 50분',
+    steps: [
+      { title: '영감 수집', time: '10분', desc: '좋아하는 음악·그림·글귀 찾아보기' },
+      { title: '창작 시작', time: '30분', desc: '그리기·쓰기·만들기 — 완성보다 과정에 집중' },
+      { title: '감상하기', time: '5분', desc: '만든 것 멀리서 바라보기' },
+      { title: '기록', time: '5분', desc: '오늘 창작에서 느낀 점 한 줄 남기기' },
+    ],
+  },
+};
+
+const CATEGORY_TIPS = {
+  physical: {
+    quote: '운동은 몸을 위한 것이 아니라 마음을 위한 것이다.',
+    body: '격렬한 운동이 아니어도 괜찮아요. 하루 20분 빠른 걷기만으로도 코르티솔이 감소하고 엔도르핀이 분비됩니다. 중요한 건 강도보다 꾸준함이에요.',
+    source: '하버드 의대 운동신경과학 연구',
+  },
+  mental: {
+    quote: '생각을 멈추려 하지 말고, 그냥 지나가게 두세요.',
+    body: '명상 중 잡념이 드는 건 실패가 아니에요. 잡념을 알아채고 호흡으로 돌아오는 그 순간이 바로 명상입니다. 하루 10분이면 6주 후 전두엽 두께가 변한다는 연구가 있어요.',
+    source: 'MIT 뇌인지과학 연구소',
+  },
+  sensory: {
+    quote: '디지털에서 벗어난 시간이 가장 창의적인 시간이다.',
+    body: '스마트폰 화면을 보는 동안 뇌는 쉬지 못해요. 하루 30분만 모든 화면을 끄고 오감에 집중하면, 신경계의 과부하가 풀리고 감각이 살아납니다.',
+    source: '캘리포니아대 주의력 연구팀',
+  },
+  emotional: {
+    quote: '감정을 느끼는 것이, 감정에 끌려다니지 않는 방법이다.',
+    body: '감정을 억누르면 더 강해집니다. 이름을 붙이고 인정하는 것만으로도 편도체 반응이 줄어요. "나 지금 불안하구나"라고 말하는 것이 감정 조절의 시작이에요.',
+    source: 'UCLA 감정신경과학 연구',
+  },
+  social: {
+    quote: '진짜 휴식은 혼자이거나, 진심으로 함께이거나 둘 중 하나다.',
+    body: '내향적인 사람도 적절한 사회적 연결은 필요해요. 단, 에너지를 채우는 관계와 빼앗는 관계를 구분하는 것이 중요합니다. 만남 후 피곤하다면 연결의 질을 점검해보세요.',
+    source: '서울대 사회심리학 연구팀',
+  },
+  nature: {
+    quote: '자연 속 20분은 스트레스 호르몬을 줄이는 가장 빠른 방법이다.',
+    body: '나무가 내뿜는 피톤치드는 자연살해세포를 활성화하고, 녹색을 바라보는 것만으로도 눈의 피로가 풀립니다. 도심 공원도 충분해요 — 가장 가까운 나무 한 그루부터 시작해보세요.',
+    source: '일본 산림치유 연구소',
+  },
+  creative: {
+    quote: '완성된 작품이 아니라, 만드는 과정이 치유다.',
+    body: '잘 그리거나 잘 쓰려고 하지 않아도 돼요. 창작 활동 자체가 뇌의 디폴트 모드 네트워크를 활성화해서 자기 성찰과 회복을 돕습니다. 결과물보다 몰입하는 30분이 더 중요해요.',
+    source: '드렉셀대 창의성·신경과학 연구팀',
+  },
+};
+
 const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' };
 const DIFFICULTY_COLOR = {
   easy:   { bg: '#ECFDF5', text: '#10B981' },
@@ -338,12 +480,89 @@ function ContentsDetail() {
           </div>
         )}
 
+        {/* 효과 배지 */}
+        {CATEGORY_EFFECTS[content.category] && (
+          <div className="mb-4">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-0.5">이런 효과가 있어요</p>
+            <div className="grid grid-cols-3 gap-3">
+              {CATEGORY_EFFECTS[content.category].map((ef, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex flex-col items-center text-center gap-1.5">
+                  <span className="material-icons text-[22px]" style={{ color: cat.color }}>{ef.icon}</span>
+                  <span className="text-[13px] font-extrabold text-slate-800">{ef.stat}</span>
+                  <span className="text-[11px] text-slate-400 leading-tight">{ef.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 본문 */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-6 mb-4">
           <p className="text-[15px] text-slate-700 leading-[1.95] whitespace-pre-line">
             {content.body || content.guideContent || '본문 내용이 없습니다.'}
           </p>
         </div>
+
+        {/* 오늘의 루틴 */}
+        {CATEGORY_ROUTINES[content.category] && (() => {
+          const routine = CATEGORY_ROUTINES[content.category];
+          return (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-5 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[13px] font-extrabold text-slate-800">오늘의 루틴</p>
+                <span
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+                  style={{ backgroundColor: `${cat.color}18`, color: cat.color }}
+                >
+                  총 {routine.totalTime}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {routine.steps.map((step, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-white text-[11px] font-extrabold mt-0.5"
+                      style={{ backgroundColor: cat.color }}
+                    >
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[13px] font-bold text-slate-800">{step.title}</span>
+                        <span
+                          className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                        >
+                          {step.time}
+                        </span>
+                      </div>
+                      <p className="text-[12px] text-slate-400 leading-relaxed">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* 전문가 팁 */}
+        {CATEGORY_TIPS[content.category] && (() => {
+          const tip = CATEGORY_TIPS[content.category];
+          return (
+            <div
+              className="rounded-2xl px-6 py-5 mb-4"
+              style={{ background: `linear-gradient(135deg, ${cat.color}18 0%, ${cat.color}08 100%)` }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-icons text-[18px]" style={{ color: cat.color }}>format_quote</span>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">전문가 팁</p>
+              </div>
+              <p className="text-[14px] font-bold text-slate-700 leading-snug mb-3 italic">"{tip.quote}"</p>
+              <p className="text-[13px] text-slate-500 leading-relaxed mb-3">{tip.body}</p>
+              <p className="text-[11px] font-semibold" style={{ color: cat.color }}>출처: {tip.source}</p>
+            </div>
+          );
+        })()}
 
         {/* 태그 */}
         {tags.length > 0 && (

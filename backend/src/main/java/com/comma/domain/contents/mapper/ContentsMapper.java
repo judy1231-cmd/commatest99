@@ -14,6 +14,7 @@ public interface ContentsMapper {
     List<Contents> findByCategories(@Param("categories") List<String> categories);
     Contents findById(@Param("id") Long id);
     void deactivateById(@Param("id") Long id);
+    void updateContent(@Param("id") Long id, @Param("title") String title, @Param("summary") String summary, @Param("body") String body);
     void updateImageUrlByCategory(@Param("category") String category, @Param("imageUrl") String imageUrl);
 
     // 좋아요

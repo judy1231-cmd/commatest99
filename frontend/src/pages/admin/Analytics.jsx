@@ -54,6 +54,7 @@ function Analytics() {
 
   const dailySignups  = analytics?.dailySignups || [];
   const restTypeStats = analytics?.restTypePopularity || [];
+  const eventStats    = analytics?.eventStats || [];
   const totalRestCount = restTypeStats.reduce((s, r) => s + (r.count || 0), 0) || 1;
   const maxCount = Math.max(...restTypeStats.map(r => r.count || 0), 1);
 
@@ -350,6 +351,39 @@ function Analytics() {
               )}
             </div>
           </section>
+
+          {/* ── 이벤트 통계 ── */}
+          {eventStats.length > 0 && (
+            <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="material-icons-round text-primary text-base">track_changes</span>
+                사용자 행동 이벤트
+              </h3>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {eventStats.map((ev, i) => {
+                  const labels = {
+                    page_view: { label: '페이지 조회', icon: 'visibility', cls: 'bg-blue-50 text-blue-600' },
+                    rest_log_create: { label: '휴식 기록', icon: 'event_note', cls: 'bg-violet-50 text-violet-600' },
+                    diagnosis_complete: { label: '진단 완료', icon: 'analytics', cls: 'bg-amber-50 text-amber-600' },
+                    challenge_join: { label: '챌린지 참여', icon: 'emoji_events', cls: 'bg-emerald-50 text-emerald-600' },
+                    post_create: { label: '게시글 작성', icon: 'edit_note', cls: 'bg-rose-50 text-rose-500' },
+                  };
+                  const info = labels[ev.eventType] || { label: ev.eventType, icon: 'bar_chart', cls: 'bg-gray-100 text-gray-600' };
+                  return (
+                    <div key={i} className="bg-gray-50 rounded-xl p-4 flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${info.cls}`}>
+                        <span className="material-icons-round text-[18px]">{info.icon}</span>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900 leading-tight">{Number(ev.cnt).toLocaleString()}</p>
+                        <p className="text-xs text-gray-400">{info.label}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
         </main>
       </div>

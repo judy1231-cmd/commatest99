@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.comma.domain.challenge.mapper.ChallengeMapper">
+
+    <!-- 챌린지 목록 (참여자 수 + 내 참여 여부) -->
+    <select id="findAll" resultType="com.comma.domain.challenge.model.Challenge">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.duration_days,
+            c.auth_type AS verification_type,
+            c.badge_name,
+            c.is_active,
+            c.created_at,
+            (SELECT COUNT(*) FROM challenge_participants cp WHERE cp.challenge_id = c.id) AS participant_count,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT COUNT(*) FROM challenge_participants cp2
+                     WHERE cp2.challenge_id = c.id AND cp2.`쉼표번호` = #{commaNo}) > 0
+                </when>
+                <otherwise>0</otherwise>
+            </choose>
+            AS joined_by_me,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT cp3.status FROM challenge_participants cp3
+                     WHERE cp3.challenge_id = c.id AND cp3.`쉼표번호` = #{commaNo} LIMIT 1)
+                </when>
+                <otherwise>NULL</otherwise>
+            </choose>
+            AS my_status,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT cp4.achieved_days FROM challenge_participants cp4
+                     WHERE cp4.challenge_id = c.id AND cp4.`쉼표번호` = #{commaNo} LIMIT 1)
+                </when>
+                <otherwise>0</otherwise>
+            </choose>
+            AS my_achieved_days
+        FROM challenges c
+        WHERE c.is_active = 1
+        ORDER BY c.created_at DESC
+    </select>
+
+    <!-- 챌린지 단건 -->
+    <select id="findById" resultType="com.comma.domain.challenge.model.Challenge">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.duration_days,
+            c.auth_type AS verification_type,
+            c.badge_name,
+            c.is_active,
+            c.created_at,
+            (SELECT COUNT(*) FROM challenge_participants cp WHERE cp.challenge_id = c.id) AS participant_count,
+            <choose>
+                <when test="commaNo != null">
+                    (SELECT COUNT(*) FROM challenge_participants cp2
+                     WHERE cp2.challenge_id = c.id AND cp2.`쉼표번호` = #{commaNo}) > 0
+                </when>
+                <otherwise>0</otherwise>
+            </choose>
+            AS joined_by_me
+        FROM challenges c
+        WHERE c.id = #{id}
+    </select>
+
+    <!-- 내가 참여 중인 챌린지 -->
+    <select id="findMyJoined" resultType="com.comma.domain.challenge.model.Challenge">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.duration_days,
+            c.auth_type AS verification_type,
+            c.badge_name,
+            c.is_active,
+            c.created_at,
+            (SELECT COUNT(*) FROM challenge_participants cp WHERE cp.challenge_id = c.id) AS participant_count,
+            1 AS joined_by_me,
+            cp_me.status AS my_status,
+            cp_me.achieved_days AS my_achieved_days
+        FROM challenges c
+        JOIN challenge_participants cp_me
+            ON cp_me.challenge_id = c.id AND cp_me.`쉼표번호` = #{commaNo}
+        ORDER BY cp_me.joined_at DESC
+    </select>
+
+    <!-- 참여 여부 확인 -->
+    <select id="countParticipant" resultType="int">
+        SELECT COUNT(*) FROM challenge_participants
+        WHERE challenge_id = #{challengeId} AND `쉼표번호` = #{commaNo}
+    </select>
+
+    <!-- 참여 등록 -->
+    <insert id="insertParticipant" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO challenge_participants (challenge_id, `쉼표번호`, achieved_days, status)
+        VALUES (#{challengeId}, #{쉼표번호}, #{achievedDays}, #{status})
+    </insert>
+
+    <!-- 참여 취소 -->
+    <delete id="deleteParticipant">
+        DELETE FROM challenge_participants
+        WHERE challenge_id = #{challengeId} AND `쉼표번호` = #{commaNo}
+    </delete>
+
+    <!-- 관리자용 전체 목록 (비활성 포함) -->
+    <select id="findAllForAdmin" resultType="com.comma.domain.challenge.model.Challenge">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.duration_days,
+            c.auth_type AS verification_type,
+            c.badge_name,
+            c.is_active,
+            c.created_at,
+            (SELECT COUNT(*) FROM challenge_participants cp WHERE cp.challenge_id = c.id) AS participant_count
+        FROM challenges c
+        ORDER BY c.created_at DESC
+    </select>
+
+    <!-- 활성화 상태 변경 -->
+    <update id="updateIsActive">
+        UPDATE challenges SET is_active = #{isActive} WHERE id = #{id}
+    </update>
+
+    <!-- ==================== 인증 (challenge_progress) ==================== -->
+
+    <!-- 참여자 레코드 ID 조회 -->
+    <select id="findParticipantId" resultType="java.lang.Long">
+        SELECT id FROM challenge_participants
+        WHERE challenge_id = #{challengeId} AND `쉼표번호` = #{commaNo}
+        LIMIT 1
+    </select>
+
+    <!-- 오늘 이미 인증했는지 확인 -->
+    <select id="findTodayProgress" resultType="java.lang.Long">
+        SELECT id FROM challenge_progress
+        WHERE participant_id = #{participantId}
+          AND certified_at = CURDATE()
+        LIMIT 1
+    </select>
+
+    <!-- 인증 등록 (하루 1회) -->
+    <insert id="insertProgress">
+        INSERT INTO challenge_progress (participant_id, memo, photo_url, certified_at)
+        VALUES (#{participantId}, #{memo}, #{photoUrl}, CURDATE())
+    </insert>
+
+    <!-- 달성일수 +1 -->
+    <update id="incrementAchievedDays">
+        UPDATE challenge_participants SET achieved_days = achieved_days + 1
+        WHERE id = #{participantId}
+    </update>
+
+    <!-- 달성일수 >= 기간이면 completed 처리 -->
+    <update id="completeIfDone">
+        UPDATE challenge_participants cp
+        JOIN challenges c ON c.id = cp.challenge_id
+        SET cp.status = 'completed'
+        WHERE cp.id = #{participantId}
+          AND cp.achieved_days >= c.duration_days
+          AND cp.status = 'ongoing'
+    </update>
+
+    <!-- 인증 내역 (달력용 날짜 목록) -->
+    <select id="findProgressDates" resultType="string">
+        SELECT certified_at
+        FROM challenge_progress
+        WHERE participant_id = #{participantId}
+        ORDER BY certified_at DESC
+        LIMIT 60
+    </select>
+
+</mapper>
