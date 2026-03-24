@@ -129,4 +129,52 @@
         UPDATE challenges SET is_active = #{isActive} WHERE id = #{id}
     </update>
 
+    <!-- ==================== 인증 (challenge_progress) ==================== -->
+
+    <!-- 참여자 레코드 ID 조회 -->
+    <select id="findParticipantId" resultType="java.lang.Long">
+        SELECT id FROM challenge_participants
+        WHERE challenge_id = #{challengeId} AND `쉼표번호` = #{commaNo}
+        LIMIT 1
+    </select>
+
+    <!-- 오늘 이미 인증했는지 확인 -->
+    <select id="findTodayProgress" resultType="java.lang.Long">
+        SELECT id FROM challenge_progress
+        WHERE participant_id = #{participantId}
+          AND certified_at = CURDATE()
+        LIMIT 1
+    </select>
+
+    <!-- 인증 등록 (하루 1회) -->
+    <insert id="insertProgress">
+        INSERT INTO challenge_progress (participant_id, memo, certified_at)
+        VALUES (#{participantId}, #{memo}, CURDATE())
+    </insert>
+
+    <!-- 달성일수 +1 -->
+    <update id="incrementAchievedDays">
+        UPDATE challenge_participants SET achieved_days = achieved_days + 1
+        WHERE id = #{participantId}
+    </update>
+
+    <!-- 달성일수 >= 기간이면 completed 처리 -->
+    <update id="completeIfDone">
+        UPDATE challenge_participants cp
+        JOIN challenges c ON c.id = cp.challenge_id
+        SET cp.status = 'completed'
+        WHERE cp.id = #{participantId}
+          AND cp.achieved_days >= c.duration_days
+          AND cp.status = 'ongoing'
+    </update>
+
+    <!-- 인증 내역 (달력용 날짜 목록) -->
+    <select id="findProgressDates" resultType="string">
+        SELECT certified_at
+        FROM challenge_progress
+        WHERE participant_id = #{participantId}
+        ORDER BY certified_at DESC
+        LIMIT 60
+    </select>
+
 </mapper>

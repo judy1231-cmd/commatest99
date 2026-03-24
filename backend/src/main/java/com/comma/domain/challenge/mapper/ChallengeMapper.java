@@ -33,4 +33,24 @@ public interface ChallengeMapper {
 
     // 관리자용 — 활성화/비활성화
     void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
+
+    // ==================== 인증 ====================
+
+    // 참여자 레코드 ID 조회
+    Long findParticipantId(@Param("challengeId") Long challengeId, @Param("commaNo") String commaNo);
+
+    // 오늘 인증 여부 확인
+    Long findTodayProgress(@Param("participantId") Long participantId);
+
+    // 인증 등록
+    void insertProgress(@Param("participantId") Long participantId, @Param("memo") String memo);
+
+    // 달성일수 +1
+    void incrementAchievedDays(@Param("participantId") Long participantId);
+
+    // 달성일수 충족 시 completed 처리
+    void completeIfDone(@Param("participantId") Long participantId);
+
+    // 인증 날짜 목록 (달력용)
+    List<String> findProgressDates(@Param("participantId") Long participantId);
 }

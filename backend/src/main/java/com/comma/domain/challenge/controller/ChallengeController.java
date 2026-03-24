@@ -59,6 +59,36 @@ public class ChallengeController {
         return ResponseEntity.ok(ApiResponse.ok(result, joined ? "챌린지에 참여했습니다." : "챌린지 참여를 취소했습니다."));
     }
 
+    // POST /api/challenges/{id}/certify  [JWT 필요]  — 오늘 인증
+    @PostMapping("/{id}/certify")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> certifyToday(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+        String commaNo = (String) request.getAttribute("쉼표번호");
+        String memo = body != null ? body.getOrDefault("memo", "") : "";
+        try {
+            Map<String, Object> result = challengeService.certifyToday(id, commaNo, memo);
+            boolean completed = Boolean.TRUE.equals(result.get("completed"));
+            String msg = completed ? "챌린지를 완료했어요! 정말 대단해요 🎉" : "오늘 인증 완료! 내일도 화이팅 💪";
+            return ResponseEntity.ok(ApiResponse.ok(result, msg));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(ApiResponse.fail(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(409).body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    // GET /api/challenges/{id}/certify/status  [JWT 필요]  — 인증 상태 조회
+    @GetMapping("/{id}/certify/status")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCertifyStatus(
+            HttpServletRequest request,
+            @PathVariable Long id) {
+        String commaNo = (String) request.getAttribute("쉼표번호");
+        Map<String, Object> result = challengeService.getCertifyStatus(id, commaNo);
+        return ResponseEntity.ok(ApiResponse.ok(result, "인증 상태 조회 성공"));
+    }
+
     // GET /api/admin/challenges  [ADMIN 전용]
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<List<Challenge>>> getAdminChallenges() {

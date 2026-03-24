@@ -56,4 +56,37 @@ public class ChallengeService {
     public void updateIsActive(Long id, boolean isActive) {
         challengeMapper.updateIsActive(id, isActive);
     }
+
+    // ==================== 인증 ====================
+
+    @Transactional
+    public Map<String, Object> certifyToday(Long challengeId, String commaNo, String memo) {
+        Long participantId = challengeMapper.findParticipantId(challengeId, commaNo);
+        if (participantId == null) throw new IllegalArgumentException("참여 중인 챌린지가 아닙니다.");
+
+        if (challengeMapper.findTodayProgress(participantId) != null)
+            throw new IllegalStateException("오늘은 이미 인증하셨습니다.");
+
+        challengeMapper.insertProgress(participantId, memo != null ? memo : "");
+        challengeMapper.incrementAchievedDays(participantId);
+        challengeMapper.completeIfDone(participantId);
+
+        Challenge updated = challengeMapper.findById(challengeId, commaNo);
+        boolean completed = "completed".equals(updated.getMyStatus());
+        return Map.of(
+            "achievedDays", updated.getMyAchievedDays() != null ? updated.getMyAchievedDays() : 0,
+            "durationDays", updated.getDurationDays(),
+            "completed", completed,
+            "todayCertified", true
+        );
+    }
+
+    public Map<String, Object> getCertifyStatus(Long challengeId, String commaNo) {
+        Long participantId = challengeMapper.findParticipantId(challengeId, commaNo);
+        if (participantId == null) return Map.of("joined", false);
+
+        boolean todayCertified = challengeMapper.findTodayProgress(participantId) != null;
+        List<String> dates = challengeMapper.findProgressDates(participantId);
+        return Map.of("joined", true, "todayCertified", todayCertified, "certifiedDates", dates);
+    }
 }
