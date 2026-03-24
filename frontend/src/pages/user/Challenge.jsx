@@ -43,7 +43,6 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const isPhoto = challenge.verificationType === 'photo';
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -58,9 +57,7 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
     try {
       let photoUrl = null;
 
-      // 사진 인증 타입이고 파일이 선택됐으면 먼저 업로드
-      // FormData는 fetchWithAuth 대신 raw fetch 사용 (Content-Type 자동 설정 필요)
-      if (isPhoto && photoFile) {
+      if (photoFile) {
         const formData = new FormData();
         formData.append('file', photoFile);
         const uploadRes = await fetch('/api/challenges/upload-photo', {
@@ -112,61 +109,38 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
           </button>
         </div>
 
-        {challenge.verificationType === 'check' ? (
-          <div className="bg-slate-50 rounded-2xl p-4 text-center mb-5">
-            <span className="material-icons text-4xl mb-2" style={{ color: theme.color }}>check_circle</span>
-            <p className="text-sm font-bold text-slate-700">오늘 챌린지를 실천했나요?</p>
-            <p className="text-xs text-slate-400 mt-1">버튼을 누르면 오늘 인증이 완료돼요.</p>
-          </div>
-        ) : isPhoto ? (
-          <div className="mb-5 space-y-3">
-            {/* 사진 업로드 */}
-            <div>
-              <label className="text-xs font-bold text-slate-600 mb-2 block">사진 첨부 📷</label>
-              {photoPreview ? (
-                <div className="relative w-full h-40 rounded-xl overflow-hidden border border-slate-200">
-                  <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
-                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70"
-                  >
-                    <span className="material-icons text-xs">close</span>
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
-                  <span className="material-icons text-3xl text-slate-300 mb-1">add_photo_alternate</span>
-                  <span className="text-xs text-slate-400">사진을 선택해주세요</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-                </label>
-              )}
+        {/* 사진 첨부 (선택) */}
+        <div className="mb-4">
+          {photoPreview ? (
+            <div className="relative w-full h-36 rounded-xl overflow-hidden border border-slate-200">
+              <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+              <button
+                onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70"
+              >
+                <span className="material-icons text-xs">close</span>
+              </button>
             </div>
-            {/* 메모 */}
-            <div>
-              <label className="text-xs font-bold text-slate-600 mb-2 block">오늘 어떤 경험을 했는지 기록해요 📝</label>
-              <textarea
-                className="w-full h-20 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                placeholder="예) 손편지를 다 썼어요. 마음이 따뜻해졌어요."
-                value={memo}
-                onChange={e => setMemo(e.target.value)}
-                maxLength={200}
-              />
-              <p className="text-right text-[10px] text-slate-300 mt-1">{memo.length}/200</p>
-            </div>
-          </div>
-        ) : (
-          <div className="mb-5">
-            <label className="text-xs font-bold text-slate-600 mb-2 block">오늘 활동을 한 줄로 남겨요 ✍️</label>
-            <textarea
-              className="w-full h-24 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-              placeholder="예) 오늘 20분 산책했어요. 기분이 한결 나아졌어요."
-              value={memo}
-              onChange={e => setMemo(e.target.value)}
-              maxLength={200}
-            />
-            <p className="text-right text-[10px] text-slate-300 mt-1">{memo.length}/200</p>
-          </div>
-        )}
+          ) : (
+            <label className="flex items-center gap-2 w-full px-4 py-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
+              <span className="material-icons text-xl text-slate-300">add_photo_alternate</span>
+              <span className="text-xs text-slate-400">사진 첨부 (선택)</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+            </label>
+          )}
+        </div>
+
+        {/* 메모 (선택) */}
+        <div className="mb-5">
+          <textarea
+            className="w-full h-24 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+            placeholder="오늘 어떤 활동을 했는지 남겨보세요 (선택)"
+            value={memo}
+            onChange={e => setMemo(e.target.value)}
+            maxLength={200}
+          />
+          <p className="text-right text-[10px] text-slate-300 mt-1">{memo.length}/200</p>
+        </div>
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 rounded-xl text-xs text-red-500 font-medium flex items-center gap-2">
@@ -184,7 +158,7 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || (challenge.verificationType === 'text' && !memo.trim())}
+            disabled={loading}
             className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50"
             style={{ backgroundColor: theme.color }}
           >
