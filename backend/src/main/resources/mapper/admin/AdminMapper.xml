@@ -118,19 +118,45 @@
         ORDER BY count DESC
     </select>
 
-    <!-- 지역별 사용자 분포 — rest_logs의 장소 주소 앞 시/도 추출 -->
+    <!-- 지역별 사용자 분포 — 국내 시/도 정규화 + 해외 나라명 그대로 -->
     <select id="getRegionStats" resultType="map">
-        SELECT SUBSTRING_INDEX(p.address, ' ', 1) AS region,
-               COUNT(DISTINCT rl.`쉼표번호`) AS count
-        FROM rest_logs rl
-        JOIN places p ON rl.place_id = p.id
-        WHERE rl.deleted = 0
-          AND rl.place_id IS NOT NULL
-          AND rl.created_at &gt;= #{startDate}
-          AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+        SELECT CASE raw_region
+                   WHEN '서울특별시'       THEN '서울'
+                   WHEN '부산광역시'       THEN '부산'
+                   WHEN '인천광역시'       THEN '인천'
+                   WHEN '대구광역시'       THEN '대구'
+                   WHEN '광주광역시'       THEN '광주'
+                   WHEN '대전광역시'       THEN '대전'
+                   WHEN '울산광역시'       THEN '울산'
+                   WHEN '세종특별자치시'   THEN '세종'
+                   WHEN '경기도'           THEN '경기'
+                   WHEN '강원도'           THEN '강원'
+                   WHEN '강원특별자치도'   THEN '강원'
+                   WHEN '충청북도'         THEN '충북'
+                   WHEN '충청남도'         THEN '충남'
+                   WHEN '전라북도'         THEN '전북'
+                   WHEN '전북특별자치도'   THEN '전북'
+                   WHEN '전라남도'         THEN '전남'
+                   WHEN '경상북도'         THEN '경북'
+                   WHEN '경상남도'         THEN '경남'
+                   WHEN '제주특별자치도'   THEN '제주'
+                   ELSE raw_region
+               END AS region,
+               SUM(cnt) AS count
+        FROM (
+            SELECT SUBSTRING_INDEX(p.address, ' ', 1) AS raw_region,
+                   COUNT(DISTINCT rl.`쉼표번호`) AS cnt
+            FROM rest_logs rl
+            JOIN places p ON rl.place_id = p.id
+            WHERE rl.deleted = 0
+              AND rl.place_id IS NOT NULL
+              AND rl.created_at &gt;= #{startDate}
+              AND rl.created_at &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            GROUP BY raw_region
+        ) t
         GROUP BY region
         ORDER BY count DESC
-        LIMIT 10
+        LIMIT 15
     </select>
 
     <!-- 사용자 여정 퍼널 -->
