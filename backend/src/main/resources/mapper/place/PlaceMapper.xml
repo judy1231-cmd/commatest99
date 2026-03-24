@@ -59,6 +59,15 @@
         WHERE place_id = #{placeId}
     </select>
 
+    <!-- ==================== 카카오 장소 검증 ==================== -->
+
+    <update id="updateKakaoVerified">
+        UPDATE places
+        SET kakao_verified = #{kakaoVerified},
+            kakao_place_id = #{kakaoPlaceId}
+        WHERE id = #{id}
+    </update>
+
     <!-- ==================== AI 점수 배치 ==================== -->
 
     <!--

@@ -61,7 +61,8 @@
     <!-- ==================== 장소 관리 ==================== -->
 
     <select id="findPlacesByStatus" resultType="com.comma.domain.place.model.Place">
-        SELECT id, name, address, latitude, longitude, operating_hours, ai_score, status, created_at
+        SELECT id, name, address, latitude, longitude, operating_hours, ai_score,
+               kakao_verified, kakao_place_id, status, created_at
         FROM places
         <where>
             <if test="status != null and status != ''">

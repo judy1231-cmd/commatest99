@@ -57,6 +57,14 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(result, "장소 목록 조회 성공"));
     }
 
+    // POST /api/admin/places/{id}/verify  [ADMIN 전용] — 카카오 장소 존재 확인
+    @PostMapping("/places/{id}/verify")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyPlace(@PathVariable Long id) {
+        Map<String, Object> result = adminService.verifyPlaceWithKakao(id);
+        String message = Boolean.TRUE.equals(result.get("verified")) ? "카카오에서 장소가 확인되었습니다." : "카카오에서 장소를 찾을 수 없습니다.";
+        return ResponseEntity.ok(ApiResponse.ok(result, message));
+    }
+
     // PUT /api/admin/places/{id}/status  [ADMIN 전용]
     @PutMapping("/places/{id}/status")
     public ResponseEntity<ApiResponse<Void>> updatePlaceStatus(
