@@ -452,7 +452,13 @@ function Challenge() {
     loadChallenges();
   };
 
-  const activeChallenge = myChallenges.find(c => c.myStatus === 'ongoing');
+  const activeChallenges = myChallenges.filter(c => c.myStatus === 'ongoing');
+
+  // 그리드 정렬: 참여중 → 완료 → 미참여
+  const sortedChallenges = [...challenges].sort((a, b) => {
+    const rank = c => c.myStatus === 'ongoing' ? 0 : c.myStatus === 'completed' ? 1 : 2;
+    return rank(a) - rank(b);
+  });
 
   if (loading) {
     return (
@@ -476,19 +482,32 @@ function Challenge() {
           <p className="text-xs text-slate-400 mt-0.5">함께하면 더 쉬운 휴식 습관 만들기</p>
         </div>
 
-        {/* 진행 중 챌린지 배너 */}
-        {activeChallenge ? (
-          <ActiveChallengeCard
-            challenge={activeChallenge}
-            onCertify={() => setCertifyTarget(activeChallenge)}
-          />
-        ) : isLoggedIn ? (
-          <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-6 mb-6 text-center">
-            <span className="material-icons text-3xl text-slate-200 block mb-2">emoji_events</span>
-            <p className="text-sm font-semibold text-slate-400">아직 참여 중인 챌린지가 없어요</p>
-            <p className="text-xs text-slate-300 mt-1">아래에서 챌린지를 골라 참여해보세요</p>
-          </div>
-        ) : null}
+        {/* 참여 중인 챌린지 목록 */}
+        {isLoggedIn && (
+          activeChallenges.length > 0 ? (
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-3 px-0.5">
+                <p className="text-sm font-extrabold text-slate-700">참여 중인 챌린지</p>
+                <span className="text-xs font-bold text-primary">{activeChallenges.length}개</span>
+              </div>
+              <div className="flex flex-col gap-3 mb-6">
+                {activeChallenges.map(c => (
+                  <ActiveChallengeCard
+                    key={c.id}
+                    challenge={c}
+                    onCertify={() => setCertifyTarget(c)}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-6 mb-6 text-center">
+              <span className="material-icons text-3xl text-slate-200 block mb-2">emoji_events</span>
+              <p className="text-sm font-semibold text-slate-400">아직 참여 중인 챌린지가 없어요</p>
+              <p className="text-xs text-slate-300 mt-1">아래에서 챌린지를 골라 참여해보세요</p>
+            </div>
+          )
+        )}
 
         {/* 완료한 챌린지 요약 */}
         {myChallenges.filter(c => c.myStatus === 'completed').length > 0 && (
@@ -503,20 +522,20 @@ function Challenge() {
           </div>
         )}
 
-        {/* 챌린지 목록 */}
+        {/* 전체 챌린지 목록 */}
         <div className="flex items-center justify-between mb-3 px-0.5">
-          <p className="text-sm font-extrabold text-slate-700">진행 중인 챌린지</p>
+          <p className="text-sm font-extrabold text-slate-700">전체 챌린지</p>
           <span className="text-xs text-slate-400">{challenges.length}개</span>
         </div>
 
-        {challenges.length === 0 ? (
+        {sortedChallenges.length === 0 ? (
           <div className="text-center py-16">
             <span className="material-icons text-4xl text-slate-200 block mb-2">emoji_events</span>
             <p className="text-sm text-slate-400">진행 중인 챌린지가 없습니다</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {challenges.map(challenge => (
+            {sortedChallenges.map(challenge => (
               <ChallengeCard
                 key={challenge.id}
                 challenge={challenge}
