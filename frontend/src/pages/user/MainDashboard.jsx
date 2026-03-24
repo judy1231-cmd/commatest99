@@ -247,7 +247,7 @@ function MainDashboard() {
           {isLoggedIn && monthlyStats ? (
             <p className="text-[14px] text-slate-500 mt-1.5">
               이번 달{' '}
-              <span className="font-bold text-primary">{monthlyStats.logCount || 0}회</span> 휴식했어요 ·{' '}
+              <span className="font-bold text-primary">{monthlyStats.recordCount || 0}회</span> 휴식했어요 ·{' '}
               총 <span className="font-bold text-primary">{formatMinutes(monthlyStats.totalRestMinutes)}</span>
             </p>
           ) : isLoggedIn ? (
@@ -331,7 +331,7 @@ function MainDashboard() {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">기록 횟수</p>
                 <p className="text-[24px] font-extrabold text-slate-900 leading-none">
-                  {monthlyStats ? (monthlyStats.logCount || 0) : <span className="w-8 h-6 bg-slate-100 rounded animate-pulse inline-block" />}
+                  {monthlyStats ? (monthlyStats.recordCount || 0) : <span className="w-8 h-6 bg-slate-100 rounded animate-pulse inline-block" />}
                   <span className="text-[14px] font-semibold text-slate-400 ml-1">회</span>
                 </p>
                 <p className="text-[11px] text-slate-400 mt-1">이번 달 합계</p>
