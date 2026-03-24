@@ -334,12 +334,6 @@ function ChallengeCard({ challenge, onToggleJoin, onCertify, isLoggedIn }) {
         <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/80 px-2 py-0.5 rounded-full text-slate-600">
           {challenge.durationDays}일
         </span>
-        <span
-          className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{ backgroundColor: theme.color, color: '#fff' }}
-        >
-          {AUTH_TYPE_LABELS[challenge.verificationType] || '인증'}
-        </span>
         {completed && (
           <span className="absolute bottom-2 left-2 flex items-center gap-0.5 bg-yellow-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
             <span className="material-icons" style={{ fontSize: '9px' }}>emoji_events</span>완료
