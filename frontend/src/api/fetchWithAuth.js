@@ -2,8 +2,10 @@
  * 인증이 필요한 API 호출 유틸
  * - Authorization 헤더 자동 추가
  * - 401 응답 시 refreshToken으로 accessToken 갱신 후 재시도
- * - 갱신 실패 시 로그아웃 처리 (localStorage 클리어 + /login 리다이렉트)
+ * - 갱신 실패 시 로그아웃 처리 (safeStorage 클리어 + /login 리다이렉트)
  */
+
+import { safeStorage } from './safeStorage';
 
 let isRefreshing = false;
 let refreshQueue = [];
@@ -19,14 +21,14 @@ function rejectRefreshQueue(error) {
 }
 
 function forceLogout() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('user');
+  safeStorage.removeItem('accessToken');
+  safeStorage.removeItem('refreshToken');
+  safeStorage.removeItem('user');
   window.location.href = '/login';
 }
 
 async function refreshAccessToken() {
-  const refreshToken = localStorage.getItem('refreshToken');
+  const refreshToken = safeStorage.getItem('refreshToken');
   if (!refreshToken) {
     throw new Error('리프레시 토큰 없음');
   }
@@ -42,7 +44,7 @@ async function refreshAccessToken() {
     throw new Error(data.message);
   }
 
-  localStorage.setItem('accessToken', data.data.accessToken);
+  safeStorage.setItem('accessToken', data.data.accessToken);
   return data.data.accessToken;
 }
 
@@ -53,7 +55,7 @@ async function refreshAccessToken() {
  * @returns {Promise<object>} parsed JSON response
  */
 export async function fetchWithAuth(url, options = {}) {
-  const accessToken = localStorage.getItem('accessToken');
+  const accessToken = safeStorage.getItem('accessToken');
 
   const headers = {
     'Content-Type': 'application/json',
@@ -67,7 +69,7 @@ export async function fetchWithAuth(url, options = {}) {
   let res = await fetch(url, { ...options, headers });
 
   // 401이면 토큰 갱신 시도
-  if (res.status === 401 && localStorage.getItem('refreshToken')) {
+  if (res.status === 401 && safeStorage.getItem('refreshToken')) {
     try {
       let newToken;
 
