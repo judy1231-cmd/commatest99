@@ -20,7 +20,7 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('ko-KR');
 }
 
-function NotificationDropdown({ onClose, onUnreadChange }) {
+function NotificationDropdown({ onClose, onUnreadChange, btnRef }) {
   const token = localStorage.getItem('accessToken');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,14 +40,17 @@ function NotificationDropdown({ onClose, onUnreadChange }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // 외부 클릭 닫기
+  // 외부 클릭 닫기 (종 버튼 자체는 제외 — 버튼 onClick의 토글이 담당)
   useEffect(() => {
     function handler(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target)) onClose();
+      if (panelRef.current && !panelRef.current.contains(e.target) &&
+          !(btnRef?.current && btnRef.current.contains(e.target))) {
+        onClose();
+      }
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
+  }, [onClose, btnRef]);
 
   const markOne = async (id) => {
     const item = items.find(i => i.id === id);
@@ -386,6 +389,7 @@ function UserNavbar() {
                 <NotificationDropdown
                   onClose={() => setShowNotif(false)}
                   onUnreadChange={fetchUnread}
+                  btnRef={notifBtnRef}
                 />
               )}
             </div>
