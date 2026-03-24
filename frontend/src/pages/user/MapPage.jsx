@@ -389,13 +389,13 @@ function MapPage() {
     setBookmarkLoading(placeId);
     const isBookmarked = bookmarkedIds.has(placeId);
     try {
-      const data = await fetchWithAuth(`/api/places/${placeId}/bookmark`, {
-        method: isBookmarked ? 'DELETE' : 'POST',
-      });
+      // 백엔드는 POST 단일 토글 방식
+      const data = await fetchWithAuth(`/api/places/${placeId}/bookmark`, { method: 'POST' });
       if (data.success) {
+        const nowBookmarked = data.data?.bookmarked;
         setBookmarkedIds(prev => {
           const next = new Set(prev);
-          isBookmarked ? next.delete(placeId) : next.add(placeId);
+          nowBookmarked ? next.add(placeId) : next.delete(placeId);
           return next;
         });
       }
