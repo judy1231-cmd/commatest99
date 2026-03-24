@@ -205,35 +205,35 @@ colors: {
 ### 사용자 페이지
 | 경로 | 파일 | 상태 | MVP |
 |------|------|------|-----|
-| `/` | MainDashboard.jsx | UI완성, API연결필요 | ✅ |
+| `/` | MainDashboard.jsx | ✅ API연결완료 | ✅ |
 | `/login` | Login.jsx | ✅ API연결완료 | ✅ |
 | `/signup` | Signup.jsx | ✅ API연결완료 | ✅ |
 | `/signup-complete` | SignupComplete.jsx | ✅ UI완성 (API 불필요) | ✅ |
 | `/password-reset` | PasswordReset.jsx | ✅ API연결완료 | ✅ |
-| `/places/:id` | PlaceDetail.jsx | ✅ API연결완료 (장소상세/리뷰/북마크, Leaflet 미니지도) | ✅ |
-| `/my` | MyPage.jsx | UI있음, API연결필요 | ✅ |
+| `/places/:id` | PlaceDetail.jsx | ✅ API연결완료 (장소상세/리뷰/북마크/신고, Leaflet 미니지도) | ✅ |
+| `/my` | MyPage.jsx | ✅ API연결완료 | ✅ |
 | `/rest-test` | RestTypeTest.jsx | ✅ API연결완료 (12문항, 진단계산) | ✅ |
 | `/heartrate` | HeartRateCheck.jsx | ✅ API연결완료 (동적URL, 복사버튼, QR) | ✅ |
-| `/map` | MapPage.jsx | 하드코딩, Leaflet+공공데이터포털 연동 필요 | ✅ |
+| `/map` | MapPage.jsx | ✅ API연결완료 (Leaflet + /api/places, 북마크) | ✅ |
 | `/rest-record` | RestRecord.jsx | ✅ API연결완료 (등록/목록/월간통계) | ✅ |
-| `/community` | Community.jsx | UI있음 | 2차 |
-| `/community/:id` | 없음 (새로 만들기) | 미완성 | 2차 |
-| `/challenge` | Challenge.jsx | 미완성 | 2차 |
-| `/settings` | 없음 (새로 만들기) | 미완성 | ✅ |
-| `/notifications` | 없음 (새로 만들기) | 미완성 | ✅ |
-| `/rest/physical~creative` | Rest*.jsx (7개) | 디자인통일필요 | ✅ |
+| `/community` | Community.jsx | ✅ API연결완료 (게시글/좋아요/신고) | 2차 ✅ |
+| `/community/:id` | CommunityDetail.jsx | ✅ 존재 | 2차 ✅ |
+| `/challenge` | Challenge.jsx | ✅ API연결완료 (참여/인증/사진업로드) | 2차 ✅ |
+| `/settings` | Settings.jsx | ✅ 존재 | ✅ |
+| `/notifications` | Notifications.jsx | ✅ API연결완료 | ✅ |
+| `/rest/physical~creative` | Rest*.jsx (7개) | ✅ 완료 | ✅ |
 
 ### 관리자 페이지
 | 경로 | 파일 | 상태 |
 |------|------|------|
-| `/admin/login` | 없음 (새로 만들기) | 미완성 |
-| `/admin` | AdminDashboard.jsx | UI완성, API연결필요 |
-| `/admin/users` | UserManagement.jsx | UI있음, API연결필요 |
-| `/admin/places` | PlaceApproval.jsx | UI있음, API연결필요 |
-| `/admin/community` | CommunityManagement.jsx | UI있음, API연결필요 |
-| `/admin/challenges` | ChallengeManagement.jsx | UI있음, API연결필요 |
-| `/admin/analytics` | Analytics.jsx | UI있음, API연결필요 |
-| `/admin/settings` | SystemSettings.jsx | UI있음, API연결필요 |
+| `/admin/login` | AdminLogin.jsx | ✅ 존재 |
+| `/admin` | AdminDashboard.jsx | ✅ API연결완료 |
+| `/admin/users` | UserManagement.jsx | ✅ API연결완료 (금칙어 관리 포함) |
+| `/admin/places` | PlaceApproval.jsx | ✅ API연결완료 |
+| `/admin/community` | CommunityManagement.jsx | ✅ API연결완료 (신고 관리 포함) |
+| `/admin/challenges` | ChallengeManagement.jsx | ✅ 존재 |
+| `/admin/analytics` | Analytics.jsx | ✅ API연결완료 (이벤트 통계 포함) |
+| `/admin/settings` | SystemSettings.jsx | ✅ API연결완료 |
 
 ---
 
@@ -459,9 +459,9 @@ spring.mail.password=지메일앱비밀번호
 3. **Seed 데이터 먼저** — rest_types 7개, badges 5개 없으면 화면 텅 빔
 4. **추천 로그 반드시 저장** — recommendations 테이블 기록해야 통계 살아남
 5. **원천데이터 vs 산출물 분리** — 심박/응답(원천) ↔ 진단결과(산출물)
-6. **관리자 role guard 필수** — 현재 인증 없이 접근 가능 (보안 위험)
+6. **관리자 role guard** — AdminLogin.jsx + JwtInterceptor 기반 ADMIN 권한 체크 구현됨
 7. **fetch 사용** — axios 쓰지 말 것
-8. **커뮤니티/챌린지는 2차 MVP** — MVP 완성 후에 작업
+8. **커뮤니티/챌린지 구현 완료** — 신고, 금칙어, analytics 포함
 
 ---
 
@@ -498,7 +498,10 @@ chore: MyBatis 의존성 추가
 - 쉼표번호 자동생성, 회원가입/로그인 API ✅
 - JWT 인증 (HandlerInterceptor 기반, Spring Security 미사용) ✅
 - Signup.jsx / Login.jsx API 연결 ✅
-- 카카오/구글 OAuth2, 이메일 인증, 비밀번호 재설정 → 미완
+- 카카오/구글 OAuth2 (KakaoAuthController, GoogleAuthController) ✅
+- 네이버 OAuth2 (NaverAuthController) ✅
+- 이메일 인증 (GET /api/auth/email/verify) ✅
+- 비밀번호 재설정 ✅
 
 ### Phase 3 — 진단 ✅ 완료
 - survey_questions Seed 12문항 입력 ✅
@@ -506,38 +509,40 @@ chore: MyBatis 의존성 추가
 - 심박수 측정 세션 API, diagnosis_results 저장 ✅
 - RestTypeTest.jsx API 연결 ✅
 - HeartRateCheck.jsx API 연결 + 동적 URL ✅
-- Apple Watch (단축어), Galaxy Watch (Google Fit API) → 다음 세션
+- Galaxy Watch → 준비 중 UI 처리 완료 ✅
 
-### Phase 4 — 장소 / 기록 (진행 중)
+### Phase 4 — 장소 / 기록 ✅ 완료
 - rest_logs CRUD, RestRecord.jsx 완성 ✅
 - StatsMapper.xml year_month 버그 수정 ✅
-- Galaxy Watch → 준비 중 UI 처리 완료 ✅ (HeartRateCheck.jsx)
-- place_photos DB 사진 교체 완료 ✅ (나팔리 코스트 트레일 place_id=545)
+- place_photos DB 사진 교체 완료 ✅
 - YOLO 이미지 분석 서비스 연동 ✅ (feature/yolo-classification 브랜치)
-- **공공데이터 크롤링 실행 (장소 Seed)** → 미완
-- 장소 CRUD, Leaflet 지도 + 공공데이터포털 API 연동 → 미완
-- recommendations 저장 로직 → 미완
+- 장소 Seed API (VWorld POI API 연동) ✅ — POST /api/admin/places/seed
+- MapPage.jsx Leaflet + /api/places 연동 ✅
+- recommendations 저장/클릭/저장토글 ✅ (RecommendationController 풀 구현)
 
-> 📅 마지막 작업: 2026-03-22
-
-### Phase 5 — 통계 / 마이페이지 / 알림
-- monthly_stats 집계 로직
-- MyPage.jsx API 연결 (통계 차트)
-- 알림 API, 설정 페이지
-- 배지 자동 지급 로직
-- 검색/페이지네이션
+### Phase 5 — 통계 / 마이페이지 / 알림 ✅ 완료
+- monthly_stats 집계 로직 ✅
+- MyPage.jsx API 연결 ✅
+- Notifications.jsx API 연결 ✅
+- Settings.jsx 페이지 ✅
+- 배지 자동 지급 로직 ✅ (BadgeService — 휴식기록 1/10/30/50/100회)
 
 ### Phase 6 — 관리자 / 배포
-- 관리자 API 전체, audit_logs
-- Postman 전체 테스트
-- HTTPS (Let's Encrypt), Nginx 설정
-- Google Cloud Run + Cloud SQL + Cloud Storage 배포 (1순위)
-- 모바일 반응형, UI 폴리시
+- 관리자 API 전체 ✅
+- audit_logs ✅
+- 금칙어 필터링 (blocked_keywords, 소프트 hidden 처리) ✅
+- 사용자 상태변경 시 알림 자동 발송 ✅
+- 신고 기능 (ReportController, ReportModal) ✅
+- analytics_events 이벤트 수집 (@Async, AnalyticsService) ✅
+- **배포** — Google Cloud Run + Cloud SQL + Cloud Storage → **미완** ⬅️ 유일한 미완 항목
+- 모바일 반응형 → 데스크탑 전용으로 개발 범위 제외
 
-### Phase 7 — 2차 MVP (시간 여유 있을 때)
-- 커뮤니티 게시글/댓글/공감/신고
-- 챌린지 참여/인증
-- analytics_events 이벤트 로깅
+### Phase 7 — 2차 MVP ✅ 완료
+- 커뮤니티 게시글/댓글/공감/신고 ✅
+- 챌린지 참여/인증/사진업로드 ✅
+- analytics_events 이벤트 로깅 ✅
+
+> 📅 마지막 작업: 2026-03-24
 
 ---
 
