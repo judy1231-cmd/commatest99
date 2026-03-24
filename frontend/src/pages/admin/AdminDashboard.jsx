@@ -310,6 +310,7 @@ function AdminDashboard() {
                   ))}
                 </div>
               ) : (() => {
+                const DOMESTIC = new Set(['서울','부산','인천','대구','광주','대전','울산','세종','경기','강원','충북','충남','전북','전남','경북','경남','제주']);
                 const regionStats = analytics?.regionStats || [];
                 if (regionStats.length === 0) return (
                   <div className="flex flex-col items-center justify-center h-40 text-gray-300">
@@ -317,22 +318,37 @@ function AdminDashboard() {
                     <p className="text-sm text-gray-400">기간 내 장소 기록이 없습니다</p>
                   </div>
                 );
-                const maxRegionCount = Math.max(...regionStats.map(r => Number(r.count) || 0), 1);
+                const domestic  = regionStats.filter(r => DOMESTIC.has(r.region));
+                const overseas  = regionStats.filter(r => !DOMESTIC.has(r.region));
+                const maxCount  = Math.max(...regionStats.map(r => Number(r.count) || 0), 1);
+                const renderRow = (r, i, color) => {
+                  const pct = Math.round((Number(r.count) / maxCount) * 100);
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-xs font-semibold text-gray-600 w-10 shrink-0">{r.region}</span>
+                      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                      </div>
+                      <span className="text-xs font-bold w-8 text-right tabular-nums" style={{ color }}>{pct}%</span>
+                      <span className="text-xs text-gray-400 w-12 text-right tabular-nums">{Number(r.count).toLocaleString()}명</span>
+                    </div>
+                  );
+                };
                 return (
-                  <div className="space-y-3">
-                    {regionStats.map((r, i) => {
-                      const pct = Math.round((Number(r.count) / maxRegionCount) * 100);
-                      return (
-                        <div key={i} className="flex items-center gap-3">
-                          <span className="text-xs font-semibold text-gray-600 w-10 shrink-0">{r.region}</span>
-                          <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-xs font-bold text-primary w-8 text-right tabular-nums">{pct}%</span>
-                          <span className="text-xs text-gray-400 w-12 text-right tabular-nums">{Number(r.count).toLocaleString()}명</span>
-                        </div>
-                      );
-                    })}
+                  <div className="space-y-2">
+                    {domestic.length > 0 && (
+                      <>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">국내</p>
+                        <div className="space-y-2.5">{domestic.map((r, i) => renderRow(r, i, '#10b981'))}</div>
+                      </>
+                    )}
+                    {overseas.length > 0 && (
+                      <>
+                        <div className="border-t border-gray-100 my-3" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">해외</p>
+                        <div className="space-y-2.5">{overseas.map((r, i) => renderRow(r, i, '#6366f1'))}</div>
+                      </>
+                    )}
                   </div>
                 );
               })()}
