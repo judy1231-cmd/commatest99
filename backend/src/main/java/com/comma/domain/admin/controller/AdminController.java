@@ -47,6 +47,23 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok("사용자 상태가 변경되었습니다."));
     }
 
+    // POST /api/admin/places  [ADMIN 전용] — 장소 직접 등록
+    @PostMapping("/places")
+    public ResponseEntity<ApiResponse<Void>> createPlace(@RequestBody Map<String, Object> body) {
+        String name          = (String) body.get("name");
+        String address       = (String) body.get("address");
+        Double latitude      = body.get("latitude")  != null ? ((Number) body.get("latitude")).doubleValue()  : null;
+        Double longitude     = body.get("longitude") != null ? ((Number) body.get("longitude")).doubleValue() : null;
+        String operatingHours = (String) body.get("operatingHours");
+        String difficulty    = (String) body.get("difficulty");
+        @SuppressWarnings("unchecked")
+        List<String> restTypes = (List<String>) body.get("restTypes");
+        String photoUrl      = (String) body.get("photoUrl");
+
+        adminService.registerPlace(name, address, latitude, longitude, operatingHours, difficulty, restTypes, photoUrl);
+        return ResponseEntity.ok(ApiResponse.ok("장소가 등록되었습니다."));
+    }
+
     // GET /api/admin/places?status=pending&page=1&size=20  [ADMIN 전용]
     @GetMapping("/places")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getPlaces(

@@ -183,8 +183,8 @@
 
     <insert id="insertPlace" parameterType="com.comma.domain.place.model.Place"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO places (name, address, latitude, longitude, ai_score, status, created_at)
-        VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{aiScore}, #{status}, #{createdAt})
+        INSERT INTO places (name, address, latitude, longitude, operating_hours, difficulty, ai_score, status, created_at)
+        VALUES (#{name}, #{address}, #{latitude}, #{longitude}, #{operatingHours}, #{difficulty}, #{aiScore}, #{status}, #{createdAt})
     </insert>
 
     <insert id="insertPlaceTag" parameterType="com.comma.domain.place.model.PlaceTag">

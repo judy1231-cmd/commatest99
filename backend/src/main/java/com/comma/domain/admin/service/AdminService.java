@@ -121,6 +121,44 @@ public class AdminService {
         log.info("YOLO 자동 태그 추가: place_id={}, category={}", placeId, suggestedCategory);
     }
 
+    /**
+     * 관리자가 장소를 직접 등록한다. 바로 approved 상태로 저장.
+     */
+    @Transactional
+    public void registerPlace(String name, String address, Double latitude, Double longitude,
+                              String operatingHours, String difficulty,
+                              List<String> restTypes, String photoUrl) {
+        Place place = new Place();
+        place.setName(name);
+        place.setAddress(address);
+        place.setLatitude(latitude);
+        place.setLongitude(longitude);
+        place.setOperatingHours(operatingHours);
+        place.setDifficulty(difficulty);
+        place.setAiScore(50.0);
+        place.setStatus("approved");
+        place.setCreatedAt(java.time.LocalDateTime.now());
+        placeMapper.insertPlace(place);
+
+        if (restTypes != null) {
+            for (String restType : restTypes) {
+                PlaceTag tag = new PlaceTag();
+                tag.setPlaceId(place.getId());
+                tag.setTagName(restType);
+                tag.setRestType(restType);
+                placeMapper.insertPlaceTag(tag);
+            }
+        }
+
+        if (photoUrl != null && !photoUrl.isBlank()) {
+            PlacePhoto photo = new PlacePhoto();
+            photo.setPlaceId(place.getId());
+            photo.setPhotoUrl(photoUrl);
+            photo.setSource("admin");
+            placeMapper.insertPhoto(photo);
+        }
+    }
+
     public Map<String, Object> getAnalytics(String startDate, String endDate) {
         Map<String, Object> analytics = new HashMap<>();
         analytics.put("dailySignups", adminMapper.getDailySignups(startDate, endDate));

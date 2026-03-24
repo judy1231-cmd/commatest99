@@ -32,9 +32,7 @@ function getPeriodDates(periodTab, dateFrom, dateTo) {
 function AdminDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState(null);
-  const [pendingPlaces, setPendingPlaces] = useState([]);
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [bulkLoading, setBulkLoading] = useState(false);
+  const [recentPlaces, setRecentPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [periodTab, setPeriodTab] = useState('30d');
@@ -54,11 +52,11 @@ function AdminDashboard() {
       const [dashRes, analyticsRes, placesRes] = await Promise.allSettled([
         fetchWithAuth('/api/admin/dashboard'),
         fetchWithAuth(`/api/admin/analytics?startDate=${startDate}&endDate=${endDate}`),
-        fetchWithAuth('/api/admin/places?status=pending&page=1&size=5'),
+        fetchWithAuth('/api/admin/places?status=approved&page=1&size=5'),
       ]);
       if (dashRes.status === 'fulfilled' && dashRes.value.success)           setDashboard(dashRes.value.data);
       if (analyticsRes.status === 'fulfilled' && analyticsRes.value.success) setAnalytics(analyticsRes.value.data);
-      if (placesRes.status === 'fulfilled' && placesRes.value.success)       setPendingPlaces(placesRes.value.data?.places || []);
+      if (placesRes.status === 'fulfilled' && placesRes.value.success)       setRecentPlaces(placesRes.value.data?.places || []);
     } finally {
       setLoading(false);
     }
@@ -84,47 +82,6 @@ function AdminDashboard() {
     if (dateFrom && dateTo) loadAnalytics(dateFrom, dateTo);
   };
 
-  const handlePlaceStatus = async (placeId, status) => {
-    try {
-      await fetchWithAuth(`/api/admin/places/${placeId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status }),
-      });
-      setPendingPlaces(prev => prev.filter(p => p.id !== placeId));
-      setSelectedIds(prev => { const s = new Set(prev); s.delete(placeId); return s; });
-    } catch { /* 무시 */ }
-  };
-
-  const handleBulkStatus = async (status) => {
-    if (selectedIds.size === 0) return;
-    setBulkLoading(true);
-    try {
-      await fetchWithAuth('/api/admin/places/bulk-status', {
-        method: 'PUT',
-        body: JSON.stringify({ ids: [...selectedIds], status }),
-      });
-      setPendingPlaces(prev => prev.filter(p => !selectedIds.has(p.id)));
-      setSelectedIds(new Set());
-    } catch { /* 무시 */ } finally {
-      setBulkLoading(false);
-    }
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => {
-      const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
-      return s;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === pendingPlaces.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(pendingPlaces.map(p => p.id)));
-    }
-  };
 
 
   const kpis = dashboard ? [
@@ -438,125 +395,56 @@ function AdminDashboard() {
             </div>
           </section>
 
-          {/* ── 승인 대기 장소 ── */}
+          {/* ── 최근 등록 장소 ── */}
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h3 className="text-sm font-bold text-gray-900">장소 승인 대기</h3>
-                {pendingPlaces.length > 0 && (
-                  <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
-                    {pendingPlaces.length}건
-                  </span>
-                )}
-                {selectedIds.size > 0 && (
-                  <div className="flex items-center gap-2 ml-2">
-                    <span className="text-xs text-gray-500">{selectedIds.size}개 선택</span>
-                    <button
-                      onClick={() => handleBulkStatus('approved')}
-                      disabled={bulkLoading}
-                      className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors"
-                    >
-                      일괄 승인
-                    </button>
-                    <button
-                      onClick={() => handleBulkStatus('rejected')}
-                      disabled={bulkLoading}
-                      className="px-3 py-1 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors"
-                    >
-                      일괄 반려
-                    </button>
-                  </div>
-                )}
+              <div className="flex items-center gap-2">
+                <span className="material-icons text-primary text-[18px]">place</span>
+                <h3 className="text-sm font-bold text-gray-900">최근 등록 장소</h3>
               </div>
               <Link to="/admin/places" className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
-                전체보기 <span className="material-icons text-sm">chevron_right</span>
+                전체 관리 <span className="material-icons text-sm">chevron_right</span>
               </Link>
             </div>
             {loading ? (
               <div className="divide-y divide-gray-100">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center gap-4 animate-pulse">
-                    <div className="w-32 h-3 bg-gray-200 rounded" />
-                    <div className="flex-1 h-3 bg-gray-100 rounded" />
-                    <div className="w-12 h-5 bg-gray-200 rounded-full" />
-                    <div className="w-20 h-3 bg-gray-100 rounded" />
+                  <div key={i} className="px-6 py-3.5 flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-lg bg-gray-200 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="w-28 h-3 bg-gray-200 rounded" />
+                      <div className="w-44 h-2.5 bg-gray-100 rounded" />
+                    </div>
+                    <div className="w-16 h-3 bg-gray-100 rounded" />
                   </div>
                 ))}
               </div>
-            ) : pendingPlaces.length === 0 ? (
+            ) : recentPlaces.length === 0 ? (
               <div className="py-12 flex flex-col items-center gap-2 text-gray-300">
-                <span className="material-icons text-4xl">check_circle</span>
-                <p className="text-sm text-gray-400">승인 대기 중인 장소가 없습니다</p>
+                <span className="material-icons text-4xl">location_off</span>
+                <p className="text-sm text-gray-400">등록된 장소가 없습니다</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-4 py-3 w-10">
-                        <input
-                          type="checkbox"
-                          checked={pendingPlaces.length > 0 && selectedIds.size === pendingPlaces.length}
-                          onChange={toggleSelectAll}
-                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 cursor-pointer"
-                        />
-                      </th>
-                      <th className="px-3 py-3 w-16 text-xs font-semibold text-gray-500 uppercase tracking-wider">사진</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">장소명</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">주소</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">등록일</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingPlaces.map((place, idx) => {
-                      const isSelected = selectedIds.has(place.id);
-                      return (
-                        <tr key={place.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${isSelected ? 'bg-primary/5' : idx % 2 === 1 ? 'bg-gray-50/60' : 'bg-white'}`}>
-                          <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleSelect(place.id)}
-                              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 cursor-pointer"
-                            />
-                          </td>
-                          <td className="px-3 py-3">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-100 flex items-center justify-center shrink-0">
-                              {place.photoUrl ? (
-                                <img
-                                  src={place.photoUrl}
-                                  alt=""
-                                  className="w-full h-full object-cover"
-                                  onError={e => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              ) : (
-                                <span className="material-icons text-gray-300 text-[20px]">image</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">{place.name}</td>
-                          <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{place.address}</td>
-                          <td className="px-4 py-3 text-xs text-gray-400 tabular-nums whitespace-nowrap">
-                            {place.createdAt ? String(place.createdAt).slice(0, 10) : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => handlePlaceStatus(place.id, 'approved')}
-                                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors">
-                                승인
-                              </button>
-                              <button onClick={() => handlePlaceStatus(place.id, 'rejected')}
-                                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors">
-                                반려
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="divide-y divide-gray-100">
+                {recentPlaces.map(place => (
+                  <div key={place.id} className="px-6 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                      {place.photoUrl ? (
+                        <img src={place.photoUrl} alt="" className="w-full h-full object-cover"
+                          onError={e => { e.currentTarget.style.display = 'none'; }} />
+                      ) : (
+                        <span className="material-icons text-gray-300 text-xl">landscape</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{place.name}</p>
+                      <p className="text-xs text-gray-400 truncate mt-0.5">{place.address}</p>
+                    </div>
+                    <span className="text-xs text-gray-400 tabular-nums shrink-0">
+                      {place.createdAt ? String(place.createdAt).slice(0, 10) : '—'}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </section>
