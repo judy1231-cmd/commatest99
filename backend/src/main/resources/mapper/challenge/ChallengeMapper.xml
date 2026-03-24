@@ -148,8 +148,8 @@
 
     <!-- 인증 등록 (하루 1회) -->
     <insert id="insertProgress">
-        INSERT INTO challenge_progress (participant_id, memo, certified_at)
-        VALUES (#{participantId}, #{memo}, CURDATE())
+        INSERT INTO challenge_progress (participant_id, memo, photo_url, certified_at)
+        VALUES (#{participantId}, #{memo}, #{photoUrl}, CURDATE())
     </insert>
 
     <!-- 달성일수 +1 -->

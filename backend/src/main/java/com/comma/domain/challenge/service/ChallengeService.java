@@ -60,14 +60,14 @@ public class ChallengeService {
     // ==================== 인증 ====================
 
     @Transactional
-    public Map<String, Object> certifyToday(Long challengeId, String commaNo, String memo) {
+    public Map<String, Object> certifyToday(Long challengeId, String commaNo, String memo, String photoUrl) {
         Long participantId = challengeMapper.findParticipantId(challengeId, commaNo);
         if (participantId == null) throw new IllegalArgumentException("참여 중인 챌린지가 아닙니다.");
 
         if (challengeMapper.findTodayProgress(participantId) != null)
             throw new IllegalStateException("오늘은 이미 인증하셨습니다.");
 
-        challengeMapper.insertProgress(participantId, memo != null ? memo : "");
+        challengeMapper.insertProgress(participantId, memo != null ? memo : "", photoUrl);
         challengeMapper.incrementAchievedDays(participantId);
         challengeMapper.completeIfDone(participantId);
 

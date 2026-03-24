@@ -45,6 +45,19 @@ public class FileUploadService {
      * @param files 업로드할 파일 목록 (최대 5개)
      * @return 저장된 파일의 접근 URL 목록
      */
+    public String uploadChallengePhoto(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("파일이 없습니다.");
+        }
+        Path uploadPath = Paths.get(uploadBaseDir, "challenge").toAbsolutePath();
+        Files.createDirectories(uploadPath);
+        validateFile(file);
+        String extension = extractExtension(file.getOriginalFilename());
+        String savedFilename = UUID.randomUUID().toString().replace("-", "") + "." + extension;
+        file.transferTo(uploadPath.resolve(savedFilename).toFile());
+        return baseUrl + "/uploads/challenge/" + savedFilename;
+    }
+
     public List<String> uploadPostPhotos(List<MultipartFile> files) throws IOException {
         if (files == null || files.isEmpty()) return List.of();
 

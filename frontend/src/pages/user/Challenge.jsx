@@ -44,7 +44,6 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const isPhoto = challenge.verificationType === 'photo';
-  const needsMemo = challenge.verificationType === 'text' || isPhoto;
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -57,9 +56,29 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
     setLoading(true);
     setError(null);
     try {
+      let photoUrl = null;
+
+      // 사진 인증 타입이고 파일이 선택됐으면 먼저 업로드
+      // FormData는 fetchWithAuth 대신 raw fetch 사용 (Content-Type 자동 설정 필요)
+      if (isPhoto && photoFile) {
+        const formData = new FormData();
+        formData.append('file', photoFile);
+        const uploadRes = await fetch('/api/challenges/upload-photo', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+          body: formData,
+        }).then(r => r.json());
+        if (!uploadRes.success) {
+          setError(uploadRes.message || '사진 업로드에 실패했어요.');
+          setLoading(false);
+          return;
+        }
+        photoUrl = uploadRes.data?.url;
+      }
+
       const data = await fetchWithAuth(`/api/challenges/${challenge.id}/certify`, {
         method: 'POST',
-        body: JSON.stringify({ memo }),
+        body: JSON.stringify({ memo, photoUrl }),
       });
       if (data.success) {
         onSuccess(data);

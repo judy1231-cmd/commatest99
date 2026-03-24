@@ -43,7 +43,7 @@ public interface ChallengeMapper {
     Long findTodayProgress(@Param("participantId") Long participantId);
 
     // 인증 등록
-    void insertProgress(@Param("participantId") Long participantId, @Param("memo") String memo);
+    void insertProgress(@Param("participantId") Long participantId, @Param("memo") String memo, @Param("photoUrl") String photoUrl);
 
     // 달성일수 +1
     void incrementAchievedDays(@Param("participantId") Long participantId);
