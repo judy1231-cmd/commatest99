@@ -39,9 +39,19 @@ function getEncouragement(achievedDays, durationDays, todayCertified, completed)
 function CertifyModal({ challenge, onClose, onSuccess }) {
   const theme = getTheme(challenge.id);
   const [memo, setMemo] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const needsMemo = challenge.verificationType === 'text' || challenge.verificationType === 'photo';
+  const isPhoto = challenge.verificationType === 'photo';
+  const needsMemo = challenge.verificationType === 'text' || isPhoto;
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -64,22 +74,23 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
       <div
-        className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-10"
+        className="w-full max-w-md bg-white rounded-3xl p-6"
         onClick={e => e.stopPropagation()}
       >
-        {/* 핸들 */}
-        <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-5" />
-
+        {/* 헤더 */}
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
             <span className="material-icons text-lg" style={{ color: theme.color }}>{theme.icon}</span>
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-[11px] text-slate-400 font-medium">오늘의 인증</p>
             <p className="text-sm font-extrabold text-slate-800">{challenge.title}</p>
           </div>
+          <button onClick={onClose} className="text-slate-300 hover:text-slate-500 transition-colors">
+            <span className="material-icons text-xl">close</span>
+          </button>
         </div>
 
         {challenge.verificationType === 'check' ? (
@@ -88,11 +99,45 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
             <p className="text-sm font-bold text-slate-700">오늘 챌린지를 실천했나요?</p>
             <p className="text-xs text-slate-400 mt-1">버튼을 누르면 오늘 인증이 완료돼요.</p>
           </div>
+        ) : isPhoto ? (
+          <div className="mb-5 space-y-3">
+            {/* 사진 업로드 */}
+            <div>
+              <label className="text-xs font-bold text-slate-600 mb-2 block">사진 첨부 📷</label>
+              {photoPreview ? (
+                <div className="relative w-full h-40 rounded-xl overflow-hidden border border-slate-200">
+                  <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => { setPhotoFile(null); setPhotoPreview(null); }}
+                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/70"
+                  >
+                    <span className="material-icons text-xs">close</span>
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                  <span className="material-icons text-3xl text-slate-300 mb-1">add_photo_alternate</span>
+                  <span className="text-xs text-slate-400">사진을 선택해주세요</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                </label>
+              )}
+            </div>
+            {/* 메모 */}
+            <div>
+              <label className="text-xs font-bold text-slate-600 mb-2 block">오늘 어떤 경험을 했는지 기록해요 📝</label>
+              <textarea
+                className="w-full h-20 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                placeholder="예) 손편지를 다 썼어요. 마음이 따뜻해졌어요."
+                value={memo}
+                onChange={e => setMemo(e.target.value)}
+                maxLength={200}
+              />
+              <p className="text-right text-[10px] text-slate-300 mt-1">{memo.length}/200</p>
+            </div>
+          </div>
         ) : (
           <div className="mb-5">
-            <label className="text-xs font-bold text-slate-600 mb-2 block">
-              {challenge.verificationType === 'photo' ? '오늘 어떤 경험을 했는지 기록해요 📝' : '오늘 활동을 한 줄로 남겨요 ✍️'}
-            </label>
+            <label className="text-xs font-bold text-slate-600 mb-2 block">오늘 활동을 한 줄로 남겨요 ✍️</label>
             <textarea
               className="w-full h-24 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
               placeholder="예) 오늘 20분 산책했어요. 기분이 한결 나아졌어요."
@@ -120,7 +165,7 @@ function CertifyModal({ challenge, onClose, onSuccess }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || (needsMemo && !memo.trim())}
+            disabled={loading || (challenge.verificationType === 'text' && !memo.trim())}
             className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50"
             style={{ backgroundColor: theme.color }}
           >
