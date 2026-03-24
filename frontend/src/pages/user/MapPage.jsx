@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import UserNavbar from '../../components/user/UserNavbar';
+import fetchWithAuth from '../../api/fetchWithAuth';
 
 // Leaflet 기본 마커 아이콘 경로 수정 (React 빌드 환경 이슈)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -278,6 +279,8 @@ function MapPage() {
   const [flyTarget, setFlyTarget] = useState(
     highlightPlace?.lat ? [highlightPlace.lat, highlightPlace.lng] : null
   );
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState(null); // 처리 중인 placeId
 
   // locationTab 변경 시 지역 선택 초기화
   useEffect(() => { setRegionL1(''); setRegionL2(''); }, [locationTab]);
@@ -364,6 +367,44 @@ function MapPage() {
   useEffect(() => {
     loadPlaces();
   }, [loadPlaces]);
+
+  // 로그인 사용자의 북마크 목록 로드
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    fetchWithAuth('/api/places/bookmarks')
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setBookmarkedIds(new Set(data.data.map(p => p.id)));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleBookmarkToggle = async (e, placeId) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    if (bookmarkLoading === placeId) return;
+    setBookmarkLoading(placeId);
+    const isBookmarked = bookmarkedIds.has(placeId);
+    try {
+      const data = await fetchWithAuth(`/api/places/${placeId}/bookmark`, {
+        method: isBookmarked ? 'DELETE' : 'POST',
+      });
+      if (data.success) {
+        setBookmarkedIds(prev => {
+          const next = new Set(prev);
+          isBookmarked ? next.delete(placeId) : next.add(placeId);
+          return next;
+        });
+      }
+    } catch {
+      // 실패 시 무시
+    } finally {
+      setBookmarkLoading(null);
+    }
+  };
 
   // 맞춤 추천에서 넘어온 경우 placeId로 좌표 fetch
   useEffect(() => {
@@ -617,9 +658,25 @@ function MapPage() {
                       setFlyTarget([place.latitude, place.longitude]);
                     }
                   }}
-                  className="p-3 cursor-pointer transition-colors hover:bg-slate-50"
+                  className="relative p-3 cursor-pointer transition-colors hover:bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
+                    {/* 북마크 하트 버튼 */}
+                    {localStorage.getItem('accessToken') && (
+                      <button
+                        onClick={e => handleBookmarkToggle(e, place.id)}
+                        className="absolute top-3 right-3 z-10 p-1"
+                        disabled={bookmarkLoading === place.id}
+                        title={bookmarkedIds.has(place.id) ? '찜 해제' : '찜하기'}
+                      >
+                        <span
+                          className="material-icons text-lg"
+                          style={{ color: bookmarkedIds.has(place.id) ? '#EF4444' : '#CBD5E1' }}
+                        >
+                          {bookmarkedIds.has(place.id) ? 'favorite' : 'favorite_border'}
+                        </span>
+                      </button>
+                    )}
                     {/* 썸네일 사진 */}
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100">
                       {place.photoUrl ? (

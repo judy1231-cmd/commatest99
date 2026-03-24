@@ -145,7 +145,8 @@
 
     <select id="findBookmarkedPlaces" resultType="com.comma.domain.place.model.Place">
         SELECT p.id, p.name, p.address, p.latitude, p.longitude,
-               p.operating_hours, p.ai_score, p.status, p.created_at
+               p.operating_hours, p.ai_score, p.status, p.created_at,
+               (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS photo_url
         FROM places p
         INNER JOIN place_bookmarks pb ON p.id = pb.place_id
         WHERE pb.`쉼표번호` = #{쉼표번호}
