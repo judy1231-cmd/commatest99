@@ -435,7 +435,13 @@ function Challenge() {
     if (!isLoggedIn) { navigate('/login'); return; }
     try {
       const data = await fetchWithAuth(`/api/challenges/${challengeId}/join`, { method: 'POST' });
-      if (data.success) loadChallenges();
+      if (data.success) {
+        loadChallenges();
+        // 참여하기 클릭 시 상단 배너가 보이도록 스크롤
+        if (data.data?.joined) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
     } catch { /* 무시 */ }
   };
 
