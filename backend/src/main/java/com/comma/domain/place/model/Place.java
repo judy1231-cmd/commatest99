@@ -20,6 +20,8 @@ public class Place {
     private Double longitude;
     private String operatingHours;
     private Double aiScore;
+    private Boolean kakaoVerified;  // 카카오 장소 존재 확인 여부
+    private String kakaoPlaceId;    // 카카오 장소 ID
     private String difficulty;      // easy / medium / hard
     private String status;          // pending / approved / rejected
     private LocalDateTime createdAt;

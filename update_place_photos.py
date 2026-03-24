@@ -4,11 +4,14 @@
 - place.map.kakao.com/m/{id} → og:image(카카오맵 등록 사진) 추출
 - 장소 못 찾거나 사진 없으면 기존 사진 유지 (덮어쓰기 안 함)
 """
+import sys
 import pymysql
 import requests
 import re
 import time
 from urllib.parse import unquote
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 KAKAO_REST_API_KEY = "a48f46b4b034c13deb16fca8c2328e3a"
 
