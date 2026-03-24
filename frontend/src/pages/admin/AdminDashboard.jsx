@@ -33,6 +33,8 @@ function AdminDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [pendingPlaces, setPendingPlaces] = useState([]);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [periodTab, setPeriodTab] = useState('30d');
@@ -89,7 +91,39 @@ function AdminDashboard() {
         body: JSON.stringify({ status }),
       });
       setPendingPlaces(prev => prev.filter(p => p.id !== placeId));
+      setSelectedIds(prev => { const s = new Set(prev); s.delete(placeId); return s; });
     } catch { /* 무시 */ }
+  };
+
+  const handleBulkStatus = async (status) => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      await fetchWithAuth('/api/admin/places/bulk-status', {
+        method: 'PUT',
+        body: JSON.stringify({ ids: [...selectedIds], status }),
+      });
+      setPendingPlaces(prev => prev.filter(p => !selectedIds.has(p.id)));
+      setSelectedIds(new Set());
+    } catch { /* 무시 */ } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === pendingPlaces.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pendingPlaces.map(p => p.id)));
+    }
   };
 
 
@@ -407,12 +441,31 @@ function AdminDashboard() {
           {/* ── 승인 대기 장소 ── */}
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <h3 className="text-sm font-bold text-gray-900">장소 승인 대기</h3>
                 {pendingPlaces.length > 0 && (
                   <span className="text-xs font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">
                     {pendingPlaces.length}건
                   </span>
+                )}
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className="text-xs text-gray-500">{selectedIds.size}개 선택</span>
+                    <button
+                      onClick={() => handleBulkStatus('approved')}
+                      disabled={bulkLoading}
+                      className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors"
+                    >
+                      일괄 승인
+                    </button>
+                    <button
+                      onClick={() => handleBulkStatus('rejected')}
+                      disabled={bulkLoading}
+                      className="px-3 py-1 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors"
+                    >
+                      일괄 반려
+                    </button>
+                  </div>
                 )}
               </div>
               <Link to="/admin/places" className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1">
@@ -440,34 +493,67 @@ function AdminDashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">장소명</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">주소</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">등록일</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">관리</th>
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          checked={pendingPlaces.length > 0 && selectedIds.size === pendingPlaces.length}
+                          onChange={toggleSelectAll}
+                          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 cursor-pointer"
+                        />
+                      </th>
+                      <th className="px-3 py-3 w-16 text-xs font-semibold text-gray-500 uppercase tracking-wider">사진</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">장소명</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">주소</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">등록일</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">관리</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingPlaces.map((place, idx) => (
-                      <tr key={place.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/60' : 'bg-white'}`}>
-                        <td className="px-6 py-3.5 font-semibold text-gray-900">{place.name}</td>
-                        <td className="px-6 py-3.5 text-gray-500 max-w-[260px] truncate">{place.address}</td>
-                        <td className="px-6 py-3.5 text-xs text-gray-400 tabular-nums">
-                          {place.createdAt ? String(place.createdAt).slice(0, 10) : '—'}
-                        </td>
-                        <td className="px-6 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => handlePlaceStatus(place.id, 'approved')}
-                              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors">
-                              승인
-                            </button>
-                            <button onClick={() => handlePlaceStatus(place.id, 'rejected')}
-                              className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors">
-                              반려
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {pendingPlaces.map((place, idx) => {
+                      const isSelected = selectedIds.has(place.id);
+                      return (
+                        <tr key={place.id} className={`border-b border-gray-100 hover:bg-primary/5 transition-colors ${isSelected ? 'bg-primary/5' : idx % 2 === 1 ? 'bg-gray-50/60' : 'bg-white'}`}>
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelect(place.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 cursor-pointer"
+                            />
+                          </td>
+                          <td className="px-3 py-3">
+                            {place.photoUrl ? (
+                              <img
+                                src={place.photoUrl}
+                                alt={place.name}
+                                className="w-12 h-12 rounded-lg object-cover border border-gray-100"
+                                onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                              />
+                            ) : null}
+                            <div className={`w-12 h-12 rounded-lg bg-gray-100 items-center justify-center ${place.photoUrl ? 'hidden' : 'flex'}`}>
+                              <span className="material-icons text-gray-300 text-[20px]">image</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-gray-900">{place.name}</td>
+                          <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{place.address}</td>
+                          <td className="px-4 py-3 text-xs text-gray-400 tabular-nums whitespace-nowrap">
+                            {place.createdAt ? String(place.createdAt).slice(0, 10) : '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => handlePlaceStatus(place.id, 'approved')}
+                                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg transition-colors">
+                                승인
+                              </button>
+                              <button onClick={() => handlePlaceStatus(place.id, 'rejected')}
+                                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 text-xs font-bold rounded-lg transition-colors">
+                                반려
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

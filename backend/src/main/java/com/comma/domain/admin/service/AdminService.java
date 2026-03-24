@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -73,6 +74,19 @@ public class AdminService {
         result.put("page", page);
         result.put("totalPages", (int) Math.ceil((double) total / size));
         return result;
+    }
+
+    /** 장소 일괄 상태 변경 */
+    @Transactional
+    public void updatePlaceStatusBulk(String admin쉼표번호, List<Long> placeIds, String status) {
+        if (placeIds == null || placeIds.isEmpty()) return;
+        adminMapper.updatePlaceStatusBulk(placeIds, status);
+        String targetIds = placeIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        logAudit(admin쉼표번호, "bulk_change_place_status_to_" + status, "place", targetIds);
+
+        if ("approved".equals(status)) {
+            placeIds.forEach(this::autoTagByYolo);
+        }
     }
 
     @Transactional

@@ -44,6 +44,8 @@ public interface AdminMapper {
 
     void updatePlaceStatus(@Param("id") Long id, @Param("status") String status);
 
+    void updatePlaceStatusBulk(@Param("ids") List<Long> ids, @Param("status") String status);
+
     // ==================== 분석 ====================
 
     List<Map<String, Object>> getDailySignups(@Param("startDate") String startDate, @Param("endDate") String endDate);

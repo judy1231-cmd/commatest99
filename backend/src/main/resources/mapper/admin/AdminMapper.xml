@@ -61,15 +61,16 @@
     <!-- ==================== 장소 관리 ==================== -->
 
     <select id="findPlacesByStatus" resultType="com.comma.domain.place.model.Place">
-        SELECT id, name, address, latitude, longitude, operating_hours, ai_score,
-               kakao_verified, kakao_place_id, status, created_at
-        FROM places
+        SELECT p.id, p.name, p.address, p.latitude, p.longitude, p.operating_hours, p.ai_score,
+               p.kakao_verified, p.kakao_place_id, p.status, p.created_at,
+               (SELECT photo_url FROM place_photos WHERE place_id = p.id LIMIT 1) AS photo_url
+        FROM places p
         <where>
             <if test="status != null and status != ''">
-                status = #{status}
+                p.status = #{status}
             </if>
         </where>
-        ORDER BY created_at DESC
+        ORDER BY p.created_at DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
 
@@ -84,6 +85,14 @@
 
     <update id="updatePlaceStatus">
         UPDATE places SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updatePlaceStatusBulk">
+        UPDATE places SET status = #{status}
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </update>
 
     <!-- ==================== 분석 — 기간 필터 지원 ==================== -->

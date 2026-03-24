@@ -57,6 +57,20 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(result, "장소 목록 조회 성공"));
     }
 
+    // PUT /api/admin/places/bulk-status  [ADMIN 전용] — 일괄 상태 변경
+    @PutMapping("/places/bulk-status")
+    public ResponseEntity<ApiResponse<Void>> updatePlaceStatusBulk(
+            HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        String admin쉼표번호 = (String) request.getAttribute("쉼표번호");
+        @SuppressWarnings("unchecked")
+        List<Integer> rawIds = (List<Integer>) body.get("ids");
+        List<Long> ids = rawIds.stream().map(Integer::longValue).collect(java.util.stream.Collectors.toList());
+        String status = (String) body.get("status");
+        adminService.updatePlaceStatusBulk(admin쉼표번호, ids, status);
+        return ResponseEntity.ok(ApiResponse.ok("선택한 장소 상태가 변경되었습니다."));
+    }
+
     // PUT /api/admin/places/{id}/status  [ADMIN 전용]
     @PutMapping("/places/{id}/status")
     public ResponseEntity<ApiResponse<Void>> updatePlaceStatus(
