@@ -522,16 +522,17 @@ function AdminDashboard() {
                             />
                           </td>
                           <td className="px-3 py-3">
-                            {place.photoUrl ? (
-                              <img
-                                src={place.photoUrl}
-                                alt={place.name}
-                                className="w-12 h-12 rounded-lg object-cover border border-gray-100"
-                                onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                              />
-                            ) : null}
-                            <div className={`w-12 h-12 rounded-lg bg-gray-100 items-center justify-center ${place.photoUrl ? 'hidden' : 'flex'}`}>
-                              <span className="material-icons text-gray-300 text-[20px]">image</span>
+                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 bg-gray-100 flex items-center justify-center shrink-0">
+                              {place.photoUrl ? (
+                                <img
+                                  src={place.photoUrl}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  onError={e => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              ) : (
+                                <span className="material-icons text-gray-300 text-[20px]">image</span>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3 font-semibold text-gray-900">{place.name}</td>
