@@ -48,6 +48,7 @@ function HeartRateCheck() {
 
   const backendBase = getBackendUrl();
   const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
+  const shortcutInstallUrl = deviceToken ? `${backendBase}/api/user/shortcut?deviceToken=${deviceToken}` : null;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const prefilledUrl = deviceToken
     ? `${shortcutUrl}?deviceToken=${deviceToken}&key=comma-apple-watch-2026&bpm=`
@@ -386,32 +387,42 @@ function HeartRateCheck() {
               </div>
             )}
 
-            {/* STEP 1 — 미리 채워진 URL 복사 */}
+            {/* STEP 1 — QR 스캔으로 단축어 1탭 설치 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 1 — 내 전용 URL 복사</p>
-              <p className="text-xs text-slate-500 mb-3">deviceToken이 미리 채워진 URL이에요. 복사해서 단축어에 붙여넣기만 하면 돼요.</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 1 — 단축어 설치 (최초 1회)</p>
+              <p className="text-xs text-slate-500 mb-4">iPhone 카메라로 QR 스캔 → Safari에서 열기 → <strong className="text-emerald-400">「단축어 추가」</strong> 탭 → 끝!</p>
               {deviceTokenLoading ? (
-                <p className="text-xs text-slate-500 text-center py-4">URL 생성 중...</p>
-              ) : prefilledUrl ? (
-                <>
-                  <div className="bg-slate-900/60 rounded-xl p-3 flex items-center gap-2 mb-2">
-                    <code className="text-xs text-slate-300 break-all flex-1 font-mono">{prefilledUrl}<span className="text-amber-400">[심박수변수]</span></code>
+                <p className="text-xs text-slate-500 text-center py-4">QR 생성 중...</p>
+              ) : shortcutInstallUrl ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-4 bg-white rounded-2xl shadow-lg">
+                    <QRCodeSVG value={shortcutInstallUrl} size={200} bgColor="#ffffff" fgColor="#0f172a" level="M" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 text-center">
+                    📱 iPhone 기본 카메라 앱으로 스캔 → 링크 탭 → Safari 열림 → 「단축어 추가」
+                  </p>
+                  {isLocalhost && (
+                    <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                      <p className="text-[11px] text-amber-400">⚠️ localhost는 iPhone에서 열리지 않아요. 맥북 IP 주소로 접속 후 이 페이지를 다시 열어주세요.</p>
+                    </div>
+                  )}
+                  <div className="w-full bg-slate-900/60 rounded-xl p-2.5 flex items-center gap-2">
+                    <code className="text-[10px] text-slate-400 break-all flex-1 font-mono">{shortcutInstallUrl}</code>
                     <button
-                      onClick={() => copyToClipboard(prefilledUrl, 'url')}
-                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                      onClick={() => copyToClipboard(shortcutInstallUrl, 'url')}
+                      className={`shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                        copiedUrl ? 'bg-emerald-500 text-white' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       }`}
                     >
-                      {copiedUrl ? '✓ 복사됨' : '복사'}
+                      {copiedUrl ? '✓' : '링크복사'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-500">복사 후 단축어의 URL 칸에 붙여넣고, 끝에 심박수 변수만 연결하면 돼요.</p>
-                  {isLocalhost && (
-                    <p className="text-[11px] text-amber-400 mt-2">⚠️ localhost URL은 iPhone에서 작동 안 해요. 실제 서버 주소로 접속해주세요.</p>
-                  )}
-                </>
+                  <p className="text-[10px] text-slate-500 text-center">
+                    카카오톡으로 본인에게 링크 전송 후 iPhone에서 열어도 돼요
+                  </p>
+                </div>
               ) : (
-                <p className="text-xs text-red-400 text-center py-4">로그인 후 URL을 생성할 수 있어요.</p>
+                <p className="text-xs text-red-400 text-center py-4">로그인하면 QR 코드가 생성돼요.</p>
               )}
             </div>
 
