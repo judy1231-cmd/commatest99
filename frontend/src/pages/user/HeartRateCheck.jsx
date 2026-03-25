@@ -29,7 +29,7 @@ function HeartRateCheck() {
 
   const [phase, setPhase] = useState('idle'); // idle | measuring | done
   const [sessionId, setSessionId] = useState(null);
-  const [currentBpm, setCurrentBpm] = useState(72);
+  const [currentBpm, setCurrentBpm] = useState(null); // null이면 '--' 표시, DB에서 로드
   const [bpmHistory, setBpmHistory] = useState([]);
   const [elapsed, setElapsed] = useState(0);
   const [avgBpm, setAvgBpm] = useState(null);
@@ -156,12 +156,24 @@ function HeartRateCheck() {
   const reset = () => {
     setPhase('idle');
     setSessionId(null);
-    setCurrentBpm(72);
+    setCurrentBpm(null);
     setBpmHistory([]);
     setElapsed(0);
     setAvgBpm(null);
     setPollCount(0);
   };
+
+  // 마운트 시 DB에서 가장 최근 BPM 로드 (idle 상태 초기값)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetchWithAuth('/api/diagnosis/measurements/my-latest')
+      .then((res) => {
+        if (res.success && res.data?.bpm != null) {
+          setCurrentBpm(res.data.bpm);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // deviceToken 발급 (apple_watch 선택 시 자동)
   useEffect(() => {
@@ -183,13 +195,14 @@ function HeartRateCheck() {
   }, []);
 
   const getBpmStatus = (bpm) => {
+    if (bpm == null) return { label: '대기', color: 'text-slate-500', badgeBg: 'bg-slate-500/20 text-slate-400 border-slate-500/30', ringColor: 'border-slate-700', glowColor: 'bg-slate-500' };
     if (bpm < 60) return { label: '낮음', color: 'text-blue-400', badgeBg: 'bg-blue-500/20 text-blue-300 border-blue-500/30', ringColor: 'border-blue-400/50', glowColor: 'bg-blue-500' };
     if (bpm <= 80) return { label: '정상', color: 'text-emerald-400', badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', ringColor: 'border-emerald-400/50', glowColor: 'bg-emerald-500' };
     if (bpm <= 100) return { label: '주의', color: 'text-amber-400', badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30', ringColor: 'border-amber-400/50', glowColor: 'bg-amber-500' };
     return { label: '위험', color: 'text-red-400', badgeBg: 'bg-red-500/20 text-red-300 border-red-500/30', ringColor: 'border-red-400/50', glowColor: 'bg-red-500' };
   };
 
-  const displayBpm = phase === 'done' ? (avgBpm || currentBpm) : currentBpm;
+  const displayBpm = phase === 'done' ? (avgBpm ?? currentBpm) : currentBpm;
   const bpmStatus = getBpmStatus(displayBpm);
   const chartBars = bpmHistory.slice(-12);
   const maxBar = Math.max(...chartBars, 90);
@@ -243,7 +256,7 @@ function HeartRateCheck() {
             <div className={`text-[80px] font-black leading-none tracking-tighter transition-all ${
               phase === 'idle' ? 'text-slate-600' : bpmStatus.color
             }`}>
-              {displayBpm}
+              {displayBpm ?? '--'}
             </div>
 
             {/* BPM 라벨 */}

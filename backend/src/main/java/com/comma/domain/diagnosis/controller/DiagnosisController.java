@@ -1,5 +1,6 @@
 package com.comma.domain.diagnosis.controller;
 
+import com.comma.domain.diagnosis.mapper.DiagnosisMapper;
 import com.comma.domain.diagnosis.model.DiagnosisResult;
 import com.comma.domain.diagnosis.model.MeasurementSession;
 import com.comma.domain.diagnosis.service.DiagnosisService;
@@ -26,6 +27,7 @@ public class DiagnosisController {
     private static final Logger log = LoggerFactory.getLogger(DiagnosisController.class);
 
     private final DiagnosisService diagnosisService;
+    private final DiagnosisMapper diagnosisMapper;
     private final UserMapper userMapper;
 
     // ==================== 심박 측정 세션 ====================
@@ -209,6 +211,25 @@ public class DiagnosisController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }
+    }
+
+    // GET /api/diagnosis/measurements/my-latest  [JWT 필요] — 마운트 시 초기 BPM 표시용
+    @GetMapping("/measurements/my-latest")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMyLatestMeasurement(HttpServletRequest request) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        MeasurementSession session = diagnosisMapper.findLatestActiveSessionBy쉼표번호(쉼표번호);
+        if (session == null) {
+            return ResponseEntity.ok(ApiResponse.ok(null, "진행 중인 세션이 없습니다."));
+        }
+        var latest = diagnosisService.getLatestMeasurement(session.getId());
+        if (latest == null) {
+            return ResponseEntity.ok(ApiResponse.ok(null, "측정 데이터가 없습니다."));
+        }
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("bpm", latest.getBpm());
+        result.put("hrv", latest.getHrv());
+        result.put("sessionId", session.getId());
+        return ResponseEntity.ok(ApiResponse.ok(result, "최신 BPM 조회 성공"));
     }
 
     // ==================== 진단 ====================
