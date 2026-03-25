@@ -54,15 +54,25 @@ function HeartRateCheck() {
     : null;
 
   const copyToClipboard = useCallback(async (text, type) => {
+    const markCopied = () => {
+      if (type === 'url') { setCopiedUrl(true); setTimeout(() => setCopiedUrl(false), 2000); }
+      else { setCopiedToken(true); setTimeout(() => setCopiedToken(false), 2000); }
+    };
+    // HTTPS/localhost: clipboard API 사용
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); markCopied(); return; } catch { /* fallback */ }
+    }
+    // HTTP(IP 접속 등): textarea 선택 방식 fallback
     try {
-      await navigator.clipboard.writeText(text);
-      if (type === 'url') {
-        setCopiedUrl(true);
-        setTimeout(() => setCopiedUrl(false), 2000);
-      } else {
-        setCopiedToken(true);
-        setTimeout(() => setCopiedToken(false), 2000);
-      }
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      markCopied();
     } catch {
       setToast({ message: '복사에 실패했어요. 직접 선택해서 복사해주세요.', type: 'error' });
     }
