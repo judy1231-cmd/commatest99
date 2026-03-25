@@ -44,6 +44,7 @@ function HeartRateCheck() {
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
   const pollRef = useRef(null);
+  const previewRef = useRef(null);
 
   const backendBase = getBackendUrl();
   const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
@@ -64,8 +65,17 @@ function HeartRateCheck() {
     }
   }, []);
 
+  // idle 미리보기 시뮬레이션 (세션 없음, BPM 숫자만 표시)
+  const startPreview = () => {
+    const baseBpm = 70 + Math.floor(Math.random() * 15);
+    previewRef.current = setInterval(() => {
+      setCurrentBpm(simulateBpm(baseBpm));
+    }, 1000);
+  };
+
   // 측정 시작
   const startMeasuring = async () => {
+    clearInterval(previewRef.current);
     if (!isLoggedIn) {
       setPhase('measuring');
       startSimulation(null);
@@ -161,6 +171,7 @@ function HeartRateCheck() {
     setElapsed(0);
     setAvgBpm(null);
     setPollCount(0);
+    startPreview();
   };
 
   // deviceToken 발급 (apple_watch 선택 시 자동)
@@ -175,7 +186,9 @@ function HeartRateCheck() {
   }, [deviceType, isLoggedIn]);
 
   useEffect(() => {
+    startPreview();
     return () => {
+      clearInterval(previewRef.current);
       clearInterval(intervalRef.current);
       clearInterval(timerRef.current);
       clearInterval(pollRef.current);
@@ -237,14 +250,14 @@ function HeartRateCheck() {
             </span>
 
             <div className={`text-[80px] font-black leading-none tracking-tighter transition-all ${
-              phase === 'idle' ? 'text-slate-600' : bpmStatus.color
+              displayBpm == null ? 'text-slate-600' : bpmStatus.color
             }`}>
               {displayBpm ?? '--'}
             </div>
 
             <div className="text-slate-400 text-sm font-bold tracking-widest mt-1">BPM</div>
 
-            {phase !== 'idle' && (
+            {displayBpm != null && (
               <div className={`mt-2 px-3 py-0.5 rounded-full border text-xs font-bold ${bpmStatus.badgeBg}`}>
                 {bpmStatus.label}
               </div>
@@ -315,12 +328,12 @@ function HeartRateCheck() {
           </div>
         )}
 
-        {/* Apple Watch 가이드 (측정 중) */}
-        {phase === 'measuring' && deviceType === 'apple_watch' && (
+        {/* Apple Watch 가이드 (idle + 측정 중) */}
+        {phase !== 'done' && deviceType === 'apple_watch' && (
           <div className="w-full space-y-3">
 
-            {/* 수신 상태 배너 */}
-            <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
+            {/* 수신 상태 배너 — 측정 중만 표시 */}
+            {phase === 'measuring' && <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
               pollCount > 0
                 ? 'bg-emerald-500/10 border-emerald-500/30'
                 : 'bg-amber-500/10 border-amber-500/30'
@@ -338,7 +351,7 @@ function HeartRateCheck() {
                     : '아래 STEP을 따라 단축어를 설정하고 실행해주세요'}
                 </p>
               </div>
-            </div>
+            </div>}
 
             {/* localhost 경고 */}
             {isLocalhost && (
