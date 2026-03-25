@@ -49,6 +49,9 @@ function HeartRateCheck() {
   const backendBase = getBackendUrl();
   const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const prefilledUrl = deviceToken
+    ? `${shortcutUrl}?deviceToken=${deviceToken}&key=comma-apple-watch-2026&bpm=`
+    : null;
 
   const copyToClipboard = useCallback(async (text, type) => {
     try {
@@ -373,66 +376,40 @@ function HeartRateCheck() {
               </div>
             )}
 
-            {/* STEP 1 */}
+            {/* STEP 1 — 미리 채워진 URL 복사 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">STEP 1 — 단축어에 사용할 URL 복사</p>
-              <div className="bg-slate-900/60 rounded-xl p-3 flex items-center gap-2 mb-3">
-                <code className="text-xs text-slate-300 break-all flex-1 font-mono">{shortcutUrl}</code>
-                <button
-                  onClick={() => copyToClipboard(shortcutUrl, 'url')}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
-                  }`}
-                >
-                  {copiedUrl ? '✓ 복사됨' : '복사'}
-                </button>
-              </div>
-              {isLocalhost && (
-                <p className="text-[11px] text-slate-500">
-                  ⚠️ localhost URL은 iPhone에서 작동 안 해요. 위 경고를 확인해주세요.
-                </p>
-              )}
-            </div>
-
-            {/* STEP 2 */}
-            <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 2 — 내 디바이스 토큰 복사</p>
-              <p className="text-xs text-slate-500 mb-4">QR 코드로 스캔하거나 버튼으로 복사해서 단축어에 붙여넣으세요. 최초 1회만 설정하면 돼요.</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 1 — 내 전용 URL 복사</p>
+              <p className="text-xs text-slate-500 mb-3">deviceToken이 미리 채워진 URL이에요. 복사해서 단축어에 붙여넣기만 하면 돼요.</p>
               {deviceTokenLoading ? (
-                <p className="text-xs text-slate-500 text-center py-4">토큰 발급 중...</p>
-              ) : deviceToken ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="p-3 bg-white rounded-2xl">
-                    <QRCodeSVG value={deviceToken} size={180} bgColor="#ffffff" fgColor="#1e293b" level="M" />
-                  </div>
-                  <p className="text-[11px] text-slate-500 text-center">
-                    iPhone 카메라로 스캔 → 텍스트 탭 → 전체 선택 → 복사
-                  </p>
-                  <div className="w-full bg-slate-900/60 rounded-xl p-3 flex items-center gap-2">
-                    <code className="text-xs text-slate-300 break-all flex-1 font-mono">{deviceToken}</code>
+                <p className="text-xs text-slate-500 text-center py-4">URL 생성 중...</p>
+              ) : prefilledUrl ? (
+                <>
+                  <div className="bg-slate-900/60 rounded-xl p-3 flex items-center gap-2 mb-2">
+                    <code className="text-xs text-slate-300 break-all flex-1 font-mono">{prefilledUrl}<span className="text-amber-400">[심박수변수]</span></code>
                     <button
-                      onClick={() => copyToClipboard(deviceToken, 'token')}
+                      onClick={() => copyToClipboard(prefilledUrl, 'url')}
                       className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        copiedToken ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                        copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
                       }`}
                     >
-                      {copiedToken ? '✓ 복사됨' : '복사'}
+                      {copiedUrl ? '✓ 복사됨' : '복사'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-amber-400/80 text-center">
-                    ⚠️ 이 토큰은 내 계정 전용이에요. 외부에 공유하지 마세요.
-                  </p>
-                </div>
+                  <p className="text-[11px] text-slate-500">복사 후 단축어의 URL 칸에 붙여넣고, 끝에 심박수 변수만 연결하면 돼요.</p>
+                  {isLocalhost && (
+                    <p className="text-[11px] text-amber-400 mt-2">⚠️ localhost URL은 iPhone에서 작동 안 해요. 실제 서버 주소로 접속해주세요.</p>
+                  )}
+                </>
               ) : (
-                <p className="text-xs text-red-400 text-center py-4">토큰 발급에 실패했어요. 로그인 상태를 확인해주세요.</p>
+                <p className="text-xs text-red-400 text-center py-4">로그인 후 URL을 생성할 수 있어요.</p>
               )}
             </div>
 
-            {/* STEP 3 */}
+            {/* STEP 2, 3 — 단축어 설정 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">📱</span>
-                <p className="text-sm font-bold text-slate-200">STEP 3 — iPhone 단축어 설정 (최초 1회만)</p>
+                <p className="text-sm font-bold text-slate-200">STEP 2 — iPhone 단축어 설정 (최초 1회만)</p>
               </div>
               <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — 재설정 불필요</p>
               <ol className="space-y-4">
@@ -442,26 +419,22 @@ function HeartRateCheck() {
                     desc: 'iPhone 「단축어」앱 → 우측 상단 「+」',
                   },
                   {
-                    title: '심박수 읽기 동작 추가',
-                    desc: '「동작 추가」→ 검색: 「건강」→ 「건강 샘플 찾기」',
-                    detail: ['유형 → 「심박수」', '정렬 기준 → 「최신 항목」', '제한 → 「1」'],
+                    title: '심박수 읽기',
+                    desc: '「동작 추가」→ 「건강 샘플 찾기」',
+                    detail: ['유형 → 심박수', '정렬 기준 → 최신 항목', '제한 → 1'],
                   },
                   {
                     title: '숫자만 추출',
                     desc: '「동작 추가」→ 「건강 샘플의 세부 사항 가져오기」',
-                    detail: ['세부 사항 항목 → 「심박수」 선택', '결과가 76 같은 순수 숫자가 됩니다'],
+                    detail: ['세부 사항 항목 → 심박수 선택'],
                   },
                   {
-                    title: 'URL 내용 가져오기 동작 추가',
-                    desc: '「동작 추가」→ 「URL 내용 가져오기」 선택',
+                    title: 'URL 내용 가져오기',
+                    desc: '「동작 추가」→ 「URL 내용 가져오기」',
                     detail: [
-                      `URL: ${shortcutUrl}`,
-                      '방법: POST',
-                      '헤더 추가 → 이름: X-Device-Key / 값: comma-apple-watch-2026',
-                      '헤더 추가 → 이름: Content-Type / 값: application/json',
-                      '요청 본문: JSON',
-                      '본문에 추가 → deviceToken: (STEP 2에서 복사한 토큰 붙여넣기)',
-                      '본문에 추가 → bpm: (3번 단계의 세부사항 결과 변수)',
+                      'STEP 1에서 복사한 URL 붙여넣기',
+                      '방법: GET',
+                      'URL 끝 bpm= 뒤에 위 단계의 「세부사항」변수 연결',
                     ],
                   },
                   {
@@ -485,10 +458,10 @@ function HeartRateCheck() {
                   </li>
                 ))}
               </ol>
-              <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 space-y-1">
-                <p className="text-xs font-bold text-emerald-400">💡 이렇게 사용해요</p>
+              <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-emerald-400 mb-1">💡 이렇게 사용해요</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  웹에서 「측정 시작」→ Apple Watch에서 심박수 측정 후 iPhone 단축어 실행
+                  웹에서 「측정 시작」→ Apple Watch로 심박수 측정 후 iPhone 단축어 실행
                   (10~20초 간격으로 반복) → 웹에서 BPM 실시간 업데이트 확인
                 </p>
               </div>

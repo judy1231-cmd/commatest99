@@ -103,6 +103,39 @@ public class DiagnosisController {
         }
     }
 
+    // GET /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (GET 쿼리 파라미터 방식, 3단계 단순화)
+    @GetMapping("/measurements/device")
+    public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDeviceGet(
+            @RequestParam String deviceToken,
+            @RequestParam String bpm,
+            @RequestParam String key,
+            @RequestParam(required = false) String hrv) {
+        if (!"comma-apple-watch-2026".equals(key)) {
+            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 키입니다."));
+        }
+        if (deviceToken == null || deviceToken.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
+        }
+        if (bpm == null || bpm.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("bpm 값이 비어있습니다. 단축어에서 심박수 변수가 올바르게 연결됐는지 확인해주세요."));
+        }
+        User user = userMapper.findByDeviceToken(deviceToken);
+        if (user == null) {
+            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
+        }
+        try {
+            Integer bpmInt = Integer.parseInt(bpm.trim());
+            Double hrvDouble = (hrv != null && !hrv.isBlank()) ? Double.parseDouble(hrv.trim()) : null;
+            diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpmInt, hrvDouble);
+            log.info("[device-get] 심박수 저장 완료: 쉼표번호={}, bpm={}", user.get쉼표번호(), bpmInt);
+            return ResponseEntity.ok(ApiResponse.ok("심박수가 저장되었습니다."));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("bpm 값이 숫자가 아닙니다: " + bpm));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     // POST /api/diagnosis/measurements/device  [JWT 없음] — 애플워치 단축어 전용 (JSON/form 자동 감지)
     @PostMapping("/measurements/device")
     public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDevice(
