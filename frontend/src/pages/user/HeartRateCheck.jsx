@@ -315,12 +315,12 @@ function HeartRateCheck() {
           </div>
         )}
 
-        {/* Apple Watch 가이드 (측정 중) */}
-        {phase === 'measuring' && deviceType === 'apple_watch' && (
+        {/* Apple Watch 가이드 (idle + 측정 중) */}
+        {(phase === 'idle' || phase === 'measuring') && deviceType === 'apple_watch' && (
           <div className="w-full space-y-3">
 
-            {/* 수신 상태 배너 */}
-            <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
+            {/* 수신 상태 배너 (측정 중일 때만) */}
+            {phase === 'measuring' && <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
               pollCount > 0
                 ? 'bg-emerald-500/10 border-emerald-500/30'
                 : 'bg-amber-500/10 border-amber-500/30'
