@@ -415,7 +415,7 @@ function HeartRateCheck() {
               )}
             </div>
 
-            {/* STEP 2, 3 — 단축어 설정 */}
+            {/* STEP 2 — 단축어 설정 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">📱</span>
@@ -423,50 +423,75 @@ function HeartRateCheck() {
               </div>
               <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — 재설정 불필요</p>
               <ol className="space-y-4">
-                {[
-                  {
-                    title: '단축어 앱 → 새 단축어 만들기',
-                    desc: 'iPhone 「단축어」앱 → 우측 상단 「+」',
-                  },
-                  {
-                    title: '심박수 읽기',
-                    desc: '「동작 추가」→ 「건강 샘플 찾기」',
-                    detail: ['유형 → 심박수', '정렬 기준 → 최신 항목', '제한 → 1'],
-                  },
-                  {
-                    title: '숫자만 추출',
-                    desc: '「동작 추가」→ 「건강 샘플의 세부 사항 가져오기」',
-                    detail: ['세부 사항 항목 → 심박수 선택'],
-                  },
-                  {
-                    title: 'URL 내용 가져오기',
-                    desc: '「동작 추가」→ 「URL 내용 가져오기」',
-                    detail: [
-                      'STEP 1에서 복사한 URL 붙여넣기',
-                      '방법: GET',
-                      'URL 끝 bpm= 뒤에 위 단계의 「세부사항」변수 연결',
-                    ],
-                  },
-                  {
-                    title: '저장 후 실행!',
-                    desc: '「완료」→ 이름: 「심박수 전송」→ ▶ 실행',
-                  },
-                ].map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-200">{step.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
-                      {step.detail && (
-                        <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
-                          {step.detail.map((d, j) => <p key={j}>• {d}</p>)}
+                {/* 1 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">단축어 앱 → 새 단축어 만들기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">iPhone 「단축어」앱 → 우측 상단 「+」</p>
+                  </div>
+                </li>
+                {/* 2 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">심박수 읽기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플 찾기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
+                      <p>• 유형 → 심박수</p>
+                      <p>• 정렬 기준 → 최신 항목</p>
+                      <p>• 제한 → 1</p>
+                    </div>
+                  </div>
+                </li>
+                {/* 3 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">숫자만 추출</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플의 세부 사항 가져오기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
+                      <p>• 세부 사항 항목 → 심박수 선택</p>
+                    </div>
+                  </div>
+                </li>
+                {/* 4 — URL 복사 포함 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-200">URL 내용 가져오기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「URL 내용 가져오기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-2">
+                      <p>• 방법: <span className="text-emerald-400 font-bold">GET</span></p>
+                      <p>• URL 칸에 아래 주소 붙여넣기 후, 끝의 <span className="text-amber-400">bpm=</span> 뒤에 3번 단계의 「세부사항」변수 연결</p>
+                      {prefilledUrl ? (
+                        <div className="mt-1 bg-slate-800 rounded-lg p-2 flex items-center gap-2">
+                          <code className="text-[11px] text-slate-300 break-all flex-1 font-mono leading-relaxed">
+                            {prefilledUrl}<span className="text-amber-400">[세부사항]</span>
+                          </code>
+                          <button
+                            onClick={() => copyToClipboard(prefilledUrl, 'url')}
+                            className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                              copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                            }`}
+                          >
+                            {copiedUrl ? '✓' : '복사'}
+                          </button>
                         </div>
+                      ) : (
+                        <p className="text-slate-500">로그인하면 URL이 자동으로 채워져요.</p>
                       )}
                     </div>
-                  </li>
-                ))}
+                  </div>
+                </li>
+                {/* 5 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">5</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">저장 후 실행!</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「완료」→ 이름: 「심박수 전송」→ ▶ 실행</p>
+                  </div>
+                </li>
               </ol>
               <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
                 <p className="text-xs font-bold text-emerald-400 mb-1">💡 이렇게 사용해요</p>
