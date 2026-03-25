@@ -131,8 +131,10 @@ public class DiagnosisController {
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                 Map<String, Object> json = mapper.readValue(body, new com.fasterxml.jackson.core.type.TypeReference<>() {});
                 deviceToken = unwrapString(json.get("deviceToken"));
-                bpmStr = json.get("bpm") != null ? unwrapNumber(json.get("bpm")).toString() : null;
-                hrvStr = json.get("hrv") != null ? unwrapNumber(json.get("hrv")).toString() : null;
+                Number bpmNum = json.get("bpm") != null ? unwrapNumber(json.get("bpm")) : null;
+                Number hrvNum = json.get("hrv") != null ? unwrapNumber(json.get("hrv")) : null;
+                bpmStr = bpmNum != null ? bpmNum.toString() : null;
+                hrvStr = hrvNum != null ? hrvNum.toString() : null;
             } else {
                 Map<String, String> params = parseFormBody(body);
                 deviceToken = params.get("deviceToken");
@@ -145,6 +147,12 @@ public class DiagnosisController {
             User user = userMapper.findByDeviceToken(deviceToken);
             if (user == null) {
                 return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
+            }
+            // bpm 빈값 체크 — 단축어에서 건강 샘플 변수가 연결되지 않은 경우
+            if (bpmStr == null || bpmStr.isBlank()) {
+                log.warn("[device] bpm 값이 비어있음. 단축어의 건강 샘플 변수 연결을 확인해주세요. body={}", rawBody);
+                return ResponseEntity.badRequest().body(ApiResponse.fail(
+                    "bpm 값이 비어있습니다. 단축어에서 '건강 샘플 찾기' 변수가 bpm 필드에 올바르게 연결됐는지 확인해주세요."));
             }
             Integer bpm = Integer.parseInt(bpmStr.trim());
             Double hrv = (hrvStr != null && !hrvStr.isBlank()) ? Double.parseDouble(hrvStr.trim()) : null;
@@ -184,6 +192,7 @@ public class DiagnosisController {
 
     /**
      * 애플 단축어 {=값} 형태 언래핑 — Number 추출
+     * {"": ""} 처럼 빈 문자열인 경우 null 반환 (건강 변수 미연결 상태)
      */
     private Number unwrapNumber(Object raw) {
         if (raw == null) return null;
@@ -191,9 +200,16 @@ public class DiagnosisController {
         if (raw instanceof Map) {
             Object inner = ((Map<?, ?>) raw).values().stream().findFirst().orElse(null);
             if (inner instanceof Number) return (Number) inner;
-            if (inner != null) return Double.parseDouble(inner.toString());
+            if (inner == null) return null;
+            String s = inner.toString().trim();
+            if (s.isEmpty()) return null; // 빈 문자열 — 건강 샘플 변수 미연결
+            return Double.parseDouble(s);
         }
-        if (raw instanceof String) return Double.parseDouble((String) raw);
+        if (raw instanceof String) {
+            String s = ((String) raw).trim();
+            if (s.isEmpty()) return null;
+            return Double.parseDouble(s);
+        }
         return null;
     }
 
