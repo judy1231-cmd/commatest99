@@ -338,7 +338,7 @@ function HeartRateCheck() {
                     : '아래 STEP을 따라 단축어를 설정하고 실행해주세요'}
                 </p>
               </div>
-            </div>
+            </div>}
 
             {/* localhost 경고 */}
             {isLocalhost && (
