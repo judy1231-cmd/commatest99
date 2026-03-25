@@ -226,8 +226,10 @@ public class DiagnosisController {
             return ResponseEntity.ok(ApiResponse.ok(null, "측정 데이터가 없습니다."));
         }
         Map<String, Object> result = new java.util.HashMap<>();
+        result.put("id", latest.getId());
         result.put("bpm", latest.getBpm());
         result.put("hrv", latest.getHrv());
+        result.put("measuredAt", latest.getMeasuredAt() != null ? latest.getMeasuredAt().toString() : null);
         result.put("sessionId", session.getId());
         return ResponseEntity.ok(ApiResponse.ok(result, "최신 BPM 조회 성공"));
     }
