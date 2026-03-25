@@ -117,6 +117,11 @@ function HeartRateCheck() {
     clearInterval(idlePollRef.current); // idle 폴링 중지 후 측정 폴링으로 전환
     setPollCount(0);
     timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    // 즉시 1회 폴링 (3초 기다리지 않고 세션 시작 직후 바로 확인)
+    fetchWithAuth('/api/diagnosis/measurements/my-latest')
+      .then((res) => { if (res.success && res.data) applyLatestBpm(res.data); })
+      .catch(() => {});
+    // 이후 3초 간격 폴링
     pollRef.current = setInterval(async () => {
       try {
         const res = await fetchWithAuth('/api/diagnosis/measurements/my-latest');
@@ -154,9 +159,25 @@ function HeartRateCheck() {
     clearInterval(timerRef.current);
     clearInterval(pollRef.current);
 
-    const avg = bpmHistory.length
-      ? Math.round(bpmHistory.reduce((s, b) => s + b, 0) / bpmHistory.length)
-      : currentBpm;
+    // 로컬 변수로 현재 상태 캡처 (state 업데이트와 무관하게 안전하게 계산)
+    let history = bpmHistory;
+    let lastBpm = currentBpm;
+
+    // 데이터가 없으면 중단 시점에 DB 최신값 1회 직접 조회
+    if (!history.length && !lastBpm) {
+      try {
+        const res = await fetchWithAuth('/api/diagnosis/measurements/my-latest');
+        if (res.success && res.data?.bpm) {
+          lastBpm = res.data.bpm;
+          history = [res.data.bpm];
+          applyLatestBpm(res.data); // 화면 표시도 업데이트
+        }
+      } catch { /* 무시 */ }
+    }
+
+    const avg = history.length
+      ? Math.round(history.reduce((s, b) => s + b, 0) / history.length)
+      : lastBpm;
     setAvgBpm(avg);
 
     if (sessionId) {
@@ -559,49 +580,66 @@ function HeartRateCheck() {
         {/* 결과 화면 */}
         {phase === 'done' && (
           <div className="w-full space-y-4">
+
+            {/* 데이터 없음 안내 (apple_watch 모드에서 단축어 미수신 시) */}
+            {avgBpm == null && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-3">
+                <span className="material-icons text-amber-400 text-lg mt-0.5">warning</span>
+                <div>
+                  <p className="text-sm font-bold text-amber-400">심박수 데이터가 수신되지 않았어요</p>
+                  <p className="text-xs text-amber-400/70 mt-1 leading-relaxed">
+                    iPhone 단축어가 실행됐는지 확인해주세요.<br />
+                    단축어 URL이 올바른지, deviceToken이 일치하는지 체크해보세요.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* 통계 카드 */}
             <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-6">
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">측정 결과 요약</p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="bg-slate-900/50 rounded-xl p-4">
-                  <p className={`text-3xl font-black ${bpmStatus.color}`}>{avgBpm}</p>
+                  <p className={`text-3xl font-black ${bpmStatus.color}`}>{avgBpm ?? '--'}</p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">평균 BPM</p>
                 </div>
                 <div className="bg-slate-900/50 rounded-xl p-4">
                   <p className="text-3xl font-black text-blue-400">
-                    {bpmHistory.length ? Math.min(...bpmHistory) : avgBpm}
+                    {bpmHistory.length ? Math.min(...bpmHistory) : (avgBpm ?? '--')}
                   </p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">최저 BPM</p>
                 </div>
                 <div className="bg-slate-900/50 rounded-xl p-4">
                   <p className="text-3xl font-black text-red-400">
-                    {bpmHistory.length ? Math.max(...bpmHistory) : avgBpm}
+                    {bpmHistory.length ? Math.max(...bpmHistory) : (avgBpm ?? '--')}
                   </p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">최고 BPM</p>
                 </div>
               </div>
 
-              {/* 상태 메시지 */}
-              <div className={`mt-4 p-4 rounded-xl border ${
-                avgBpm < 60
-                  ? 'bg-blue-500/10 border-blue-500/20'
-                  : avgBpm <= 80
-                  ? 'bg-emerald-500/10 border-emerald-500/20'
-                  : avgBpm <= 100
-                  ? 'bg-amber-500/10 border-amber-500/20'
-                  : 'bg-red-500/10 border-red-500/20'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`material-icons text-sm ${bpmStatus.color}`}>info</span>
-                  <span className={`text-xs font-bold ${bpmStatus.color}`}>{bpmStatus.label} 범위</span>
+              {/* 상태 메시지 — avgBpm 있을 때만 표시 */}
+              {avgBpm != null && (
+                <div className={`mt-4 p-4 rounded-xl border ${
+                  avgBpm < 60
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : avgBpm <= 80
+                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                    : avgBpm <= 100
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : 'bg-red-500/10 border-red-500/20'
+                }`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`material-icons text-sm ${bpmStatus.color}`}>info</span>
+                    <span className={`text-xs font-bold ${bpmStatus.color}`}>{bpmStatus.label} 범위</span>
+                  </div>
+                  <p className={`text-sm ${bpmStatus.color} leading-relaxed`}>
+                    {avgBpm < 60 && '심박수가 낮아요. 충분한 수분과 영양을 섭취하세요.'}
+                    {avgBpm >= 60 && avgBpm <= 80 && '안정적인 심박수예요. 현재 상태가 매우 좋아요!'}
+                    {avgBpm > 80 && avgBpm <= 100 && '심박수가 약간 높아요. 잠깐 휴식을 취해보세요.'}
+                    {avgBpm > 100 && '심박수가 높아요. 충분한 휴식이 필요해요.'}
+                  </p>
                 </div>
-                <p className={`text-sm ${bpmStatus.color} leading-relaxed`}>
-                  {avgBpm < 60 && '심박수가 낮아요. 충분한 수분과 영양을 섭취하세요.'}
-                  {avgBpm >= 60 && avgBpm <= 80 && '안정적인 심박수예요. 현재 상태가 매우 좋아요!'}
-                  {avgBpm > 80 && avgBpm <= 100 && '심박수가 약간 높아요. 잠깐 휴식을 취해보세요.'}
-                  {avgBpm > 100 && '심박수가 높아요. 충분한 휴식이 필요해요.'}
-                </p>
-              </div>
+              )}
             </div>
 
             {/* 다음 행동 카드 */}
