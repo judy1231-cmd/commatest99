@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- XML 파일 형식 선언. 인코딩은 UTF-8 (한글 컬럼명 때문에 중요). -->
+
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- MyBatis XML 파일임을 선언. DTD 기반 문법 검증이 이루어진다. -->
 
 <mapper namespace="com.comma.domain.auth.mapper.AuthMapper">
+<!-- namespace: 이 XML이 어느 Mapper 인터페이스와 연결되는지 지정한다.
+     AuthMapper 인터페이스의 메서드 이름과 XML의 id가 매핑된다. -->
 
     <!-- ==================== 회원 ==================== -->
 
     <insert id="insertUser" parameterType="User">
+    <!-- id="insertUser": AuthMapper.insertUser() 메서드와 연결된다.
+         parameterType="User": User 객체가 파라미터로 들어온다. -->
         INSERT INTO users (`쉼표번호`, email, password, username, nickname, status, email_verified, role)
         VALUES (#{쉼표번호}, #{email}, #{password}, #{username}, #{nickname}, 'active', 0, 'USER')
+        <!--
+            #{쉼표번호}: User.get쉼표번호() 값을 여기에 넣는다. SQL Injection 방지용 PreparedStatement.
+            #{email}: User.getEmail() 값
+            'active': 가입 직후 상태는 항상 active. Java에서 넘기지 않고 SQL에 하드코딩.
+            0: email_verified 초기값. 0 = false = 미인증.
+            'USER': 일반 사용자 권한. 관리자는 별도 INSERT로 등록.
+        -->
     </insert>
 
     <select id="findByEmail" resultType="User">
+    <!-- resultType="User": 결과 ROW를 User 객체로 자동 매핑한다.
+         DB 컬럼 email_verified → User.emailVerified로 언더스코어→카멜케이스 자동 변환. -->
         SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE email = #{email}
+        <!-- #{email}: findByEmail(@Param("email") String email)의 파라미터 -->
     </select>
 
     <select id="findByUsername" resultType="User">
@@ -27,10 +44,13 @@
         SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE `쉼표번호` = #{쉼표번호}
+        <!-- 백틱(`쉼표번호`): 한글 컬럼명을 MySQL이 올바르게 인식하도록 감싼다. -->
     </select>
 
     <select id="countByEmail" resultType="int">
         SELECT COUNT(*) FROM users WHERE email = #{email} AND status = 'active'
+        <!-- status = 'active' 조건: 탈퇴(dormant)한 사용자의 이메일은 중복으로 취급하지 않는다.
+             탈퇴 후 같은 이메일로 재가입 가능하게 하기 위함. -->
     </select>
 
     <select id="countByUsername" resultType="int">
@@ -44,6 +64,8 @@
     <!-- USER role만 조회 — 관리자 번호(쉼표9xxx) 제외 -->
     <select id="findMax쉼표번호ForUser" resultType="String">
         SELECT `쉼표번호` FROM users WHERE role = 'USER' ORDER BY `쉼표번호` DESC LIMIT 1
+        <!-- role = 'USER': 관리자(쉼표9001 등)는 제외하고 일반 사용자 중 가장 큰 번호를 찾는다.
+             ORDER BY DESC LIMIT 1: 가장 마지막에 가입한 사람의 번호 = 현재 최댓값. -->
     </select>
 
     <!-- ==================== 이메일 인증 ==================== -->
@@ -51,24 +73,36 @@
     <insert id="insertEmailVerification">
         INSERT INTO email_verification (`쉼표번호`, token, verified, expires_at)
         VALUES (#{쉼표번호}, #{token}, 0, #{expiresAt})
+        <!--
+            token: UUID.randomUUID().toString() 으로 만든 36자리 랜덤 문자열
+            verified: 0 (아직 미인증)
+            expiresAt: 지금으로부터 24시간 후 (AuthService에서 계산해서 넘겨준다)
+        -->
     </insert>
 
     <select id="findEmailVerification" resultType="map">
+    <!-- resultType="map": 여러 타입의 컬럼을 Map<String, Object>로 받는다.
+         컬럼명이 key, 컬럼값이 value가 된다. -->
         SELECT `쉼표번호`, token, verified, expires_at AS expiresAt
         FROM email_verification
         WHERE token = #{token}
+        <!-- expires_at AS expiresAt: DB 컬럼명(언더스코어)을 alias로 카멜케이스로 바꾼다.
+             map에서는 자동 변환이 안 되어서 alias를 명시해야 한다. -->
     </select>
 
     <update id="markEmailVerificationComplete">
         UPDATE email_verification SET verified = 1 WHERE token = #{token}
+        <!-- verified = 1: 인증 완료 표시. 이미 1인 토큰은 AuthService에서 걸러낸다. -->
     </update>
 
     <update id="updateUserEmailVerified">
         UPDATE users SET email_verified = 1 WHERE `쉼표번호` = #{쉼표번호}
+        <!-- users 테이블의 실제 인증 여부 컬럼을 업데이트한다. -->
     </update>
 
     <delete id="deleteEmailVerificationBy쉼표번호">
         DELETE FROM email_verification WHERE `쉼표번호` = #{쉼표번호}
+        <!-- 재발송 전에 기존 미인증 토큰을 모두 삭제한다. 하나의 유효 토큰만 유지. -->
     </delete>
 
     <!-- ==================== 비밀번호 재설정 ==================== -->
@@ -76,6 +110,7 @@
     <insert id="insertPasswordResetToken">
         INSERT INTO password_reset_token (`쉼표번호`, token, expires_at, used)
         VALUES (#{쉼표번호}, #{token}, #{expiresAt}, 0)
+        <!-- used: 0 = 아직 미사용. 재설정 완료 후 1로 변경. -->
     </insert>
 
     <select id="findPasswordResetToken" resultType="map">
@@ -86,10 +121,12 @@
 
     <update id="markPasswordResetTokenUsed">
         UPDATE password_reset_token SET used = 1 WHERE token = #{token}
+        <!-- 한 번 사용한 토큰은 재사용 불가. AuthService에서 used=1 체크 후 거부. -->
     </update>
 
     <update id="updatePassword">
         UPDATE users SET password = #{password} WHERE `쉼표번호` = #{쉼표번호}
+        <!-- password: BCrypt.hashpw()로 이미 해시된 값이 넘어온다. 평문을 저장하지 않는다. -->
     </update>
 
     <update id="updateNickname">
@@ -98,13 +135,17 @@
 
     <update id="updateStatus">
         UPDATE users SET status = #{status} WHERE `쉼표번호` = #{쉼표번호}
+        <!-- status: "active", "dormant", "banned" 중 하나 -->
     </update>
 
     <update id="anonymizeUser">
         UPDATE users
         SET username = CONCAT('deleted_', `쉼표번호`),
+        <!-- username을 "deleted_쉼표0001"로 바꾼다. UNIQUE 제약이 있어서 남겨두면 재가입이 막힌다. -->
             email    = CONCAT('deleted_', `쉼표번호`, '@deleted.com'),
+        <!-- email도 같은 방식으로 더미값으로 교체 -->
             password = 'DELETED'
+        <!-- 비밀번호를 BCrypt로 해시할 수 없는 값("DELETED")으로 교체. 로그인 원천 차단. -->
         WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
@@ -114,7 +155,9 @@
         SELECT u.`쉼표번호`, u.email, u.password, u.username, u.nickname, u.status, u.email_verified, u.role, u.created_at, u.updated_at
         FROM users u
         INNER JOIN auth_provider ap ON u.`쉼표번호` = ap.`쉼표번호`
+        <!-- INNER JOIN: auth_provider 테이블과 users를 쉼표번호로 연결한다. -->
         WHERE ap.provider = #{provider} AND ap.provider_id = #{providerId}
+        <!-- 예: provider = "kakao", providerId = "123456789" (카카오에서 발급한 사용자 ID) -->
     </select>
 
     <insert id="insertAuthProvider">
@@ -124,14 +167,17 @@
 
     <select id="findProvidersByUser" resultType="String">
         SELECT provider FROM auth_provider WHERE `쉼표번호` = #{쉼표번호}
+        <!-- 사용자가 연동한 소셜 목록을 반환. 예: ["kakao", "google"] -->
     </select>
 
     <delete id="deleteAuthProvider">
         DELETE FROM auth_provider WHERE `쉼표번호` = #{쉼표번호} AND provider = #{provider}
+        <!-- 특정 소셜 연동만 해제 -->
     </delete>
 
     <delete id="deleteAllAuthProviders">
         DELETE FROM auth_provider WHERE `쉼표번호` = #{쉼표번호}
+        <!-- 탈퇴 시 모든 소셜 연동 해제. 같은 소셜 계정으로 재가입 가능하게 함. -->
     </delete>
 
 </mapper>
