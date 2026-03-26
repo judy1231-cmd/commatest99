@@ -39,12 +39,19 @@ public class FileUploadService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    /**
-     * 커뮤니티 게시글 사진 업로드
-     *
-     * @param files 업로드할 파일 목록 (최대 5개)
-     * @return 저장된 파일의 접근 URL 목록
-     */
+    public String uploadProfileImage(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("파일이 없습니다.");
+        }
+        Path uploadPath = Paths.get(uploadBaseDir, "profile").toAbsolutePath();
+        Files.createDirectories(uploadPath);
+        validateFile(file);
+        String extension = extractExtension(file.getOriginalFilename());
+        String savedFilename = UUID.randomUUID().toString().replace("-", "") + "." + extension;
+        file.transferTo(uploadPath.resolve(savedFilename).toFile());
+        return baseUrl + "/uploads/profile/" + savedFilename;
+    }
+
     public String uploadChallengePhoto(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("파일이 없습니다.");

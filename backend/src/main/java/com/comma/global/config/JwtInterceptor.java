@@ -63,6 +63,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             "/api/posts/*/comments",
             "/api/posts/*/photos",
             "/api/diagnosis/measurements/device", // 워치에서 심박 전송 — 별도 인증
+            "/api/diagnosis/device",              // 디바이스 직접 접근 — 별도 인증
             "/api/user/shortcut",               // 단축어 파일 다운로드 — deviceToken으로 인증
             "/api/challenges",
             "/api/challenges/*"

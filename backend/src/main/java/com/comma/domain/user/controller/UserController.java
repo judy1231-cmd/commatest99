@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.comma.global.util.FileUploadService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -21,6 +23,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final FileUploadService fileUploadService;
 
     // GET /api/user/profile  [JWT 필요]
     @GetMapping("/profile")
@@ -234,6 +237,23 @@ public class UserController {
         headers.add("Content-Type", "application/octet-stream");
         headers.add("Content-Disposition", "attachment; filename=\"shortcut.shortcut\"");
         return ResponseEntity.ok().headers(headers).body(xml.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // POST /api/user/upload-photo  [JWT 필요] — 프로필 사진 업로드
+    @PostMapping("/upload-photo")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadProfilePhoto(
+            HttpServletRequest request,
+            @RequestParam("file") MultipartFile file) {
+        String 쉼표번호 = (String) request.getAttribute("쉼표번호");
+        try {
+            String imageUrl = fileUploadService.uploadProfileImage(file);
+            userMapper.updateProfileImage(쉼표번호, imageUrl);
+            return ResponseEntity.ok(ApiResponse.ok(Map.of("profileImage", imageUrl), "프로필 사진이 업데이트되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponse.fail("사진 업로드 중 오류가 발생했습니다."));
+        }
     }
 
     // DELETE /api/user/account  [JWT 필요]

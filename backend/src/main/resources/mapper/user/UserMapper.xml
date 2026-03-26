@@ -5,13 +5,17 @@
 <mapper namespace="com.comma.domain.user.mapper.UserMapper">
 
     <select id="findBy쉼표번호" resultType="com.comma.domain.user.model.User">
-        SELECT `쉼표번호`, email, password, username, nickname, status, email_verified, role, created_at, updated_at
+        SELECT `쉼표번호`, email, password, username, nickname, profile_image, status, email_verified, role, created_at, updated_at
         FROM users
         WHERE `쉼표번호` = #{쉼표번호}
     </select>
 
     <update id="updateNickname">
         UPDATE users SET nickname = #{nickname} WHERE `쉼표번호` = #{쉼표번호}
+    </update>
+
+    <update id="updateProfileImage">
+        UPDATE users SET profile_image = #{profileImage} WHERE `쉼표번호` = #{쉼표번호}
     </update>
 
     <update id="updateStatus">

@@ -77,7 +77,7 @@ function NotificationDropdown({ onClose, onUnreadChange, btnRef }) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[200]"
+      className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[2000]"
       style={{ animation: 'fadeInDown 0.18s ease' }}
     >
       {/* 헤더 */}
@@ -306,8 +306,11 @@ function UserNavbar() {
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [profileImage, setProfileImage] = useState(user.profileImage || null);
   const notifBtnRef = useRef(null);
   const profileRef = useRef(null);
+  const photoInputRef = useRef(null);
 
   const fetchUnread = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
@@ -324,6 +327,32 @@ function UserNavbar() {
   useEffect(() => {
     if (isLoggedIn) fetchUnread();
   }, [isLoggedIn, fetchUnread]);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/user/upload-photo', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...stored, profileImage: data.data.profileImage }));
+        setProfileImage(data.data.profileImage);
+      }
+    } catch { /* ignore */ }
+    finally {
+      setPhotoUploading(false);
+      e.target.value = '';
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -346,7 +375,7 @@ function UserNavbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+      <nav className="sticky top-0 z-[2000] bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center shadow-sm overflow-hidden">
@@ -418,13 +447,29 @@ function UserNavbar() {
                 document.addEventListener('mousedown', handler, { once: true });
                 return (
                   <div
-                    className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[200]"
+                    className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[2000]"
                     style={{ animation: 'fadeInDown 0.18s ease' }}
                   >
                     {/* 닉네임 헤더 */}
-                    <div className="px-4 py-3.5 border-b border-slate-100">
-                      <p className="text-[13px] font-extrabold text-slate-800 truncate">{user.nickname}</p>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{user.email || user.username}</p>
+                    <div className="px-4 py-3.5 border-b border-slate-100 flex items-center gap-3">
+                      <label className="relative cursor-pointer shrink-0 group">
+                        <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={handlePhotoUpload} disabled={photoUploading} />
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border border-slate-200">
+                          {photoUploading
+                            ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                            : profileImage
+                              ? <img src={profileImage} alt="프로필" className="w-full h-full object-cover" />
+                              : <span className="text-[15px] font-extrabold text-primary">{user.nickname?.[0] || '?'}</span>
+                          }
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full flex items-center justify-center group-hover:bg-primary/80 transition-colors">
+                          <span className="material-icons text-white" style={{ fontSize: '10px' }}>photo_camera</span>
+                        </div>
+                      </label>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-extrabold text-slate-800 truncate">{user.nickname}</p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">{user.email || user.username}</p>
+                      </div>
                     </div>
                     {/* 메뉴 */}
                     <div className="py-1">

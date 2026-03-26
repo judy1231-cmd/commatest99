@@ -236,6 +236,7 @@ public class DiagnosisController {
             if (inner == null) return null;
             String s = inner.toString().trim();
             if (s.isEmpty()) return null; // 빈 문자열 — 건강 샘플 변수 미연결
+            if (s.startsWith("{")) return null; // 플레이스홀더 미치환 — 단축어 변수 미연결
             return Double.parseDouble(s);
         }
         if (raw instanceof String) {
@@ -244,6 +245,39 @@ public class DiagnosisController {
             return Double.parseDouble(s);
         }
         return null;
+    }
+
+    // POST /api/diagnosis/device  [JWT 없음] — 단축어 직접 저장 URL (deviceToken + bpm JSON)
+    @PostMapping("/device")
+    public ResponseEntity<ApiResponse<Void>> saveMeasurementFromDeviceJson(
+            @RequestBody Map<String, Object> body) {
+        String deviceToken = body.get("deviceToken") != null ? body.get("deviceToken").toString() : null;
+        if (deviceToken == null || deviceToken.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("deviceToken이 필요합니다."));
+        }
+        User user = userMapper.findByDeviceToken(deviceToken);
+        if (user == null) {
+            return ResponseEntity.status(401).body(ApiResponse.fail("유효하지 않은 deviceToken입니다."));
+        }
+        try {
+            Object rawBpm = body.get("bpm");
+            if (rawBpm == null) {
+                return ResponseEntity.badRequest().body(ApiResponse.fail("bpm 값이 필요합니다."));
+            }
+            String bpmStr = rawBpm.toString().trim();
+            if (bpmStr.isEmpty() || bpmStr.startsWith("{")) {
+                return ResponseEntity.badRequest().body(ApiResponse.fail("bpm 값이 올바르지 않습니다. 단축어에서 심박수 변수가 연결됐는지 확인해주세요."));
+            }
+            Integer bpm = Integer.parseInt(bpmStr);
+            Double hrv = body.get("hrv") != null ? Double.parseDouble(body.get("hrv").toString()) : null;
+            diagnosisService.saveMeasurementToLatestSession(user.get쉼표번호(), bpm, hrv);
+            log.info("[device-json] 심박수 저장 완료: 쉼표번호={}, bpm={}", user.get쉼표번호(), bpm);
+            return ResponseEntity.ok(ApiResponse.ok("심박 데이터가 저장되었습니다."));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("bpm 값이 숫자가 아닙니다: " + body.get("bpm")));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
     }
 
     // POST /api/diagnosis/measurements  [JWT 필요] — iPhone 단축어 전용 (세션ID 불필요, 고정 URL)

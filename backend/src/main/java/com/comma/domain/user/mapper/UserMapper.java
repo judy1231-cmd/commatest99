@@ -14,6 +14,8 @@ public interface UserMapper {
 
     void updateNickname(@Param("쉼표번호") String 쉼표번호, @Param("nickname") String nickname);
 
+    void updateProfileImage(@Param("쉼표번호") String 쉼표번호, @Param("profileImage") String profileImage);
+
     void updateStatus(@Param("쉼표번호") String 쉼표번호, @Param("status") String status);
 
     void anonymizeUser(@Param("쉼표번호") String 쉼표번호);

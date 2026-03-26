@@ -55,6 +55,28 @@ const REST_TYPE_MAP = {
   nature:    { icon: 'forest',         label: '자연의 연결', color: '#2ECC9A', bg: 'rgba(46,204,154,0.18)', badge: 'rgba(46,204,154,0.85)' },
 };
 
+const REST_TYPE_EMOJI = {
+  physical: '💪', mental: '🧘', sensory: '✨',
+  emotional: '💗', social: '👥', creative: '🎨', nature: '🌿',
+};
+
+// "physical 유형 매칭 (점수: 85) | 날씨: 흐림 / 낮 / 5°C | ..." → "💪 신체의 이완 · 매칭 85점 · 흐림 적합"
+function parseCriteria(criteria) {
+  if (!criteria) return '맞춤 추천';
+  const typeMatch  = criteria.match(/(\w+)\s*유형\s*매칭/);
+  const scoreMatch = criteria.match(/점수[:\s]*(\d+)/);
+  const weatherMatch = criteria.match(/날씨[:\s]*([가-힣]+)/);
+  const type    = typeMatch?.[1];
+  const label   = REST_TYPE_LABELS[type] || '맞춤 유형';
+  const emoji   = REST_TYPE_EMOJI[type]  || '✦';
+  const score   = scoreMatch?.[1];
+  const weather = weatherMatch?.[1];
+  const parts   = [`${emoji} ${label}`];
+  if (score)   parts.push(`매칭 ${score}점`);
+  if (weather) parts.push(`${weather} 적합`);
+  return parts.join(' · ');
+}
+
 function formatMinutes(minutes) {
   if (!minutes) return '0시간';
   if (minutes < 60) return `${minutes}분`;
@@ -545,7 +567,7 @@ function MainDashboard() {
                   <div className="p-3 flex flex-col flex-1">
                     <p className="text-[13px] font-bold text-slate-900 truncate mb-0.5">{rec.placeName}</p>
                     <p className="text-[11px] text-slate-400 truncate mb-2">{rec.placeAddress}</p>
-                    <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed line-clamp-2 mb-3">{rec.criteria}</p>
+                    <p className="text-[10px] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 leading-relaxed mb-3 truncate">{parseCriteria(rec.criteria)}</p>
                     {/* 하트 · 후기 · 지도 한 줄 */}
                     <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-auto">
                       <button
