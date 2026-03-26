@@ -236,6 +236,7 @@ public class DiagnosisController {
             if (inner == null) return null;
             String s = inner.toString().trim();
             if (s.isEmpty()) return null; // 빈 문자열 — 건강 샘플 변수 미연결
+            if (s.startsWith("{")) return null; // 플레이스홀더 미치환 — 단축어 변수 미연결
             return Double.parseDouble(s);
         }
         if (raw instanceof String) {
