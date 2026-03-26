@@ -440,7 +440,7 @@ function MainDashboard() {
                 <p className="text-[12px] text-slate-400 leading-relaxed">스마트워치로 스트레스 수치 측정</p>
               </div>
               <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
-                <span className="text-[11px] text-slate-400">Apple / Galaxy Watch</span>
+                <span className="text-[11px] text-slate-400">Apple Watch</span>
                 <span className="material-icons text-slate-300 text-[18px] group-hover:text-emerald-400 transition-colors">arrow_forward</span>
               </div>
             </Link>

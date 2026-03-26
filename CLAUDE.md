@@ -39,9 +39,10 @@ git add .
 git commit -m "feat/fix/style: 작업 내용 한 줄 요약
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git push origin develop
 ```
 
-- push는 하지 마 (push는 내가 직접 할게)
+- 커밋 후 **반드시 push까지 자동으로** 실행해줘
 - 커밋 메시지는 실제 작업 내용을 정확하게 요약해줘
 
 ---

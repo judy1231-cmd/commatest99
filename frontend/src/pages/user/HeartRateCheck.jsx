@@ -29,7 +29,7 @@ function HeartRateCheck() {
 
   const [phase, setPhase] = useState('idle'); // idle | measuring | done
   const [sessionId, setSessionId] = useState(null);
-  const [currentBpm, setCurrentBpm] = useState(72);
+  const [currentBpm, setCurrentBpm] = useState(null);
   const [bpmHistory, setBpmHistory] = useState([]);
   const [elapsed, setElapsed] = useState(0);
   const [avgBpm, setAvgBpm] = useState(null);
@@ -44,28 +44,52 @@ function HeartRateCheck() {
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
   const pollRef = useRef(null);
+  const previewRef = useRef(null);
 
   const backendBase = getBackendUrl();
   const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
+  const shortcutInstallUrl = deviceToken ? `${backendBase}/api/user/shortcut?deviceToken=${deviceToken}` : null;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const prefilledUrl = deviceToken
+    ? `${shortcutUrl}?deviceToken=${deviceToken}&key=comma-apple-watch-2026&bpm=`
+    : null;
 
   const copyToClipboard = useCallback(async (text, type) => {
+    const markCopied = () => {
+      if (type === 'url') { setCopiedUrl(true); setTimeout(() => setCopiedUrl(false), 2000); }
+      else { setCopiedToken(true); setTimeout(() => setCopiedToken(false), 2000); }
+    };
+    // HTTPS/localhost: clipboard API 사용
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); markCopied(); return; } catch { /* fallback */ }
+    }
+    // HTTP(IP 접속 등): textarea 선택 방식 fallback
     try {
-      await navigator.clipboard.writeText(text);
-      if (type === 'url') {
-        setCopiedUrl(true);
-        setTimeout(() => setCopiedUrl(false), 2000);
-      } else {
-        setCopiedToken(true);
-        setTimeout(() => setCopiedToken(false), 2000);
-      }
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      markCopied();
     } catch {
       setToast({ message: '복사에 실패했어요. 직접 선택해서 복사해주세요.', type: 'error' });
     }
   }, []);
 
+  // idle 미리보기 시뮬레이션 (세션 없음, BPM 숫자만 표시)
+  const startPreview = () => {
+    const baseBpm = 70 + Math.floor(Math.random() * 15);
+    previewRef.current = setInterval(() => {
+      setCurrentBpm(simulateBpm(baseBpm));
+    }, 1000);
+  };
+
   // 측정 시작
   const startMeasuring = async () => {
+    clearInterval(previewRef.current);
     if (!isLoggedIn) {
       setPhase('measuring');
       startSimulation(null);
@@ -156,11 +180,12 @@ function HeartRateCheck() {
   const reset = () => {
     setPhase('idle');
     setSessionId(null);
-    setCurrentBpm(72);
+    setCurrentBpm(null);
     setBpmHistory([]);
     setElapsed(0);
     setAvgBpm(null);
     setPollCount(0);
+    startPreview();
   };
 
   // deviceToken 발급 (apple_watch 선택 시 자동)
@@ -175,7 +200,9 @@ function HeartRateCheck() {
   }, [deviceType, isLoggedIn]);
 
   useEffect(() => {
+    startPreview();
     return () => {
+      clearInterval(previewRef.current);
       clearInterval(intervalRef.current);
       clearInterval(timerRef.current);
       clearInterval(pollRef.current);
@@ -183,13 +210,14 @@ function HeartRateCheck() {
   }, []);
 
   const getBpmStatus = (bpm) => {
+    if (bpm == null) return { label: '대기', color: 'text-slate-500', badgeBg: 'bg-slate-500/20 text-slate-400 border-slate-500/30', ringColor: 'border-slate-700', glowColor: 'bg-slate-500' };
     if (bpm < 60) return { label: '낮음', color: 'text-blue-400', badgeBg: 'bg-blue-500/20 text-blue-300 border-blue-500/30', ringColor: 'border-blue-400/50', glowColor: 'bg-blue-500' };
     if (bpm <= 80) return { label: '정상', color: 'text-emerald-400', badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', ringColor: 'border-emerald-400/50', glowColor: 'bg-emerald-500' };
     if (bpm <= 100) return { label: '주의', color: 'text-amber-400', badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30', ringColor: 'border-amber-400/50', glowColor: 'bg-amber-500' };
     return { label: '위험', color: 'text-red-400', badgeBg: 'bg-red-500/20 text-red-300 border-red-500/30', ringColor: 'border-red-400/50', glowColor: 'bg-red-500' };
   };
 
-  const displayBpm = phase === 'done' ? (avgBpm || currentBpm) : currentBpm;
+  const displayBpm = phase === 'done' ? (avgBpm ?? currentBpm) : currentBpm;
   const bpmStatus = getBpmStatus(displayBpm);
   const chartBars = bpmHistory.slice(-12);
   const maxBar = Math.max(...chartBars, 90);
@@ -217,7 +245,6 @@ function HeartRateCheck() {
 
         {/* 심박수 원형 디스플레이 */}
         <div className="relative flex items-center justify-center w-72 h-72">
-          {/* Ping 애니메이션 레이어 (측정 중에만) */}
           {phase === 'measuring' && (
             <>
               <span className={`absolute w-72 h-72 rounded-full ${bpmStatus.glowColor} opacity-10 animate-ping`} />
@@ -225,32 +252,26 @@ function HeartRateCheck() {
             </>
           )}
 
-          {/* 메인 원형 */}
           <div className={`relative w-64 h-64 rounded-full bg-slate-800 border-2 ${phase === 'measuring' ? bpmStatus.ringColor : 'border-slate-700'} flex flex-col items-center justify-center shadow-2xl transition-all duration-500`}>
-            {/* 내부 글로우 */}
             {phase === 'measuring' && (
               <div className={`absolute inset-4 rounded-full ${bpmStatus.glowColor} opacity-5 blur-xl`} />
             )}
 
-            {/* 심장 아이콘 */}
             <span className={`material-icons text-4xl mb-1 transition-all ${
               phase === 'measuring' ? `${bpmStatus.color} animate-pulse` : 'text-slate-500'
             }`}>
               favorite
             </span>
 
-            {/* BPM 숫자 */}
             <div className={`text-[80px] font-black leading-none tracking-tighter transition-all ${
-              phase === 'idle' ? 'text-slate-600' : bpmStatus.color
+              displayBpm == null ? 'text-slate-600' : bpmStatus.color
             }`}>
-              {displayBpm}
+              {displayBpm ?? '--'}
             </div>
 
-            {/* BPM 라벨 */}
             <div className="text-slate-400 text-sm font-bold tracking-widest mt-1">BPM</div>
 
-            {/* 상태 배지 */}
-            {phase !== 'idle' && (
+            {displayBpm != null && (
               <div className={`mt-2 px-3 py-0.5 rounded-full border text-xs font-bold ${bpmStatus.badgeBg}`}>
                 {bpmStatus.label}
               </div>
@@ -321,12 +342,12 @@ function HeartRateCheck() {
           </div>
         )}
 
-        {/* Apple Watch 가이드 (측정 중) */}
-        {phase === 'measuring' && deviceType === 'apple_watch' && (
+        {/* Apple Watch 가이드 (idle + 측정 중) */}
+        {phase !== 'done' && deviceType === 'apple_watch' && (
           <div className="w-full space-y-3">
 
-            {/* 수신 상태 배너 */}
-            <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
+            {/* 수신 상태 배너 — 측정 중만 표시 */}
+            {phase === 'measuring' && <div className={`w-full rounded-2xl border p-4 flex items-center gap-3 ${
               pollCount > 0
                 ? 'bg-emerald-500/10 border-emerald-500/30'
                 : 'bg-amber-500/10 border-amber-500/30'
@@ -344,7 +365,7 @@ function HeartRateCheck() {
                     : '아래 STEP을 따라 단축어를 설정하고 실행해주세요'}
                 </p>
               </div>
-            </div>
+            </div>}
 
             {/* localhost 경고 */}
             {isLocalhost && (
@@ -366,117 +387,127 @@ function HeartRateCheck() {
               </div>
             )}
 
-            {/* STEP 1 */}
+            {/* STEP 1 — QR 스캔으로 단축어 1탭 설치 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">STEP 1 — 단축어에 사용할 URL 복사</p>
-              <div className="bg-slate-900/60 rounded-xl p-3 flex items-center gap-2 mb-3">
-                <code className="text-xs text-slate-300 break-all flex-1 font-mono">{shortcutUrl}</code>
-                <button
-                  onClick={() => copyToClipboard(shortcutUrl, 'url')}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
-                  }`}
-                >
-                  {copiedUrl ? '✓ 복사됨' : '복사'}
-                </button>
-              </div>
-              {isLocalhost && (
-                <p className="text-[11px] text-slate-500">
-                  ⚠️ localhost URL은 iPhone에서 작동 안 해요. 위 경고를 확인해주세요.
-                </p>
-              )}
-            </div>
-
-            {/* STEP 2 */}
-            <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 2 — 내 디바이스 토큰 복사</p>
-              <p className="text-xs text-slate-500 mb-4">QR 코드로 스캔하거나 버튼으로 복사해서 단축어에 붙여넣으세요. 최초 1회만 설정하면 돼요.</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 1 — 단축어 설치 (최초 1회)</p>
+              <p className="text-xs text-slate-500 mb-4">iPhone 카메라로 QR 스캔 → Safari에서 열기 → <strong className="text-emerald-400">「단축어 추가」</strong> 탭 → 끝!</p>
               {deviceTokenLoading ? (
-                <p className="text-xs text-slate-500 text-center py-4">토큰 발급 중...</p>
-              ) : deviceToken ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="p-3 bg-white rounded-2xl">
-                    <QRCodeSVG value={deviceToken} size={180} bgColor="#ffffff" fgColor="#1e293b" level="M" />
+                <p className="text-xs text-slate-500 text-center py-4">QR 생성 중...</p>
+              ) : shortcutInstallUrl ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-4 bg-white rounded-2xl shadow-lg">
+                    <QRCodeSVG value={shortcutInstallUrl} size={200} bgColor="#ffffff" fgColor="#0f172a" level="M" />
                   </div>
-                  <p className="text-[11px] text-slate-500 text-center">
-                    iPhone 카메라로 스캔 → 텍스트 탭 → 전체 선택 → 복사
+                  <p className="text-[11px] text-slate-400 text-center">
+                    📱 iPhone 기본 카메라 앱으로 스캔 → 링크 탭 → Safari 열림 → 「단축어 추가」
                   </p>
-                  <div className="w-full bg-slate-900/60 rounded-xl p-3 flex items-center gap-2">
-                    <code className="text-xs text-slate-300 break-all flex-1 font-mono">{deviceToken}</code>
+                  {isLocalhost && (
+                    <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                      <p className="text-[11px] text-amber-400">⚠️ localhost는 iPhone에서 열리지 않아요. 맥북 IP 주소로 접속 후 이 페이지를 다시 열어주세요.</p>
+                    </div>
+                  )}
+                  <div className="w-full bg-slate-900/60 rounded-xl p-2.5 flex items-center gap-2">
+                    <code className="text-[10px] text-slate-400 break-all flex-1 font-mono">{shortcutInstallUrl}</code>
                     <button
-                      onClick={() => copyToClipboard(deviceToken, 'token')}
-                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        copiedToken ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                      onClick={() => copyToClipboard(shortcutInstallUrl, 'url')}
+                      className={`shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                        copiedUrl ? 'bg-emerald-500 text-white' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       }`}
                     >
-                      {copiedToken ? '✓ 복사됨' : '복사'}
+                      {copiedUrl ? '✓' : '링크복사'}
                     </button>
                   </div>
-                  <p className="text-[11px] text-amber-400/80 text-center">
-                    ⚠️ 이 토큰은 내 계정 전용이에요. 외부에 공유하지 마세요.
+                  <p className="text-[10px] text-slate-500 text-center">
+                    카카오톡으로 본인에게 링크 전송 후 iPhone에서 열어도 돼요
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-red-400 text-center py-4">토큰 발급에 실패했어요. 로그인 상태를 확인해주세요.</p>
+                <p className="text-xs text-red-400 text-center py-4">로그인하면 QR 코드가 생성돼요.</p>
               )}
             </div>
 
-            {/* STEP 3 */}
+            {/* STEP 2 — 단축어 설정 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">📱</span>
-                <p className="text-sm font-bold text-slate-200">STEP 3 — iPhone 단축어 설정 (최초 1회만)</p>
+                <p className="text-sm font-bold text-slate-200">STEP 2 — iPhone 단축어 설정 (최초 1회만)</p>
               </div>
               <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — 재설정 불필요</p>
               <ol className="space-y-4">
-                {[
-                  {
-                    title: '단축어 앱 → 새 단축어 만들기',
-                    desc: 'iPhone 「단축어」앱 → 우측 상단 「+」',
-                  },
-                  {
-                    title: '심박수 읽기 동작 추가',
-                    desc: '「동작 추가」→ 검색: 「건강」→ 「건강 샘플 찾기」',
-                    detail: ['유형 → 「심박수」', '정렬 기준 → 「최신 항목」', '제한 → 「1」'],
-                  },
-                  {
-                    title: 'URL 내용 가져오기 동작 추가',
-                    desc: '「동작 추가」→ 「URL 내용 가져오기」 선택',
-                    detail: [
-                      `URL: ${shortcutUrl}`,
-                      '방법: POST',
-                      '헤더 추가 → 이름: X-Device-Key / 값: comma-apple-watch-2026',
-                      '헤더 추가 → 이름: Content-Type / 값: application/json',
-                      '요청 본문: JSON',
-                      '본문에 추가 → deviceToken: (STEP 2에서 복사한 토큰 붙여넣기)',
-                      '본문에 추가 → bpm: (건강 샘플 변수)',
-                    ],
-                  },
-                  {
-                    title: '저장 후 실행!',
-                    desc: '「완료」→ 이름: 「심박수 전송」→ ▶ 실행',
-                  },
-                ].map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-200">{step.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{step.desc}</p>
-                      {step.detail && (
-                        <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
-                          {step.detail.map((d, j) => <p key={j}>• {d}</p>)}
+                {/* 1 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">단축어 앱 → 새 단축어 만들기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">iPhone 「단축어」앱 → 우측 상단 「+」</p>
+                  </div>
+                </li>
+                {/* 2 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">심박수 읽기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플 찾기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
+                      <p>• 유형 → 심박수</p>
+                      <p>• 정렬 기준 → 최신 항목</p>
+                      <p>• 제한 → 1</p>
+                    </div>
+                  </div>
+                </li>
+                {/* 3 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">숫자만 추출</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플의 세부 사항 가져오기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
+                      <p>• 세부 사항 항목 → 심박수 선택</p>
+                    </div>
+                  </div>
+                </li>
+                {/* 4 — URL 복사 포함 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-200">URL 내용 가져오기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「URL 내용 가져오기」</p>
+                    <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-2">
+                      <p>• 방법: <span className="text-emerald-400 font-bold">GET</span></p>
+                      <p>• URL 칸에 아래 주소 붙여넣기 후, 끝의 <span className="text-amber-400">bpm=</span> 뒤에 3번 단계의 「세부사항」변수 연결</p>
+                      {prefilledUrl ? (
+                        <div className="mt-1 bg-slate-800 rounded-lg p-2 flex items-center gap-2">
+                          <code className="text-[11px] text-slate-300 break-all flex-1 font-mono leading-relaxed">
+                            {prefilledUrl}<span className="text-amber-400">[세부사항]</span>
+                          </code>
+                          <button
+                            onClick={() => copyToClipboard(prefilledUrl, 'url')}
+                            className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                              copiedUrl ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                            }`}
+                          >
+                            {copiedUrl ? '✓' : '복사'}
+                          </button>
                         </div>
+                      ) : (
+                        <p className="text-slate-500">로그인하면 URL이 자동으로 채워져요.</p>
                       )}
                     </div>
-                  </li>
-                ))}
+                  </div>
+                </li>
+                {/* 5 */}
+                <li className="flex gap-3">
+                  <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">5</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-200">저장 후 실행!</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「완료」→ 이름: 「심박수 전송」→ ▶ 실행</p>
+                  </div>
+                </li>
               </ol>
-              <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 space-y-1">
-                <p className="text-xs font-bold text-emerald-400">💡 이렇게 사용해요</p>
+              <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-emerald-400 mb-1">💡 이렇게 사용해요</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  웹에서 「측정 시작」→ Apple Watch에서 심박수 측정 후 iPhone 단축어 실행
+                  웹에서 「측정 시작」→ Apple Watch로 심박수 측정 후 iPhone 단축어 실행
                   (10~20초 간격으로 반복) → 웹에서 BPM 실시간 업데이트 확인
                 </p>
               </div>
@@ -487,52 +518,51 @@ function HeartRateCheck() {
         {/* 결과 화면 */}
         {phase === 'done' && (
           <div className="w-full space-y-4">
-            {/* 통계 카드 */}
             <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-6">
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-4">측정 결과 요약</p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="bg-slate-900/50 rounded-xl p-4">
-                  <p className={`text-3xl font-black ${bpmStatus.color}`}>{avgBpm}</p>
+                  <p className={`text-3xl font-black ${bpmStatus.color}`}>{avgBpm ?? '--'}</p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">평균 BPM</p>
                 </div>
                 <div className="bg-slate-900/50 rounded-xl p-4">
                   <p className="text-3xl font-black text-blue-400">
-                    {bpmHistory.length ? Math.min(...bpmHistory) : avgBpm}
+                    {bpmHistory.length ? Math.min(...bpmHistory) : (avgBpm ?? '--')}
                   </p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">최저 BPM</p>
                 </div>
                 <div className="bg-slate-900/50 rounded-xl p-4">
                   <p className="text-3xl font-black text-red-400">
-                    {bpmHistory.length ? Math.max(...bpmHistory) : avgBpm}
+                    {bpmHistory.length ? Math.max(...bpmHistory) : (avgBpm ?? '--')}
                   </p>
                   <p className="text-[11px] text-slate-500 mt-1 font-semibold">최고 BPM</p>
                 </div>
               </div>
 
-              {/* 상태 메시지 */}
-              <div className={`mt-4 p-4 rounded-xl border ${
-                avgBpm < 60
-                  ? 'bg-blue-500/10 border-blue-500/20'
-                  : avgBpm <= 80
-                  ? 'bg-emerald-500/10 border-emerald-500/20'
-                  : avgBpm <= 100
-                  ? 'bg-amber-500/10 border-amber-500/20'
-                  : 'bg-red-500/10 border-red-500/20'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`material-icons text-sm ${bpmStatus.color}`}>info</span>
-                  <span className={`text-xs font-bold ${bpmStatus.color}`}>{bpmStatus.label} 범위</span>
+              {avgBpm != null && (
+                <div className={`mt-4 p-4 rounded-xl border ${
+                  avgBpm < 60
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : avgBpm <= 80
+                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                    : avgBpm <= 100
+                    ? 'bg-amber-500/10 border-amber-500/20'
+                    : 'bg-red-500/10 border-red-500/20'
+                }`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`material-icons text-sm ${bpmStatus.color}`}>info</span>
+                    <span className={`text-xs font-bold ${bpmStatus.color}`}>{bpmStatus.label} 범위</span>
+                  </div>
+                  <p className={`text-sm ${bpmStatus.color} leading-relaxed`}>
+                    {avgBpm < 60 && '심박수가 낮아요. 충분한 수분과 영양을 섭취하세요.'}
+                    {avgBpm >= 60 && avgBpm <= 80 && '안정적인 심박수예요. 현재 상태가 매우 좋아요!'}
+                    {avgBpm > 80 && avgBpm <= 100 && '심박수가 약간 높아요. 잠깐 휴식을 취해보세요.'}
+                    {avgBpm > 100 && '심박수가 높아요. 충분한 휴식이 필요해요.'}
+                  </p>
                 </div>
-                <p className={`text-sm ${bpmStatus.color} leading-relaxed`}>
-                  {avgBpm < 60 && '심박수가 낮아요. 충분한 수분과 영양을 섭취하세요.'}
-                  {avgBpm >= 60 && avgBpm <= 80 && '안정적인 심박수예요. 현재 상태가 매우 좋아요!'}
-                  {avgBpm > 80 && avgBpm <= 100 && '심박수가 약간 높아요. 잠깐 휴식을 취해보세요.'}
-                  {avgBpm > 100 && '심박수가 높아요. 충분한 휴식이 필요해요.'}
-                </p>
-              </div>
+              )}
             </div>
 
-            {/* 다음 행동 카드 */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => navigate('/rest-test')}
