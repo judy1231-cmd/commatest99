@@ -9,6 +9,62 @@ function simulateBpm(baseBpm) {
   return baseBpm + Math.floor(Math.random() * 7) - 3;
 }
 
+const BPM_COLORS = {
+  'bg-slate-500': '#94a3b8',
+  'bg-blue-500':  '#3b82f6',
+  'bg-emerald-500': '#10b981',
+  'bg-amber-500': '#f59e0b',
+  'bg-red-500':   '#ef4444',
+};
+
+function BpmLineChart({ history, glowColor }) {
+  const W = 500, H = 80, MAX_POINTS = 30;
+  const stroke = BPM_COLORS[glowColor] || '#10b981';
+  const points = history.slice(-MAX_POINTS);
+
+  if (points.length === 0) {
+    return (
+      <div className="h-20 flex items-center justify-center">
+        <p className="text-xs text-slate-600 animate-pulse">데이터 수신 대기 중...</p>
+      </div>
+    );
+  }
+
+  const minVal = Math.max(40,  Math.min(...points) - 10);
+  const maxVal = Math.min(220, Math.max(...points) + 10);
+  const padded = [...Array(MAX_POINTS - points.length).fill(null), ...points];
+  const xStep  = W / (MAX_POINTS - 1);
+  const toX    = (i)   => i * xStep;
+  const toY    = (bpm) => H - ((bpm - minVal) / (maxVal - minVal)) * H;
+
+  const valid = padded.reduce((acc, bpm, i) => {
+    if (bpm !== null) acc.push({ x: toX(i), y: toY(bpm) });
+    return acc;
+  }, []);
+
+  const linePath = valid.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L ${valid[valid.length - 1].x.toFixed(1)} ${H} L ${valid[0].x.toFixed(1)} ${H} Z`;
+  const last = valid[valid.length - 1];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="bpmAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={stroke} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75].map((t, i) => (
+        <line key={i} x1="0" y1={H * t} x2={W} y2={H * t} stroke="#334155" strokeWidth="0.5" />
+      ))}
+      <path d={areaPath} fill="url(#bpmAreaGrad)" />
+      <path d={linePath} fill="none" stroke={stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={last.x} cy={last.y} r="3.5" fill={stroke} />
+      <circle cx={last.x} cy={last.y} r="6"   fill={stroke} fillOpacity="0.25" />
+    </svg>
+  );
+}
+
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -219,8 +275,6 @@ function HeartRateCheck() {
 
   const displayBpm = phase === 'done' ? (avgBpm ?? currentBpm) : currentBpm;
   const bpmStatus = getBpmStatus(displayBpm);
-  const chartBars = bpmHistory.slice(-12);
-  const maxBar = Math.max(...chartBars, 90);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -288,18 +342,19 @@ function HeartRateCheck() {
         )}
 
         {/* 실시간 BPM 차트 (측정 중) */}
-        {phase === 'measuring' && chartBars.length > 0 && (
+        {phase === 'measuring' && (
           <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">실시간 심박수 추이</p>
-            <div className="flex items-end gap-1.5 h-14">
-              {chartBars.map((bpm, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 rounded-t transition-all duration-300 ${bpmStatus.glowColor} opacity-70`}
-                  style={{ height: `${(bpm / maxBar) * 100}%` }}
-                />
-              ))}
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">실시간 심박수 추이</p>
+              {bpmHistory.length > 0 && (
+                <span className="text-[11px] text-slate-400">
+                  최소 <span className="text-blue-400 font-bold">{Math.min(...bpmHistory)}</span>
+                  <span className="mx-1 text-slate-600">·</span>
+                  최대 <span className="text-red-400 font-bold">{Math.max(...bpmHistory)}</span>
+                </span>
+              )}
             </div>
+            <BpmLineChart history={bpmHistory} glowColor={bpmStatus.glowColor} />
           </div>
         )}
 
