@@ -36,6 +36,9 @@ public class User {
     private String nickname;
     // 화면에 표시되는 이름. 가입 시 쉼표번호와 동일값으로 자동 설정되지만, 나중에 변경 가능.
 
+    private String profileImage;
+    // 프로필 사진 URL. 없으면 null (프론트에서 첫 글자 아바타로 fallback).
+
     private String status;
     // 계정 상태: "active"(정상), "dormant"(탈퇴), "banned"(정지)
 

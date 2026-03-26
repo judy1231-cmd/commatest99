@@ -21,6 +21,7 @@ function SettingsProfile() {
   const [nicknameError, setNicknameError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [toast, setToast] = useState({ message: '', type: 'success' });
 
   useEffect(() => {
@@ -65,6 +66,34 @@ function SettingsProfile() {
     } finally { setSaving(false); }
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/user/upload-photo', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile(prev => ({ ...prev, profileImage: data.data.profileImage }));
+        setToast({ message: '프로필 사진이 변경되었습니다.', type: 'success' });
+      } else {
+        setToast({ message: data.message || '업로드에 실패했습니다.', type: 'error' });
+      }
+    } catch {
+      setToast({ message: '업로드 중 오류가 발생했습니다.', type: 'error' });
+    } finally {
+      setPhotoUploading(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSmartwatch = async (value) => {
     const updated = { ...settings, smartwatchType: value };
     setSettings(updated);
@@ -88,6 +117,7 @@ function SettingsProfile() {
   }
 
   const avatarLetter = (profile?.nickname || nickname || '?')[0];
+  const profileImageUrl = profile?.profileImage;
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
@@ -112,18 +142,33 @@ function SettingsProfile() {
 
         {/* 아바타 */}
         <div className="flex flex-col items-center mb-8">
-          <div className="relative">
+          <label className="relative cursor-pointer group">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={handlePhotoUpload}
+              disabled={photoUploading}
+            />
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-black shadow-md"
-              style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
+              className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-black shadow-md overflow-hidden"
+              style={!profileImageUrl ? { background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' } : {}}
             >
-              {avatarLetter}
+              {profileImageUrl
+                ? <img src={profileImageUrl} alt="프로필" className="w-full h-full object-cover" />
+                : avatarLetter
+              }
             </div>
-            <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-slate-100 shadow-sm flex items-center justify-center">
-              <span className="material-icons text-slate-400 text-sm">photo_camera</span>
+            <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-slate-100 shadow-sm flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              {photoUploading
+                ? <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                : <span className="material-icons text-slate-400 text-sm">photo_camera</span>
+              }
             </div>
-          </div>
-          <p className="text-xs text-slate-400 mt-3">프로필 사진 변경</p>
+          </label>
+          <p className="text-xs text-slate-400 mt-3">
+            {photoUploading ? '업로드 중...' : '클릭하여 사진 변경 (JPG · PNG · GIF · WEBP · 5MB 이하)'}
+          </p>
         </div>
 
         {/* 닉네임 */}
