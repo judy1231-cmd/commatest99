@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
 import { fetchWithAuth } from '../../api/fetchWithAuth';
 import UserNavbar from '../../components/user/UserNavbar';
 import Toast from '../../components/common/Toast';
@@ -95,7 +94,6 @@ function HeartRateCheck() {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
   const [deviceToken, setDeviceToken] = useState(null);
-  const [deviceTokenLoading, setDeviceTokenLoading] = useState(false);
 
   const intervalRef = useRef(null);
   const timerRef = useRef(null);
@@ -104,7 +102,6 @@ function HeartRateCheck() {
 
   const backendBase = getBackendUrl();
   const shortcutUrl = `${backendBase}/api/diagnosis/measurements/device`;
-  const shortcutInstallUrl = deviceToken ? `${backendBase}/api/user/shortcut?deviceToken=${deviceToken}` : null;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const prefilledUrl = deviceToken
     ? `${shortcutUrl}?deviceToken=${deviceToken}&key=comma-apple-watch-2026&bpm=`
@@ -247,11 +244,9 @@ function HeartRateCheck() {
   // deviceToken 발급 (apple_watch 선택 시 자동)
   useEffect(() => {
     if (deviceType === 'apple_watch' && isLoggedIn && !deviceToken) {
-      setDeviceTokenLoading(true);
       fetchWithAuth('/api/user/device-token', { method: 'POST' })
         .then((res) => { if (res.success) setDeviceToken(res.data.deviceToken); })
-        .catch(() => {})
-        .finally(() => setDeviceTokenLoading(false));
+        .catch(() => {});
     }
   }, [deviceType, isLoggedIn]);
 
@@ -442,50 +437,11 @@ function HeartRateCheck() {
               </div>
             )}
 
-            {/* STEP 1 — QR 스캔으로 단축어 1탭 설치 */}
-            <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">STEP 1 — 단축어 설치 (최초 1회)</p>
-              <p className="text-xs text-slate-500 mb-4">iPhone 카메라로 QR 스캔 → Safari에서 열기 → <strong className="text-emerald-400">「단축어 추가」</strong> 탭 → 끝!</p>
-              {deviceTokenLoading ? (
-                <p className="text-xs text-slate-500 text-center py-4">QR 생성 중...</p>
-              ) : shortcutInstallUrl ? (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="p-4 bg-white rounded-2xl shadow-lg">
-                    <QRCodeSVG value={shortcutInstallUrl} size={200} bgColor="#ffffff" fgColor="#0f172a" level="M" />
-                  </div>
-                  <p className="text-[11px] text-slate-400 text-center">
-                    📱 iPhone 기본 카메라 앱으로 스캔 → 링크 탭 → Safari 열림 → 「단축어 추가」
-                  </p>
-                  {isLocalhost && (
-                    <div className="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
-                      <p className="text-[11px] text-amber-400">⚠️ localhost는 iPhone에서 열리지 않아요. 맥북 IP 주소로 접속 후 이 페이지를 다시 열어주세요.</p>
-                    </div>
-                  )}
-                  <div className="w-full bg-slate-900/60 rounded-xl p-2.5 flex items-center gap-2">
-                    <code className="text-[10px] text-slate-400 break-all flex-1 font-mono">{shortcutInstallUrl}</code>
-                    <button
-                      onClick={() => copyToClipboard(shortcutInstallUrl, 'url')}
-                      className={`shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                        copiedUrl ? 'bg-emerald-500 text-white' : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
-                      }`}
-                    >
-                      {copiedUrl ? '✓' : '링크복사'}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-500 text-center">
-                    카카오톡으로 본인에게 링크 전송 후 iPhone에서 열어도 돼요
-                  </p>
-                </div>
-              ) : (
-                <p className="text-xs text-red-400 text-center py-4">로그인하면 QR 코드가 생성돼요.</p>
-              )}
-            </div>
-
-            {/* STEP 2 — 단축어 설정 */}
+            {/* STEP 1 — 단축어 설정 */}
             <div className="w-full bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700 p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">📱</span>
-                <p className="text-sm font-bold text-slate-200">STEP 2 — iPhone 단축어 설정 (최초 1회만)</p>
+                <p className="text-sm font-bold text-slate-200">STEP 1 — iPhone 단축어 설정 (최초 1회만)</p>
               </div>
               <p className="text-xs text-slate-500 mb-4 pl-7">한 번 만들면 계속 써요 — 재설정 불필요</p>
               <ol className="space-y-4">
