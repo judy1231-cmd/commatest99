@@ -19,10 +19,10 @@ const REST_TYPE_INFO = {
                heroImg: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=900&q=80',
                difficulty: '보통', conditions: ['운동복 착용 권장', '준비운동 필수', '신체 활동 포함'] },
   mental:    { label: '정신적 고요', icon: 'spa',            color: '#5B8DEF', path: '/rest/mental',
-               heroImg: 'https://images.pexels.com/photos/1578750/pexels-photo-1578750.jpeg?auto=compress&cs=tinysrgb&w=900',
+               heroImg: 'https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=900',
                difficulty: '쉬움', conditions: ['조용한 환경', '혼자 방문 추천', '명상/호흡 가능'] },
   sensory:   { label: '감각의 정화', icon: 'visibility_off', color: '#9B6DFF', path: '/rest/sensory',
-               heroImg: 'https://images.pexels.com/photos/3997943/pexels-photo-3997943.jpeg?auto=compress&cs=tinysrgb&w=900',
+               heroImg: 'https://images.pexels.com/photos/6724539/pexels-photo-6724539.jpeg?auto=compress&cs=tinysrgb&w=900',
                difficulty: '쉬움', conditions: ['감각 자극 최소화', '편안한 복장', '소음 차단 가능'] },
   emotional: { label: '정서적 지지', icon: 'favorite',       color: '#FF7BAC', path: '/rest/emotional',
                heroImg: 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?auto=format&fit=crop&w=900&q=80',
@@ -224,7 +224,7 @@ function PlaceDetail() {
   const restTypeTags = [...new Set(tags.map(t => t.restType).filter(Boolean))];
   const heroTypeInfo = restTypeTags.length > 0 ? REST_TYPE_INFO[restTypeTags[0]] : null;
   const heroColor    = heroTypeInfo?.color || '#10B981';
-  const heroImg      = heroTypeInfo?.heroImg || null;
+  const heroImg      = photos[0]?.photoUrl || heroTypeInfo?.heroImg || null;
   const difficulty   = heroTypeInfo?.difficulty || null;
   const diffStyle    = difficulty ? DIFFICULTY_STYLE[difficulty] : null;
   const conditions   = heroTypeInfo?.conditions || [];
