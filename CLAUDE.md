@@ -481,69 +481,13 @@ chore: MyBatis 의존성 추가
 
 ---
 
-## 📋 작업 우선순위 (Phase별)
+## 📋 작업 우선순위
 
-### Phase 0 — 프론트 정리 ✅ 완료
-- 배경색/색상 통일, 공통 컴포넌트 (Button, Card, Input, Toast)
-- 404 페이지, 빈화면 처리, 비로그인 라우트 가드
-- 미완성 4페이지 완성, Rest 유형 7페이지 통일
-
-### Phase 1 — 백엔드 기반 ✅ 완료
-- 도메인별 패키지 구조 적용 (domain/ + global/)
-- Spring Security 제거 → HandlerInterceptor(JwtInterceptor) 기반 인증
-- MySQL DDL 실행 (`쉼표_DDL.sql`)
-- MyBatis 설정, CorsConfig, .env 관리
-- **Postman 컬렉션 세팅**
-
-### Phase 2 — 인증 ✅ 완료
-- 쉼표번호 자동생성, 회원가입/로그인 API ✅
-- JWT 인증 (HandlerInterceptor 기반, Spring Security 미사용) ✅
-- Signup.jsx / Login.jsx API 연결 ✅
-- 카카오/구글 OAuth2 (KakaoAuthController, GoogleAuthController) ✅
-- 네이버 OAuth2 (NaverAuthController) ✅
-- 이메일 인증 (GET /api/auth/email/verify) ✅
-- 비밀번호 재설정 ✅
-
-### Phase 3 — 진단 ✅ 완료
-- survey_questions Seed 12문항 입력 ✅
-- 설문 질문/응답 API, 점수 계산 로직 (유형별 평균) ✅
-- 심박수 측정 세션 API, diagnosis_results 저장 ✅
-- RestTypeTest.jsx API 연결 ✅
-- HeartRateCheck.jsx API 연결 + 동적 URL ✅
-- Galaxy Watch → 준비 중 UI 처리 완료 ✅
-
-### Phase 4 — 장소 / 기록 ✅ 완료
-- rest_logs CRUD, RestRecord.jsx 완성 ✅
-- StatsMapper.xml year_month 버그 수정 ✅
-- place_photos DB 사진 교체 완료 ✅
-- YOLO 이미지 분석 서비스 연동 ✅ (feature/yolo-classification 브랜치)
-- 장소 Seed API (VWorld POI API 연동) ✅ — POST /api/admin/places/seed
-- MapPage.jsx Leaflet + /api/places 연동 ✅
-- recommendations 저장/클릭/저장토글 ✅ (RecommendationController 풀 구현)
-
-### Phase 5 — 통계 / 마이페이지 / 알림 ✅ 완료
-- monthly_stats 집계 로직 ✅
-- MyPage.jsx API 연결 ✅
-- Notifications.jsx API 연결 ✅
-- Settings.jsx 페이지 ✅
-- 배지 자동 지급 로직 ✅ (BadgeService — 휴식기록 1/10/30/50/100회)
-
-### Phase 6 — 관리자 / 배포
-- 관리자 API 전체 ✅
-- audit_logs ✅
-- 금칙어 필터링 (blocked_keywords, 소프트 hidden 처리) ✅
-- 사용자 상태변경 시 알림 자동 발송 ✅
-- 신고 기능 (ReportController, ReportModal) ✅
-- analytics_events 이벤트 수집 (@Async, AnalyticsService) ✅
+### Phase 6 — 배포 (미완)
 - **배포** — Google Cloud Run + Cloud SQL + Cloud Storage → **미완** ⬅️ 유일한 미완 항목
 - 모바일 반응형 → 데스크탑 전용으로 개발 범위 제외
 
-### Phase 7 — 2차 MVP ✅ 완료
-- 커뮤니티 게시글/댓글/공감/신고 ✅
-- 챌린지 참여/인증/사진업로드 ✅
-- analytics_events 이벤트 로깅 ✅
-
-> 📅 마지막 작업: 2026-03-24
+> 📅 마지막 작업: 2026-03-27
 
 ---
 
