@@ -53,6 +53,29 @@ public class RecommendationService {
             "sensory",   10    // 카페·분위기 있는 공간
     );
 
+    // ─── 스트레스 레벨별 휴식 유형 가중치 조정값 ─────────────────────────────
+    // 높음(70+): 회복형(emotional·mental·nature·sensory) 강화, 활동형(social·physical) 감소
+    // 보통(40~69): 회복형 약간 강화
+    // 낮음(~39): 사교·창조형 강화
+    private static final Map<String, Integer> STRESS_HIGH_BOOST = Map.of(
+            "emotional", 15,
+            "mental",    12,
+            "nature",    10,
+            "sensory",    8,
+            "social",   -10,
+            "physical",  -8
+    );
+    private static final Map<String, Integer> STRESS_MID_BOOST = Map.of(
+            "emotional",  5,
+            "mental",     5,
+            "nature",     5
+    );
+    private static final Map<String, Integer> STRESS_LOW_BOOST = Map.of(
+            "social",    8,
+            "creative",  8,
+            "physical",  5
+    );
+
     /**
      * 진단 결과 기반 추천 생성 (날씨·시간대 보정 포함)
      *
@@ -88,8 +111,13 @@ public class RecommendationService {
         // 개인 최적 패턴 — 현재 요일·시간대에 이 사람에게 가장 효과적인 유형
         Map<String, Double> patternBoostMap = buildPatternBoostMap(쉼표번호, weather.hour());
 
-        // 날씨·시간대 + 개인 이력 + 협업 필터링 + 패턴 학습 보정이 반영된 상위 3개 유형 선정
-        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, personalBoostMap, collabBoostMap, patternBoostMap)
+        // 스트레스 레벨 계산: diagnosis.stressIndex + 최신 PSS-10 점수 결합
+        int stressLevel = calcCombinedStress(diagnosis.getStressIndex(), diagnosisMapper.findLatestPssScore(쉼표번호));
+        log.info("스트레스 레벨: {} (stressIndex={}, pss={})", stressLevel, diagnosis.getStressIndex(),
+                diagnosisMapper.findLatestPssScore(쉼표번호));
+
+        // 날씨·시간대 + 스트레스 + 개인 이력 + 협업 필터링 + 패턴 학습 보정이 반영된 상위 3개 유형 선정
+        List<RestTypeScore> topTypes = applyWeatherBoost(scores, weather, stressLevel, personalBoostMap, collabBoostMap, patternBoostMap)
                 .stream()
                 .limit(3)
                 .toList();
@@ -102,7 +130,7 @@ public class RecommendationService {
                 rec.set쉼표번호(쉼표번호);
                 rec.setDiagnosisResultId(diagnosisResultId);
                 rec.setPlaceId(place.getId());
-                rec.setCriteria(buildCriteria(typeScore, weather, personalBoostMap, collabBoostMap, patternBoostMap));
+                rec.setCriteria(buildCriteria(typeScore, weather, stressLevel, personalBoostMap, collabBoostMap, patternBoostMap));
                 rec.setClicked(false);
                 rec.setSaved(false);
                 rec.setRecommendedAt(LocalDateTime.now());
@@ -124,7 +152,7 @@ public class RecommendationService {
      *   4. 개인 최적 패턴 (요일×시간대 학습)
      */
     private List<RestTypeScore> applyWeatherBoost(
-            List<RestTypeScore> scores, WeatherContext weather,
+            List<RestTypeScore> scores, WeatherContext weather, int stressLevel,
             Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap,
             Map<String, Double> patternBoostMap) {
 
@@ -133,6 +161,10 @@ public class RecommendationService {
             case CLOUDY -> Map.of("nature", -10, "physical", -5);
             case CLEAR  -> CLEAR_BOOST;
         };
+
+        Map<String, Integer> stressBoost = stressLevel >= 70 ? STRESS_HIGH_BOOST
+                : stressLevel >= 40 ? STRESS_MID_BOOST
+                : STRESS_LOW_BOOST;
 
         List<RestTypeScore> adjusted = new ArrayList<>();
         for (RestTypeScore original : scores) {
@@ -152,6 +184,9 @@ public class RecommendationService {
                 boost += EVENING_BOOST.getOrDefault(copy.getRestType(), 0);
             }
 
+            // 스트레스 레벨 보정
+            boost += stressBoost.getOrDefault(copy.getRestType(), 0);
+
             // 개인 효과 이력 보정 (최근 30일)
             boost += personalBoostMap.getOrDefault(copy.getRestType(), 0.0).intValue();
 
@@ -167,6 +202,15 @@ public class RecommendationService {
 
         adjusted.sort(Comparator.comparingInt(RestTypeScore::getScore).reversed());
         return adjusted;
+    }
+
+    /** stressIndex(0~100)와 PSS-10 점수(0~40)를 결합해 최종 스트레스 레벨(0~100) 반환 */
+    private int calcCombinedStress(Integer stressIndex, Integer pssScore) {
+        if (stressIndex == null && pssScore == null) return 0;
+        if (stressIndex == null) return pssScore * 25 / 10; // 0~40 → 0~100
+        if (pssScore == null) return stressIndex;
+        int pssNormalized = pssScore * 100 / 40; // 0~40 → 0~100
+        return (stressIndex + pssNormalized) / 2;
     }
 
     /**
@@ -278,13 +322,15 @@ public class RecommendationService {
      * 추천 기준 문자열 — recommendations.criteria 컬럼에 저장
      * 모든 보정 레이어 적용 내역을 기록 (추후 통계/디버깅에 활용)
      */
-    private String buildCriteria(RestTypeScore typeScore, WeatherContext weather,
+    private String buildCriteria(RestTypeScore typeScore, WeatherContext weather, int stressLevel,
                                   Map<String, Double> personalBoostMap, Map<String, Double> collabBoostMap,
                                   Map<String, Double> patternBoostMap) {
         StringBuilder sb = new StringBuilder();
         sb.append(typeScore.getRestType())
           .append(" 유형 매칭 (점수: ").append(typeScore.getScore()).append(")")
-          .append(" | 날씨: ").append(weather.describe());
+          .append(" | 날씨: ").append(weather.describe())
+          .append(" | 스트레스: ").append(stressLevel >= 70 ? "높음" : stressLevel >= 40 ? "보통" : "낮음")
+          .append("(").append(stressLevel).append(")");
 
         Double personalBoost = personalBoostMap.get(typeScore.getRestType());
         if (personalBoost != null && personalBoost != 0.0) {

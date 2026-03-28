@@ -8,8 +8,8 @@
 
     <insert id="insertSession" parameterType="com.comma.domain.diagnosis.model.MeasurementSession"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO measurement_sessions (`쉼표번호`, started_at, device_type)
-        VALUES (#{쉼표번호}, #{startedAt}, #{deviceType})
+        INSERT INTO measurement_sessions (`쉼표번호`, started_at, device_type, pss_score)
+        VALUES (#{쉼표번호}, #{startedAt}, #{deviceType}, #{pssScore})
     </insert>
 
     <update id="updateSessionEnd">
@@ -91,6 +91,17 @@
         FROM rest_type_scores
         WHERE diagnosis_result_id = #{diagnosisResultId}
         ORDER BY ranking
+    </select>
+
+    <!-- 최신 PSS-10 점수 조회 -->
+    <select id="findLatestPssScore" resultType="java.lang.Integer">
+        SELECT pss_score
+        FROM measurement_sessions
+        WHERE `쉼표번호` = #{쉼표번호}
+          AND device_type = 'pss-survey'
+          AND pss_score IS NOT NULL
+        ORDER BY started_at DESC
+        LIMIT 1
     </select>
 
     <!--

@@ -25,10 +25,16 @@ public class DiagnosisService {
 
     @Transactional
     public MeasurementSession startSession(String 쉼표번호, String deviceType) {
+        return startSession(쉼표번호, deviceType, null);
+    }
+
+    @Transactional
+    public MeasurementSession startSession(String 쉼표번호, String deviceType, Integer pssScore) {
         MeasurementSession session = new MeasurementSession();
         session.set쉼표번호(쉼표번호);
         session.setStartedAt(LocalDateTime.now());
         session.setDeviceType(deviceType);
+        session.setPssScore(pssScore);
         diagnosisMapper.insertSession(session);
         return session;
     }

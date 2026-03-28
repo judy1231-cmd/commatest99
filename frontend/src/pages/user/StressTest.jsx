@@ -73,7 +73,7 @@ function StressTest() {
       try {
         await fetchWithAuth('/api/diagnosis/sessions/start', {
           method: 'POST',
-          body: JSON.stringify({ deviceType: 'pss-survey' }),
+          body: JSON.stringify({ deviceType: 'pss-survey', pssScore: totalScore }),
         });
       } catch {
         // 저장 실패해도 결과는 보여줌
