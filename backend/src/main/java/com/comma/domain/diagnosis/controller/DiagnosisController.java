@@ -36,10 +36,13 @@ public class DiagnosisController {
     @PostMapping("/sessions/start")
     public ResponseEntity<ApiResponse<MeasurementSession>> startSession(
             HttpServletRequest request,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, Object> body) {
         String 쉼표번호 = (String) request.getAttribute("쉼표번호");
-        String deviceType = body.getOrDefault("deviceType", "manual");
-        MeasurementSession session = diagnosisService.startSession(쉼표번호, deviceType);
+        String deviceType = body.getOrDefault("deviceType", "manual") != null
+                ? body.getOrDefault("deviceType", "manual").toString() : "manual";
+        Integer pssScore = body.get("pssScore") != null
+                ? ((Number) body.get("pssScore")).intValue() : null;
+        MeasurementSession session = diagnosisService.startSession(쉼표번호, deviceType, pssScore);
         return ResponseEntity.ok(ApiResponse.ok(session, "측정 세션이 시작되었습니다."));
     }
 

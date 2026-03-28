@@ -46,6 +46,9 @@ public interface DiagnosisMapper {
 
     List<RestTypeScore> findScoresByDiagnosisId(@Param("diagnosisResultId") Long diagnosisResultId);
 
+    /** 가장 최근 PSS-10 점수 조회 (pss-survey 세션 중 pss_score가 있는 것) */
+    Integer findLatestPssScore(@Param("쉼표번호") String 쉼표번호);
+
     /**
      * 스트레스 패턴 감지용 — 스트레스 지수 평균이 기준 이상인 사용자 목록 조회
      * 최근 N회 진단 기준, 중복 알림 방지를 위해 24시간 내 stress 알림이 없는 사용자만 반환
