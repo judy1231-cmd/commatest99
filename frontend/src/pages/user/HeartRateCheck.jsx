@@ -449,20 +449,20 @@ function HeartRateCheck() {
                 <li className="flex gap-3">
                   <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-200">단축어 앱 → 새 단축어 만들기</p>
-                    <p className="text-xs text-slate-500 mt-0.5">iPhone 「단축어」앱 → 우측 상단 「+」</p>
+                    <p className="text-sm font-semibold text-slate-200">단축어 앱 열고 새 단축어 만들기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">iPhone 홈 화면에서 「단축어」앱 실행 → 우측 상단 「+」버튼 탭</p>
                   </div>
                 </li>
                 {/* 2 */}
                 <li className="flex gap-3">
                   <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-200">심박수 읽기</p>
-                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플 찾기」</p>
+                    <p className="text-sm font-semibold text-slate-200">Apple Watch 심박수 읽어오기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」탭 → 검색창에 <span className="text-white font-bold">건강 샘플 찾기</span> 입력 → 선택</p>
                     <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
-                      <p>• 유형 → 심박수</p>
-                      <p>• 정렬 기준 → 최신 항목</p>
-                      <p>• 제한 → 1</p>
+                      <p>• <span className="text-slate-300">유형</span> → <span className="text-emerald-400">심박수</span> 로 변경</p>
+                      <p>• <span className="text-slate-300">정렬 기준</span> → <span className="text-emerald-400">최신 항목</span></p>
+                      <p>• <span className="text-slate-300">제한</span> → <span className="text-emerald-400">1</span> (가장 최근 1개만)</p>
                     </div>
                   </div>
                 </li>
@@ -470,10 +470,11 @@ function HeartRateCheck() {
                 <li className="flex gap-3">
                   <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-200">숫자만 추출</p>
-                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「건강 샘플의 세부 사항 가져오기」</p>
+                    <p className="text-sm font-semibold text-slate-200">심박수 숫자만 꺼내기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」탭 → 검색창에 <span className="text-white font-bold">건강 샘플의 세부사항</span> 입력 → 선택</p>
                     <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-1">
-                      <p>• 세부 사항 항목 → 심박수 선택</p>
+                      <p>• <span className="text-slate-300">세부사항 항목</span> → <span className="text-emerald-400">심박수</span> 선택</p>
+                      <p className="text-slate-500">↑ 이 동작이 2번에서 가져온 심박수를 숫자로 바꿔줘요</p>
                     </div>
                   </div>
                 </li>
@@ -481,11 +482,12 @@ function HeartRateCheck() {
                 <li className="flex gap-3">
                   <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">4</span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-200">URL 내용 가져오기</p>
-                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」→ 「URL 내용 가져오기」</p>
+                    <p className="text-sm font-semibold text-slate-200">심박수를 쉼표 서버로 전송하기</p>
+                    <p className="text-xs text-slate-500 mt-0.5">「동작 추가」탭 → 검색창에 <span className="text-white font-bold">URL 내용 가져오기</span> 입력 → 선택</p>
                     <div className="mt-2 bg-slate-900/50 rounded-lg p-2.5 text-xs text-slate-400 space-y-2">
-                      <p>• 방법: <span className="text-emerald-400 font-bold">GET</span></p>
-                      <p>• URL 칸에 아래 주소 붙여넣기 후, 끝의 <span className="text-amber-400">bpm=</span> 뒤에 3번 단계의 「세부사항」변수 연결</p>
+                      <p>• <span className="text-slate-300">방법</span> → <span className="text-emerald-400 font-bold">GET</span> 으로 설정</p>
+                      <p>• URL 칸에 아래 주소 복사해서 붙여넣기</p>
+                      <p className="text-amber-400">★ 붙여넣은 후 맨 끝 <span className="font-bold">bpm=</span> 뒤에 커서를 놓고, 3번에서 생성된 <span className="font-bold">「세부사항」</span> 변수를 탭해서 연결!</p>
                       {prefilledUrl ? (
                         <div className="mt-1 bg-slate-800 rounded-lg p-2 flex items-center gap-2">
                           <code className="text-[11px] text-slate-300 break-all flex-1 font-mono leading-relaxed">
@@ -510,16 +512,16 @@ function HeartRateCheck() {
                 <li className="flex gap-3">
                   <span className="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">5</span>
                   <div>
-                    <p className="text-sm font-semibold text-slate-200">저장 후 실행!</p>
-                    <p className="text-xs text-slate-500 mt-0.5">「완료」→ 이름: 「심박수 전송」→ ▶ 실행</p>
+                    <p className="text-sm font-semibold text-slate-200">단축어 저장하고 실행!</p>
+                    <p className="text-xs text-slate-500 mt-0.5">우측 상단 「완료」→ 이름을 <span className="text-white">심박수 전송</span> 으로 저장 → ▶ 실행 버튼 탭</p>
                   </div>
                 </li>
               </ol>
               <div className="mt-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3">
-                <p className="text-xs font-bold text-emerald-400 mb-1">💡 이렇게 사용해요</p>
+                <p className="text-xs font-bold text-emerald-400 mb-1">💡 실제 사용 순서</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  웹에서 「측정 시작」→ Apple Watch로 심박수 측정 후 iPhone 단축어 실행
-                  (10~20초 간격으로 반복) → 웹에서 BPM 실시간 업데이트 확인
+                  ① 이 화면에서 「측정 시작」 → ② Apple Watch로 심박수 측정 (자연스럽게 착용) →
+                  ③ iPhone에서 「심박수 전송」단축어 실행 → ④ 10~20초마다 반복 실행하면 위 그래프가 업데이트돼요
                 </p>
               </div>
             </div>
