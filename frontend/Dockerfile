@@ -15,9 +15,13 @@ WORKDIR /usr/share/nginx/html
 # React 빌드 결과물 복사
 COPY --from=builder /app/build .
 
-# Nginx 설정 복사 (SPA 라우팅 + API 프록시)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Nginx 설정 템플릿 복사 (BACKEND_URL 환경변수 주입용)
+COPY nginx.conf /etc/nginx/templates/default.conf
+
+# 엔트리포인트 스크립트 복사
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]

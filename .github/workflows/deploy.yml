@@ -1,0 +1,118 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+
+env:
+  PROJECT_ID: project-db4fa698-e3bc-4f26-9a4
+  REGION: asia-northeast3
+
+jobs:
+  deploy-backend:
+    name: 백엔드 배포
+    runs-on: ubuntu-latest
+    outputs:
+      backend_url: ${{ steps.get-url.outputs.url }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: GCP 인증
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/603087254087/locations/global/workloadIdentityPools/github-actions-pool/providers/github
+          service_account: 603087254087-compute@developer.gserviceaccount.com
+
+      - name: gcloud 설정
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 백엔드 Cloud Run 배포
+        run: |
+          gcloud run deploy comma-backend \
+            --source ./backend \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --set-cloudsql-instances ${{ secrets.INSTANCE_CONNECTION_NAME }} \
+            --set-env-vars "INSTANCE_CONNECTION_NAME=${{ secrets.INSTANCE_CONNECTION_NAME }},DB_NAME=comma_db,DB_USERNAME=commatest,DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},REDIS_HOST=${{ secrets.REDIS_HOST }},REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }},MAIL_USERNAME=noreply@comma.com,MAIL_PASSWORD=dummy" \
+            --project ${{ env.PROJECT_ID }}
+
+      - name: 백엔드 URL 가져오기
+        id: get-url
+        run: |
+          URL=$(gcloud run services describe comma-backend \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' \
+            --project ${{ env.PROJECT_ID }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ 백엔드 URL: $URL"
+
+      - name: APP_BASE_URL 업데이트
+        run: |
+          gcloud run services update comma-backend \
+            --region ${{ env.REGION }} \
+            --update-env-vars "APP_BASE_URL=${{ steps.get-url.outputs.url }}" \
+            --project ${{ env.PROJECT_ID }}
+
+  deploy-frontend:
+    name: 프론트엔드 배포
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: GCP 인증
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/603087254087/locations/global/workloadIdentityPools/github-actions-pool/providers/github
+          service_account: 603087254087-compute@developer.gserviceaccount.com
+
+      - name: gcloud 설정
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 프론트엔드 Cloud Run 배포
+        run: |
+          gcloud run deploy comma-frontend \
+            --source ./frontend \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 80 \
+            --set-env-vars "BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}" \
+            --project ${{ env.PROJECT_ID }}
+
+      - name: 프론트엔드 URL 가져오기
+        id: get-url
+        run: |
+          URL=$(gcloud run services describe comma-frontend \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' \
+            --project ${{ env.PROJECT_ID }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ 프론트엔드 URL: $URL"
+
+      - name: 백엔드에 APP_FRONT_URL 업데이트
+        run: |
+          gcloud run services update comma-backend \
+            --region ${{ env.REGION }} \
+            --update-env-vars "APP_FRONT_URL=${{ steps.get-url.outputs.url }}" \
+            --project ${{ env.PROJECT_ID }}
+
+      - name: 배포 완료
+        run: |
+          echo "🎉 배포 완료!"
+          echo "프론트: ${{ steps.get-url.outputs.url }}"
+          echo "백엔드: ${{ needs.deploy-backend.outputs.backend_url }}"
