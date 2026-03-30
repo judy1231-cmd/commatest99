@@ -67,6 +67,11 @@ claude:
     key: ${CLAUDE_API_KEY:}
   model: claude-sonnet-4-20250514
 
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${GOOGLE_REDIRECT_URI}
+
 logging:
   level:
     com.comma: INFO
