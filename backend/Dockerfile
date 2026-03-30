@@ -3,7 +3,7 @@ FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app
 
 # Gradle 캐시 레이어 최적화 (의존성만 먼저 복사)
-COPY gradlew build.gradle gradle/ ./
+COPY gradlew build.gradle settings.gradle gradle/ ./
 RUN chmod +x gradlew && ./gradlew dependencies --no-daemon || true
 
 COPY src ./src
