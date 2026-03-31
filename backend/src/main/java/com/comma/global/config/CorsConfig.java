@@ -16,7 +16,11 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
         // "/api/"로 시작하는 모든 경로에 CORS 규칙을 적용한다.
-                .allowedOrigins("http://localhost:3000", "http://localhost:5173")
+                .allowedOrigins(
+                        "http://localhost:3000",
+                        "http://localhost:5173",
+                        "https://comma-frontend-vk2f52bhtq-du.a.run.app"
+                )
                 // 이 출처(origin)에서 오는 요청만 허용한다.
                 // 3000: React 기본 개발서버 포트
                 // 5173: Vite 기반 개발서버 포트 (혹시 Vite 쓸 경우 대비)
